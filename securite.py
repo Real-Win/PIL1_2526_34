@@ -10,7 +10,7 @@ def connexion_bdd():
             host="localhost",
             database="mentorlink_bd",
             user="postgres",
-            password= "    ",
+            password="    ",
             cursor_factory=RealDictCursor
         )
         return conn
@@ -28,7 +28,7 @@ def inscrire_etudiant(nom, prenom, email, telephone, filiere, role, mot_de_passe
     try:
         with conn.cursor() as cursor:
             sql = """
-                INSERT INTO users (nom, prenom, email, telephone, filiere, role, password_hash)
+                INSERT INTO public.users (nom, prenom, email, telephone, filiere, role, password_hash)
                 VALUES (%s, %s, %s, %s, %s, %s, %s);
             """
             cursor.execute(sql, (nom, prenom, email, telephone, filiere, role, password_hash))
@@ -51,7 +51,7 @@ def verifier_connexion(email, mot_de_passe_saisi):
     
     try:
         with conn.cursor() as cursor:
-            sql = "SELECT * FROM users WHERE email = %s;"
+            sql = "SELECT * FROM public.users WHERE email = %s;"
             cursor.execute(sql, (email,))
             user = cursor.fetchone()
             
