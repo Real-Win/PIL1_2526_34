@@ -2,6 +2,11 @@ DROP TABLE IF EXISTS sessions CASCADE;
 DROP TABLE IF EXISTS demandes_mentorat CASCADE;
 DROP TABLE IF EXISTS disponibilites CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
+DROP TABLE IF EXISTS competences CASCADE;
+DROP TABLE IF EXISTS disponibilites CASCADE;
+DROP TABLE IF EXISTS users CASCADE;
+DROP TABLE IF EXISTS user_competences CASCADE;
+DROP TABLE IF EXISTS messages CASCADE;
 
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
@@ -13,6 +18,8 @@ CREATE TABLE users (
     role VARCHAR(20) NOT NULL DEFAULT 'etudiant',
     password_hash VARCHAR(255) NOT NULL,
     date_inscription TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    photo_profil VARCHAR(255),
+    bio TEXT,
 );
 
 CREATE TABLE disponibilites (
@@ -41,4 +48,37 @@ CREATE TABLE sessions (
     heure_fin TIME NOT NULL,
     lien_virtuel VARCHAR(255),        
     notes TEXT                        
+);
+
+CREATE TABLE competences (
+    id SERIAL PRIMARY KEY,
+    nom VARCHAR(100) NOT NULL UNIQUE
+);
+
+CREATE TABLE user_competences (
+    user_id INT REFERENCES users(id) ON DELETE CASCADE,
+    competence_id INT REFERENCES competences(id) ON DELETE CASCADE,
+    niveau VARCHAR(20) DEFAULT 'debutant',
+
+    PRIMARY KEY (user_id, competence_id)
+);
+
+CREATE TABLE user_competences (
+    user_id INT REFERENCES users(id) ON DELETE CASCADE,
+    competence_id INT REFERENCES competences(id) ON DELETE CASCADE,
+    niveau VARCHAR(20) DEFAULT 'debutant',
+
+    PRIMARY KEY (user_id, competence_id)
+);
+
+CREATE TABLE messages (
+    id SERIAL PRIMARY KEY,
+
+    sender_id INT REFERENCES users(id) ON DELETE CASCADE,
+    receiver_id INT REFERENCES users(id) ON DELETE CASCADE,
+
+    contenu TEXT NOT NULL,
+    lu BOOLEAN DEFAULT FALSE,
+
+    date_envoi TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
