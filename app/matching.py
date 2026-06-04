@@ -7,16 +7,15 @@ SEUIL_MATCH = 60
 # COMPÉTENCES (sur 50)
 # -------------------------
 def calculer_score_competences(faiblesses_mentore, forces_mentor):
-    n = len(faiblesses_mentore)
-    if n == 0:
+    if not faiblesses_mentore:
         return 0
 
     K = len(set(faiblesses_mentore) & set(forces_mentor))
-    return (K / n) * 50
+    return (K / len(faiblesses_mentore)) * 50
 
 
 # -------------------------
-# OVERLAP HEURES (en secondes)
+# OVERLAP HEURES
 # -------------------------
 def overlap(debut1, fin1, debut2, fin2):
     debut = max(debut1, debut2)
@@ -37,11 +36,9 @@ def calculer_score_disponibilite(dispo_mentore, dispo_mentor):
     for jour_m, hdm, hfm in dispo_mentore:
         for jour_M, hdM, hfM in dispo_mentor:
 
-            # jours différents → pas de match
             if jour_m != jour_M:
                 continue
 
-            # conversion heures
             hdm = datetime.strptime(hdm, "%H:%M")
             hfm = datetime.strptime(hfm, "%H:%M")
             hdM = datetime.strptime(hdM, "%H:%M")
@@ -50,21 +47,18 @@ def calculer_score_disponibilite(dispo_mentore, dispo_mentor):
             chevauchement = overlap(hdm, hfm, hdM, hfM)
 
             if chevauchement > 0:
-                duree_mentore = (hfm - hdm).seconds
-
-                if duree_mentore == 0:
+                duree = (hfm - hdm).seconds
+                if duree == 0:
                     continue
 
-                score = (chevauchement / duree_mentore) * 30
-
-                if score > meilleur_score:
-                    meilleur_score = score
+                score = (chevauchement / duree) * 30
+                meilleur_score = max(meilleur_score, score)
 
     return meilleur_score
 
 
 # -------------------------
-# SCORE TOTAL / MATCH
+# SCORE TOTAL
 # -------------------------
 def calculer_match(mentore, mentor):
     score_comp = calculer_score_competences(
@@ -77,13 +71,14 @@ def calculer_match(mentore, mentor):
         mentor["disponibilites"]
     )
 
-    score_total = score_comp + score_time + 20  # filière fixe (1ère année)
+    # ⚠️ correction importante : pas de bonus fixe
+    score_total = score_comp + score_time
 
     return score_total
 
 
 # -------------------------
-# QUALITÉ DU MATCH
+# QUALITÉ MATCH
 # -------------------------
 def quality_match(mentore, mentor):
     score = calculer_match(mentore, mentor)
@@ -95,7 +90,7 @@ def quality_match(mentore, mentor):
 
 
 # -------------------------
-# TOP 3 MENTORS
+# TOP 3
 # -------------------------
 def get_top_mentors(mentore, liste_mentors):
     resultats = []
@@ -108,6 +103,4 @@ def get_top_mentors(mentore, liste_mentors):
             "score": score
         })
 
-    resultats.sort(key=lambda x: x["score"], reverse=True)
-
-    return resultats[:3]
+    return sorted(resultats, key=lambda x: x["score"], reverse=True)[:3]
