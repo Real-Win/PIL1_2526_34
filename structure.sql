@@ -1,27 +1,44 @@
+DROP TABLE IF EXISTS sessions CASCADE;
+DROP TABLE IF EXISTS demandes_mentorat CASCADE;
+DROP TABLE IF EXISTS disponibilites CASCADE;
+DROP TABLE IF EXISTS users CASCADE;
+
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
     nom VARCHAR(50) NOT NULL,
+    prenom VARCHAR(50) NOT NULL,
     email VARCHAR(100) NOT NULL UNIQUE,
     telephone VARCHAR(20) NOT NULL UNIQUE,
-    filiere VARCHAR(10) NOT NULL,
+    filiere VARCHAR(100) NOT NULL,
+    role VARCHAR(20) NOT NULL DEFAULT 'etudiant',
     password_hash VARCHAR(255) NOT NULL,
-    bio TEXT
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    date_inscription TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE skills (
+CREATE TABLE disponibilites (
     id SERIAL PRIMARY KEY,
-    nom_matiere VARCHAR(100) NOT NULL UNIQUE,
+    user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    jour_semaine VARCHAR(15) NOT NULL,
+    heure_debut TIME NOT NULL,
+    heure_fin TIME NOT NULL,
+    CONSTRAINT unique_creneau_mentor UNIQUE(user_id, jour_semaine, heure_debut, heure_fin)
 );
 
-CREATE TABLE user_mentors (
-    user_id INT REFERENCES users(id) ON DELETE CASCADE,
-    skill_id INT REFERENCES skills(id) ON DELETE CASCADE,
-    PRIMARY KEY(user_id,skill_id)
+CREATE TABLE demandes_mentorat (
+    id SERIAL PRIMARY KEY,
+    etudiant_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    mentor_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    sujet_aide TEXT NOT NULL,         
+    statut VARCHAR(20) NOT NULL DEFAULT 'en_attente',
+    date_demande TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE user_mentees (
-    user_id INT REFERENCES users(id) ON DELETE CASCADE,
-    skill_id INT REFERENCES skills(id) ON DELETE CASCADE,
-    PRIMARY KEY(user_id,skill_id)
+CREATE TABLE sessions (
+    id SERIAL PRIMARY KEY,
+    demande_id INT NOT NULL REFERENCES demandes_mentorat(id) ON DELETE CASCADE,
+    date_session DATE NOT NULL,
+    heure_debut TIME NOT NULL,
+    heure_fin TIME NOT NULL,
+    lien_virtuel VARCHAR(255),        
+    notes TEXT                        
 );
