@@ -10,5 +10,5 @@ class Config:
     MYSQL_DB = 'ifri_mentorlink'
     
     # SQLAlchemy
-    SQLALCHEMY_DATABASE_URI = f'mysql+pymysql://root:Christ@localhost/ifri_mentorlink'
+    SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:Christ@localhost/ifri_mentorlink'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
