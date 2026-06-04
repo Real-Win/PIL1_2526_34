@@ -54,17 +54,18 @@ Ce projet vise à :
 ---
 
 ## 📁 Structure du projet
+```
 IFRI_MentorLink/
 │
 ├── __pycache__
-├── app/ # Code principal backend
-├── config.py # Configuration de l’application
-├── run.py # Point d’entrée du serveur
-├── requirements.txt # Dépendances Python
-├── venv/ # Environnement virtuel (non versionné)
-├── .gitignore # Fichiers ignorés par Git
+├── app/                # Code principal backend
+├── config.py           # Configuration de l’application
+├── run.py              # Point d’entrée du serveur
+├── requirements.txt    # Dépendances Python
+├── venv/               # Environnement virtuel (non versionné)
+├── .gitignore          # Fichiers ignorés par Git
 └── README.md
-
+```
 
 ---
 
