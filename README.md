@@ -88,7 +88,7 @@ python run.py
 
 ### ✍️ Auteur
 
-God Win FADONOUGBO — Responsable du groupe 34
+God Win FADONOUGBO — Responsable du groupe 34 : RISING MINDS
 Projet académique IFRI - 2025-2026
 Université d’Abomey-Calavi
 
