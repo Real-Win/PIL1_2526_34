@@ -8,21 +8,19 @@ db = SQLAlchemy()
 login_manager = LoginManager()
 bcrypt = Bcrypt()
 
+
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
-    
-    # Initialisation des extensions
+
     db.init_app(app)
     login_manager.init_app(app)
     bcrypt.init_app(app)
-    
-    # Page de redirection si non connecté
+
     login_manager.login_view = 'auth.login'
-    
-    # Enregistrement des blueprints
-    from app.routes import auth, main
-    app.register_blueprint(auth)
-    app.register_blueprint(main)
-    
+
+    # seulement matching pour l'instant
+    from app.routes import matching_bp
+    app.register_blueprint(matching_bp)
+
     return app
