@@ -74,7 +74,7 @@ IFRI_MentorLink/
 ### 1. Cloner le projet
 
 ``bash
-git clone https://github.com/TON-USERNAME/IFRI_MentorLink.git
+git clone https://github.com/Real-Win/IFRI_MentorLink.git
 cd IFRI_MentorLink
 
 ### 2. Activer l’environnement virtuel
