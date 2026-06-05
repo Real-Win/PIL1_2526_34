@@ -5,7 +5,7 @@ SEUIL_MATCH = 60
 
 # -------------------------
 # COMPÉTENCES (sur 50)
-# ------------------------
+# -------------------------
 def calculer_score_competences(mentore, mentor):
     """
     Compare les compétences du mentoré
@@ -38,8 +38,7 @@ def overlap(debut1, fin1, debut2, fin2):
 
 # -------------------------
 # DISPONIBILITÉ (sur 30)
-# -----------------------
-
+# -------------------------
 def calculer_score_disponibilite(mentore, mentor):
 
     meilleur_score = 0
@@ -95,9 +94,7 @@ def calculer_score_disponibilite(mentore, mentor):
 
 
 
-
-# -------------------------
-
+# ------------------------
 # FILIÈRE (sur 20)
 # -------------------------
 def calculer_score_filiere(mentore, mentor):
@@ -141,7 +138,7 @@ def calculer_match(mentore, mentor):
 # QUALITÉ MATCH
 # -------------------------
 def quality_match(mentore, mentor):
-  
+
     score = calculer_match(mentore, mentor)
 
     return {
