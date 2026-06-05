@@ -17,10 +17,11 @@ def create_app():
     login_manager.init_app(app)
     bcrypt.init_app(app)
 
-    login_manager.login_view = 'auth.login'
+    login_manager.login_view = 'auth.connexion'
 
-    # seulement matching pour l'instant
-    from app.routes import matching_bp
+    # Enregistrement des blueprints
+    from app.routes import matching_bp, auth_bp
     app.register_blueprint(matching_bp)
+    app.register_blueprint(auth_bp)
 
     return app
