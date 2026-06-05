@@ -6,17 +6,25 @@ SEUIL_MATCH = 60
 # -------------------------
 # COMPÉTENCES (sur 50)
 # -------------------------
-def calculer_score_competences(faiblesses_mentore, forces_mentor):
-    n = len(faiblesses_mentore)
-    if n == 0:
+def calculer_score_competences(mentore, mentor):
+    """
+    Compare les compétences du mentoré
+    avec celles du mentor.
+    """
+
+    competences_mentore = {c.nom for c in mentore.competences}
+    competences_mentor = {c.nom for c in mentor.competences}
+
+    if not competences_mentore:
         return 0
 
-    K = len(set(faiblesses_mentore) & set(forces_mentor))
-    return (K / n) * 50
+    communes = competences_mentore & competences_mentor
+
+    return (len(communes) / len(competences_mentore)) * 50
 
 
 # -------------------------
-# OVERLAP HEURES (en secondes)
+# OVERLAP HEURES
 # -------------------------
 def overlap(debut1, fin1, debut2, fin2):
     debut = max(debut1, debut2)
@@ -31,61 +39,106 @@ def overlap(debut1, fin1, debut2, fin2):
 # -------------------------
 # DISPONIBILITÉ (sur 30)
 # -------------------------
-def calculer_score_disponibilite(dispo_mentore, dispo_mentor):
+def calculer_score_disponibilite(mentore, mentor):
+
     meilleur_score = 0
 
-    for jour_m, hdm, hfm in dispo_mentore:
-        for jour_M, hdM, hfM in dispo_mentor:
+    for dispo_m in mentore.disponibilites:
+        for dispo_M in mentor.disponibilites:
 
-            # jours différents → pas de match
-            if jour_m != jour_M:
+            if dispo_m.jour_semaine != dispo_M.jour_semaine:
                 continue
 
-            # conversion heures
-            hdm = datetime.strptime(hdm, "%H:%M")
-            hfm = datetime.strptime(hfm, "%H:%M")
-            hdM = datetime.strptime(hdM, "%H:%M")
-            hfM = datetime.strptime(hfM, "%H:%M")
+            hdm = datetime.strptime(
+                dispo_m.heure_debut.strftime("%H:%M"),
+                "%H:%M"
+            )
 
-            chevauchement = overlap(hdm, hfm, hdM, hfM)
+            hfm = datetime.strptime(
+                dispo_m.heure_fin.strftime("%H:%M"),
+                "%H:%M"
+            )
+
+            hdM = datetime.strptime(
+                dispo_M.heure_debut.strftime("%H:%M"),
+                "%H:%M"
+            )
+
+            hfM = datetime.strptime(
+                dispo_M.heure_fin.strftime("%H:%M"),
+                "%H:%M"
+            )
+
+            chevauchement = overlap(
+                hdm,
+                hfm,
+                hdM,
+                hfM
+            )
 
             if chevauchement > 0:
-                duree_mentore = (hfm - hdm).seconds
 
-                if duree_mentore == 0:
+                duree = (hfm - hdm).seconds
+
+                if duree == 0:
                     continue
 
-                score = (chevauchement / duree_mentore) * 30
+                score = (chevauchement / duree) * 30
 
-                if score > meilleur_score:
-                    meilleur_score = score
+                meilleur_score = max(
+                    meilleur_score,
+                    score
+                )
 
     return meilleur_score
 
 
+
+# ------------------------
+# FILIÈRE (sur 20)
 # -------------------------
-# SCORE TOTAL / MATCH
+def calculer_score_filiere(mentore, mentor):
+
+    if mentore.filiere == mentor.filiere:
+        return 20
+
+    return 10
+
+
+# -------------------------
+# SCORE TOTAL
 # -------------------------
 def calculer_match(mentore, mentor):
+
     score_comp = calculer_score_competences(
-        mentore["faiblesses"],
-        mentor["forces"]
+        mentore,
+        mentor
     )
 
-    score_time = calculer_score_disponibilite(
-        mentore["disponibilites"],
-        mentor["disponibilites"]
+    score_dispo = calculer_score_disponibilite(
+        mentore,
+        mentor
     )
 
-    score_total = score_comp + score_time + 20  # filière fixe (1ère année)
+    score_filiere = calculer_score_filiere(
+        mentore,
+        mentor
+    )
 
-    return score_total
+    score_total = (
+        score_comp
+        + score_dispo
+        + score_filiere
+    )
+
+    return round(score_total, 2)
 
 
 # -------------------------
-# QUALITÉ DU MATCH
+# QUALITÉ MATCH
 # -------------------------
 def quality_match(mentore, mentor):
+
     score = calculer_match(mentore, mentor)
 
     return {
@@ -97,17 +150,28 @@ def quality_match(mentore, mentor):
 # -------------------------
 # TOP 3 MENTORS
 # -------------------------
-def get_top_mentors(mentore, liste_mentors):
+def get_top_mentors(
+    mentore,
+    liste_mentors
+):
+
     resultats = []
 
     for mentor in liste_mentors:
-        score = calculer_match(mentore, mentor)
+
+        score = calculer_match(
+            mentore,
+            mentor
+        )
 
         resultats.append({
-            "mentor_id": mentor.get("id"),
+            "mentor_id": mentor.id,
             "score": score
         })
 
-    resultats.sort(key=lambda x: x["score"], reverse=True)
+    resultats.sort(
+        key=lambda x: x["score"],
+        reverse=True
+    )
 
     return resultats[:3]
