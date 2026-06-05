@@ -14,6 +14,10 @@ def match():
     if not mentore or not mentor:
         return jsonify({"error": "Données manquantes"}), 400
 
+    mentore = data["mentore"]
+    mentor = data["mentor"]
+
+
     score = calculer_match(mentore, mentor)
 
     return jsonify({
@@ -25,12 +29,13 @@ def match():
 @matching_bp.route("/top3", methods=["POST"])
 def top3():
     data = request.json
-
     mentore = data.get("mentore")
     mentors = data.get("mentors")
 
     if not mentore or not mentors:
         return jsonify({"error": "Données manquantes"}), 400
+    mentore = data["mentore"]
+    mentors = data["mentors"]
 
     result = get_top_mentors(mentore, mentors)
 
