@@ -5,6 +5,7 @@ from flask_login import UserMixin
 # UTILISATEURS
 # =========================
 class User(UserMixin,db.Model):
+
     __tablename__ = "users"
 
     id = db.Column(db.Integer, primary_key=True)
@@ -257,3 +258,4 @@ class Message(db.Model):
         db.DateTime,
         server_default=db.func.current_timestamp()
     )
+
