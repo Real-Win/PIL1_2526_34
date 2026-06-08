@@ -261,3 +261,4 @@ class Message(db.Model):
         db.DateTime,
         server_default=db.func.current_timestamp()
     )
+

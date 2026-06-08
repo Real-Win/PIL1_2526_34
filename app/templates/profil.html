@@ -1,0 +1,339 @@
+{% extends "base.html" %}
+
+{% block titre %}Mon profil — MentorLink{% endblock %}
+
+{% block contenu %}
+
+<div class="max-w-3xl mx-auto py-10 px-4">
+
+  <!-- Titre de la page -->
+  <div class="mb-8">
+    <h1 class="text-2xl font-bold text-slate-900">Mon profil</h1>
+    <p class="text-slate-500 text-sm mt-1">
+      Consulte et modifie tes informations
+    </p>
+  </div>
+
+  <!-- Messages flash -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="mb-6 p-3 rounded-lg text-sm
+          {% if category == 'success' %}
+            bg-green-50 text-green-700 border border-green-200
+          {% elif category == 'danger' %}
+            bg-red-50 text-red-700 border border-red-200
+          {% else %}
+            bg-blue-50 text-blue-700 border border-blue-200
+          {% endif %}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <!-- Formulaire global -->
+  <form action="/profil" method="POST" class="space-y-6">
+    {{ form.hidden_tag() if form else '' }}
+
+    <!-- CARTE 1 : Identité -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+
+      <h2 class="text-sm font-medium text-slate-500 uppercase
+                 tracking-wide mb-5">
+        Identité
+      </h2>
+
+      <!-- Avatar + infos rapides -->
+      <div class="flex items-center gap-5 mb-6">
+
+        <div class="w-16 h-16 rounded-full bg-accent flex items-center
+                    justify-center text-white text-xl font-bold flex-shrink-0">
+          {{ user.prenom[0] | upper }}{{ user.nom[0] | upper }}
+        </div>
+
+        <div>
+          <p class="text-lg font-semibold text-slate-900">
+            {{ user.prenom }} {{ user.nom }}
+          </p>
+          <p class="text-sm text-slate-500">
+            Membre depuis
+            {{ user.date_inscription.strftime('%d/%m/%Y')
+               if user.date_inscription else 'N/A' }}
+          </p>
+        </div>
+
+      </div>
+
+      <!-- Champs modifiables -->
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+
+        <!-- Nom -->
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">
+            Nom
+          </label>
+          <input
+            type="text"
+            name="nom"
+            value="{{ user.nom }}"
+            required
+            class="w-full px-4 py-2.5 rounded-lg border border-slate-300
+                   text-sm text-slate-900 bg-white
+                   focus:outline-none focus:ring-2 focus:ring-accent
+                   focus:border-transparent">
+        </div>
+
+        <!-- Prénom -->
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">
+            Prénom
+          </label>
+          <input
+            type="text"
+            name="prenom"
+            value="{{ user.prenom }}"
+            required
+            class="w-full px-4 py-2.5 rounded-lg border border-slate-300
+                   text-sm text-slate-900 bg-white
+                   focus:outline-none focus:ring-2 focus:ring-accent
+                   focus:border-transparent">
+        </div>
+
+        <!-- Filière -->
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">
+            Filière
+          </label>
+          <select
+            name="filiere"
+            class="w-full px-4 py-2.5 rounded-lg border border-slate-300
+                   text-sm text-slate-900 bg-white
+                   focus:outline-none focus:ring-2 focus:ring-accent
+                   focus:border-transparent">
+            <option value="IA"
+              {{ 'selected' if user.filiere == 'IA' }}>
+              Intelligence Artificielle
+            </option>
+            <option value="GL"
+              {{ 'selected' if user.filiere == 'GL' }}>
+              Génie Logiciel
+            </option>
+            <option value="IM"
+              {{ 'selected' if user.filiere == 'IM' }}>
+              Internet et Multimédia
+            </option>
+            <option value="SI"
+              {{ 'selected' if user.filiere == 'SI' }}>
+              Sécurité Informatique
+            </option>
+            <option value="SEIOT"
+              {{ 'selected' if user.filiere == 'SEIOT' }}>
+              Systèmes Embarqués et IoT
+            </option>
+          </select>
+        </div>
+
+        <!-- Niveau d'études -->
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">
+            Niveau d'études
+          </label>
+          <select
+            name="niveau"
+            class="w-full px-4 py-2.5 rounded-lg border border-slate-300
+                   text-sm text-slate-900 bg-white
+                   focus:outline-none focus:ring-2 focus:ring-accent
+                   focus:border-transparent">
+            <option value="L1"
+              {{ 'selected' if user.niveau == 'L1' else '' }}>
+              Licence 1
+            </option>
+            <option value="L2"
+              {{ 'selected' if user.niveau == 'L2' else '' }}>
+              Licence 2
+            </option>
+            <option value="L3"
+              {{ 'selected' if user.niveau == 'L3' else '' }}>
+              Licence 3
+            </option>
+          </select>
+        </div>
+
+        <!-- Rôle -->
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">
+            Je souhaite
+          </label>
+          <select
+            name="role"
+            class="w-full px-4 py-2.5 rounded-lg border border-slate-300
+                   text-sm text-slate-900 bg-white
+                   focus:outline-none focus:ring-2 focus:ring-accent
+                   focus:border-transparent">
+            <option value="mentor"
+              {{ 'selected' if user.role == 'mentor' }}>
+              Être mentor
+            </option>
+            <option value="mentore"
+              {{ 'selected' if user.role == 'mentore' }}>
+              Être mentoré
+            </option>
+            <option value="les_deux"
+              {{ 'selected' if user.role == 'les_deux' }}>
+              Les deux
+            </option>
+          </select>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- CARTE 2 : Bio -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+
+      <h2 class="text-sm font-medium text-slate-500 uppercase
+                 tracking-wide mb-5">
+        Bio et centres d'intérêt
+      </h2>
+
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">
+          Parle un peu de toi
+        </label>
+        <textarea
+          name="bio"
+          rows="4"
+          placeholder="Ex: Étudiant en IM passionné par le design web..."
+          class="w-full px-4 py-3 rounded-lg border border-slate-300
+                 text-sm text-slate-900 bg-white resize-none
+                 focus:outline-none focus:ring-2 focus:ring-accent
+                 focus:border-transparent placeholder:text-slate-400"
+        >{{ user.bio or '' }}</textarea>
+      </div>
+
+    </div>
+
+    <!-- CARTE 3 : Compétences et lacunes -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+
+      <div class="flex items-center justify-between mb-5">
+        <h2 class="text-sm font-medium text-slate-500 uppercase tracking-wide">
+          Compétences et lacunes
+        </h2>
+        <span class="text-xs bg-amber-50 text-amber-600
+                     border border-amber-200 px-2.5 py-1 rounded-full">
+          Bientôt disponible
+        </span>
+      </div>
+
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">
+            Matières maîtrisées
+          </label>
+          <textarea
+            rows="3"
+            disabled
+            placeholder="Ex: Python, SQL, Réseaux..."
+            class="w-full px-4 py-3 rounded-lg border border-slate-200
+                   text-sm text-slate-400 bg-slate-50 resize-none
+                   cursor-not-allowed">
+          </textarea>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">
+            Matières où j'ai besoin d'aide
+          </label>
+          <textarea
+            rows="3"
+            disabled
+            placeholder="Ex: Algorithmique, Probabilités..."
+            class="w-full px-4 py-3 rounded-lg border border-slate-200
+                   text-sm text-slate-400 bg-slate-50 resize-none
+                   cursor-not-allowed">
+          </textarea>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- CARTE 4 : Disponibilités -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+
+      <div class="flex items-center justify-between mb-5">
+        <h2 class="text-sm font-medium text-slate-500 uppercase tracking-wide">
+          Disponibilités horaires
+        </h2>
+        <span class="text-xs bg-amber-50 text-amber-600
+                     border border-amber-200 px-2.5 py-1 rounded-full">
+          Bientôt disponible
+        </span>
+      </div>
+
+      <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">
+            Jour
+          </label>
+          <select
+            disabled
+            class="w-full px-4 py-2.5 rounded-lg border border-slate-200
+                   text-sm text-slate-400 bg-slate-50
+                   cursor-not-allowed">
+            <option>Lundi</option>
+            <option>Mardi</option>
+            <option>Mercredi</option>
+            <option>Jeudi</option>
+            <option>Vendredi</option>
+            <option>Samedi</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">
+            Heure début
+          </label>
+          <input
+            type="time"
+            disabled
+            class="w-full px-4 py-2.5 rounded-lg border border-slate-200
+                   text-sm text-slate-400 bg-slate-50
+                   cursor-not-allowed">
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">
+            Heure fin
+          </label>
+          <input
+            type="time"
+            disabled
+            class="w-full px-4 py-2.5 rounded-lg border border-slate-200
+                   text-sm text-slate-400 bg-slate-50
+                   cursor-not-allowed">
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Bouton sauvegarder -->
+    <div class="flex justify-end">
+      <button
+        type="submit"
+        class="bg-accent hover:bg-blue-700 text-white font-medium
+               px-8 py-2.5 rounded-lg transition-colors">
+        Sauvegarder les modifications
+      </button>
+    </div>
+
+  </form>
+
+</div>
+
+{% endblock %}
