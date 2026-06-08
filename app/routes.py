@@ -1,10 +1,9 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_user, logout_user, login_required, current_user
-from app import db, bcrypt
+from app import db
 from app.models import User
 from app.matching import calculer_match, get_top_mentors
-from securite import inscrire_etudiant, verifier_connexion
-
+from app.securite import inscrire_etudiant, verifier_connexion
 # ===== MATCHING BLUEPRINT =====
 matching_bp = Blueprint("matching", __name__)
 
@@ -138,4 +137,3 @@ def messages():
 def matching_page():
     """Page du systeme de matching"""
     return render_template("matching.html")
-
