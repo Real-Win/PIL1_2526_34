@@ -1,5 +1,4 @@
 from app import db,bcrypt
-from app import db
 from app.models import User
 
 # =========================
