@@ -91,4 +91,8 @@ python run.py
 
 God Win FADONOUGBO — Responsable du groupe 34 : RISING MINDS
 Projet académique IFRI - 2025-2026
+<<<<<<< HEAD
 Université d’Abomey-Calavi
+=======
+Université d’Abomey-Calavi
+>>>>>>> 5848997a6f7c7a6d336b560b6cea021c82db4e37

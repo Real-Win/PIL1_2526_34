@@ -23,5 +23,8 @@ def create_app():
     from app.routes import matching_bp, auth_bp
     app.register_blueprint(matching_bp)
     app.register_blueprint(auth_bp)
-
+    from app.models import User
+    @login_manager.user_loader
+    def load_user(user_id):
+        return User.query.get(int(user_id))
     return app
