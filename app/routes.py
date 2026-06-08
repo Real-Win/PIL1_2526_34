@@ -137,3 +137,4 @@ def messages():
 def matching_page():
     """Page du systeme de matching"""
     return render_template("matching.html")
+
