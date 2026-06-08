@@ -2,25 +2,23 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from flask_login import login_user, logout_user, login_required, current_user
 from app import db
 from app.models import User
+from app.models import DemandeMentorat
 from app.matching import calculer_match, get_top_mentors
 from app.securite import inscrire_etudiant, verifier_connexion
 # ===== MATCHING BLUEPRINT =====
 matching_bp = Blueprint("matching", __name__)
 
-@matching_bp.route("/match", methods=["POST"])
-def match():
-    data = request.json
+@matching_bp.route("/match/<int:mentore_id>/<int:mentor_id>")
+@login_required
+def match(mentore_id, mentor_id):
 
-    mentore = data.get("mentore")
-    mentor = data.get("mentor")
+    mentore = User.query.get_or_404(mentore_id)
+    mentor = User.query.get_or_404(mentor_id)
 
-    if not mentore or not mentor:
-        return jsonify({"error": "Donnees manquantes"}), 400
-
-    mentore = data["mentore"]
-    mentor = data["mentor"]
-
-    score = calculer_match(mentore, mentor)
+    score = calculer_match(
+        mentore,
+        mentor
+    )
 
     return jsonify({
         "score": score,
@@ -28,21 +26,22 @@ def match():
     })
 
 
-@matching_bp.route("/top3", methods=["POST"])
-def top3():
-    data = request.json
-    mentore = data.get("mentore")
-    mentors = data.get("mentors")
+@matching_bp.route("/top3/<int:mentore_id>")
+@login_required
+def top3(mentore_id):
 
-    if not mentore or not mentors:
-        return jsonify({"error": "Donnees manquantes"}), 400
-    mentore = data["mentore"]
-    mentors = data["mentors"]
+    mentore = User.query.get_or_404(mentore_id)
 
-    result = get_top_mentors(mentore, mentors)
+    mentors = User.query.filter(
+        User.id != mentore_id
+    ).all()
+
+    result = get_top_mentors(
+        mentore,
+        mentors
+    )
 
     return jsonify(result)
-
 
 # ===== AUTHENTIFICATION BLUEPRINT =====
 auth_bp = Blueprint("auth", __name__)
@@ -138,3 +137,37 @@ def matching_page():
     """Page du systeme de matching"""
     return render_template("matching.html")
 
+@auth_bp.route("/demande/<int:mentor_id>", methods=["POST"])
+@login_required
+def creer_demande(mentor_id):
+
+    sujet = request.form.get("sujet")
+
+    mentor = User.query.get_or_404(mentor_id)
+
+    demande = DemandeMentorat(
+        etudiant_id=current_user.id,
+        mentor_id=mentor.id,
+        sujet=sujet
+    )
+
+    db.session.add(demande)
+    db.session.commit()
+
+    flash("Demande envoyée avec succès.", "success")
+
+    return redirect(url_for("auth.matching_page"))
+
+
+@auth_bp.route("/demandes")
+@login_required
+def demandes():
+
+    demandes = DemandeMentorat.query.filter_by(
+        etudiant_id=current_user.id
+    ).all()
+
+    return render_template(
+        "demandes.html",
+        demandes=demandes
+    )
