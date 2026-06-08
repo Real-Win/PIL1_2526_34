@@ -7,20 +7,17 @@ from app.securite import inscrire_etudiant, verifier_connexion
 # ===== MATCHING BLUEPRINT =====
 matching_bp = Blueprint("matching", __name__)
 
-@matching_bp.route("/match", methods=["POST"])
-def match():
-    data = request.json
+@matching_bp.route("/match/<int:mentore_id>/<int:mentor_id>")
+@login_required
+def match(mentore_id, mentor_id):
 
-    mentore = data.get("mentore")
-    mentor = data.get("mentor")
+    mentore = User.query.get_or_404(mentore_id)
+    mentor = User.query.get_or_404(mentor_id)
 
-    if not mentore or not mentor:
-        return jsonify({"error": "Donnees manquantes"}), 400
-
-    mentore = data["mentore"]
-    mentor = data["mentor"]
-
-    score = calculer_match(mentore, mentor)
+    score = calculer_match(
+        mentore,
+        mentor
+    )
 
     return jsonify({
         "score": score,
@@ -28,21 +25,22 @@ def match():
     })
 
 
-@matching_bp.route("/top3", methods=["POST"])
-def top3():
-    data = request.json
-    mentore = data.get("mentore")
-    mentors = data.get("mentors")
+@matching_bp.route("/top3/<int:mentore_id>")
+@login_required
+def top3(mentore_id):
 
-    if not mentore or not mentors:
-        return jsonify({"error": "Donnees manquantes"}), 400
-    mentore = data["mentore"]
-    mentors = data["mentors"]
+    mentore = User.query.get_or_404(mentore_id)
 
-    result = get_top_mentors(mentore, mentors)
+    mentors = User.query.filter(
+        User.id != mentore_id
+    ).all()
+
+    result = get_top_mentors(
+        mentore,
+        mentors
+    )
 
     return jsonify(result)
-
 
 # ===== AUTHENTIFICATION BLUEPRINT =====
 auth_bp = Blueprint("auth", __name__)

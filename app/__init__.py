@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_bcrypt import Bcrypt
 from config import Config
-
+from app.models import User
 db = SQLAlchemy()
 login_manager = LoginManager()
 bcrypt = Bcrypt()
@@ -30,5 +30,3 @@ def create_app():
     with app.app_context():
         db.create_all()
     return app
-
-
