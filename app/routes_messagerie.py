@@ -18,7 +18,7 @@ def index():
 def gerer_message(data):
     print("Message reçu : " + str(data['contenu']))
     # broadcast=True permet de renvoyer le message à TOUS les utilisateurs connectés
-    emit('diffusion_message', {'msg': data['contenu']}, broadcast=True)
+    emit('diffusion_message', {'pseudo': data['pseudo'], 'msg': data['contenu']}, broadcast=True)
 
 # 5. [span_4](start_span)[span_5](start_span)Démarrage du serveur sur le port 5000[span_4](end_span)[span_5](end_span)
 if __name__ == '__main__':

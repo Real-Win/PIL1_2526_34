@@ -8,53 +8,60 @@
 <body style="font-family: Arial, sans-serif; margin: 40px; background-color: #f4f6f9;">
 
     <h2>💬 Messagerie en Temps Réel</h2>
-    <p>Ouvre deux onglets sur cette page pour tester le chat en temps réel !</p>
 
-    <div id="zoneDiscussion" style="border: 1px solid #ccc; height: 250px; overflow-y: auto; padding: 15px; margin-bottom: 15px; background: #ffffff; border-radius: 5px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);">
+    <div id="messages" style="border: 1px solid #ccc; height: 250px; overflow-y: auto; padding: 15px; margin-bottom: 15px; background: #ffffff; border-radius: 5px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);">
         <p style="color: gray; font-style: italic; margin: 0;">Début de la discussion...</p>
     </div>
 
     <div style="display: flex; gap: 10px;">
-        <input type="text" id="champMessage" placeholder="Écris ton message ici..." style="flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 14px;">
-        <button id="boutonEnvoyer" style="padding: 10px 20px; background-color: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; font-weight: bold;">
-            Envoyer
+        <input type="text" id="username" placeholder="Ton pseudo..." style="margin-bottom: 10px; padding: 5px;"><br>
+        <input type="text" id="message" placeholder="Écris ton message..."style="flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 14px;">
+        <button onclick="envoyer()"style="padding: 10px 20px; background-color: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; font-weight: bold;">Envoyer
         </button>
     </div>
 
     <script>
-        // 1. Connexion au serveur Flask-SocketIO
-        const socket = io("http://127.0.0.1:5000");
+    // Connexion automatique au serveur Flask-SocketIO
+    const socket = io();
+
+    // 1. Fonction pour envoyer le message et le pseudo au serveur Python
+    function envoyer() {
+        const inputMessage = document.getElementById('message');
+        const inputPseudo = document.getElementById('username');
         
-        const bouton = document.getElementById("boutonEnvoyer");
-        const input = document.getElementById("champMessage");
-        const zoneDiscussion = document.getElementById("zoneDiscussion");
-
-        // 2. Envoi du message quand on clique sur le bouton
-        bouton.addEventListener("click", () => {
-            const texte = input.value;
-            if(texte.trim() !== "") {
-                // On envoie l'événement 'nouveau_message' au serveur Python
-                socket.emit("nouveau_message", { contenu: texte });
-                input.value = ""; // On vide le champ après l'envoi
-            }
-        });
-
-        // Permet aussi d'envoyer en appuyant sur la touche 'Entrée' du clavier
-        input.addEventListener("keypress", (e) => {
-            if (e.key === "Enter") {
-                bouton.click();
-            }
-        });
-
-        // 3. Écoute des messages diffusés en temps réel par le serveur Python
-        socket.on("diffusion_message", (data) => {
-            const nouveauP = document.createElement("p");
-            nouveauP.style.margin = "5px 0";
-            nouveauP.innerHTML = "<span style='color: #007BFF; font-weight: bold;'>Utilisateur :</span> " + data.msg;
-            zoneDiscussion.appendChild(nouveauP);
+        const texte = inputMessage.value;
+        // Si la case pseudo est vide, on attribue "Anonyme" par défaut
+        const pseudo = inputPseudo.value.trim() || "Anonyme"; 
+        
+        // On n'envoie le message que s'il n'est pas vide
+        if (texte.trim() !== "") {
+            // On envoie un objet structuré au serveur
+            socket.emit('nouveau_message', { 
+                'pseudo': pseudo, 
+                'contenu': texte 
+                });
             
-            // Défilement automatique vers le bas pour voir le dernier message
-            zoneDiscussion.scrollTop = zoneDiscussion.scrollHeight;
+            // On vide uniquement la case du message pour pouvoir réécrire
+            inputMessage.value = ''; 
+            }
+        }
+
+    // 2. Écouteur pour envoyer le message en appuyant sur la touche 'Entrée'
+    document.getElementById('message').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            envoyer();
+            }
+        });
+
+    // 3. Écouteur qui capte les messages diffusés par le serveur pour les afficher
+    socket.on('diffusion_message', function(data) {
+        const zoneMessages = document.getElementById('messages');
+        
+        // Insertion du message avec le pseudo de l'expéditeur en gras
+        zoneMessages.innerHTML += `<p><strong>${data.pseudo} :</strong> ${data.msg}</p>`;
+        
+        // Scroll automatique vers le bas pour toujours voir le dernier message reçu
+        zoneMessages.scrollTop = zoneMessages.scrollHeight;
         });
     </script>
 </body>
