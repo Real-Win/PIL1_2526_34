@@ -1,7 +1,5 @@
-from flask_bcrypt import db,bcrypt
+from app import db, bcrypt
 from app.models import User
-
-
 
 # =========================
 # INSCRIPTION UTILISATEUR
