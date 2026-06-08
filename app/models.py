@@ -1,10 +1,11 @@
-from app import db
+from app import db , login_manager
+from flask_login import UserMixin
 from datetime import datetime
 from datetime import date
 from datetime import time
 
 
-class users(db.Model):
+class users(UserMixin , db.Model):
     __tablename__ = "users"
     id = db.Column(db.Integer , primary_key = True)
     nom = db.Column(db.String(50) , nullable = False)
@@ -61,4 +62,10 @@ class messages(db.Model):
     receiver_id = db.Column(db.Integer , db.ForeignKey(users.id) , ondelete = 'CASCADE')
     contenu = db.Column(db.Text , nullable = False)
     lu = db.Column(db.Boolean , default = False)
-    date_envoi = db.Column(db.DateTime , default = datetime.now ) 
+    date_envoi = db.Column(db.DateTime , default = datetime.now)
+    
+    @login_manager.user_loader
+    def load_user(user_id):
+        return users.query.get(int(user_id))
+    
+    
