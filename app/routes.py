@@ -4,7 +4,6 @@ from app import db
 from app.models import User
 from app.matching import calculer_match, get_top_mentors
 from app.securite import inscrire_etudiant, verifier_connexion
-
 # ===== MATCHING BLUEPRINT =====
 matching_bp = Blueprint("matching", __name__)
 
