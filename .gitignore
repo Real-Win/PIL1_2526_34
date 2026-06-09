@@ -1,23 +1,19 @@
-# venv
-venv/
-env/
 
-# Python cache
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-
-# Env variables
-.env
-
-# VS Code
-.vscode/
-
-# DB
+# Base de données SQLite
+instance/
 *.db
 *.sqlite3
 
-# Windows
+# Cache Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Environnement virtuel
+venv/
+env/
+
+# Fichiers système
+.DS_Store
 Thumbs.db
-desktop.ini
+EOF

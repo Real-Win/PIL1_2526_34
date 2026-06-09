@@ -102,11 +102,12 @@ def dashboard():
         if current_user.messages_recus else []
 
     return render_template(
-        "dashboard.html",
-        top_mentors=top_mentors,
-        demandes=demandes,
-        messages_recents=messages_recents
-    )
+    "dashboard.html",
+    user=current_user,
+    top_mentors=top_mentors,
+    demandes=demandes,
+    messages_recents=messages_recents
+)
 
 
 # ------------------------------------------------------------------
