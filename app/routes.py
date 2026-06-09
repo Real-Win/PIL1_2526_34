@@ -8,7 +8,7 @@ from flask_login import (
 )
 from app import db
 from app.models import User, DemandeMentorat
-from app.matching import calculer_match, get_top_mentors
+from app.matching import calculer_match, get_top_mentors, get_top_mentores
 from app.securite import inscrire_etudiant, verifier_connexion
 
 
@@ -21,27 +21,56 @@ matching_bp = Blueprint("matching", __name__)
 def match(mentore_id, mentor_id):
     mentore = User.query.get_or_404(mentore_id)
     mentor  = User.query.get_or_404(mentor_id)
-
-    score = calculer_match(mentore, mentor)
-
-    return jsonify({
-        "score":     score,
-        "bon_match": score >= 60
-    })
+    score   = calculer_match(mentore, mentor)
+    return jsonify({"score": score, "bon_match": score >= 60})
 
 
-@matching_bp.route("/top3/<int:mentore_id>")
+# ------------------------------------------------------------------
+# TOP 3  —  adapté au rôle demandé via paramètre ?cherche=mentor|mentore
+# ------------------------------------------------------------------
+@matching_bp.route("/top3/<int:user_id>")
 @login_required
-def top3(mentore_id):
-    mentore = User.query.get_or_404(mentore_id)
+def top3(user_id):
+    """
+    ?cherche=mentor   → l'user est mentoré, cherche les meilleurs mentors
+    ?cherche=mentore  → l'user est mentor,  cherche les meilleurs mentorés
+    Sans paramètre    → comportement selon le rôle de l'user
+    """
+    user       = User.query.get_or_404(user_id)
+    cherche    = request.args.get("cherche", "").strip()
+    autres     = User.query.filter(User.id != user_id).all()
 
-    # Tous les mentors sauf le mentoré lui-même
-    mentors = User.query.filter(
-        User.id != mentore_id
-    ).all()
+    # Détermine ce qu'on cherche si non précisé
+    if not cherche:
+        if user.role == "mentor":
+            cherche = "mentore"
+        else:
+            cherche = "mentor"
 
-    result = get_top_mentors(mentore, mentors)
+    if cherche == "mentore":
+        result = get_top_mentores(user, autres)
+    else:
+        result = get_top_mentors(user, autres)
+
     return jsonify(result)
+
+
+# ------------------------------------------------------------------
+# API PROFIL UTILISATEUR  —  utilisée par le JS de matching.html
+# ------------------------------------------------------------------
+@matching_bp.route("/api/user/<int:user_id>")
+@login_required
+def api_user(user_id):
+    user = User.query.get_or_404(user_id)
+    return jsonify({
+        "id":      user.id,
+        "nom":     user.nom,
+        "prenom":  user.prenom,
+        "filiere": user.filiere,
+        "role":    user.role,
+        "niveau":  user.niveau,
+        "bio":     user.bio or ""
+    })
 
 
 # ===== AUTH BLUEPRINT =====
@@ -53,11 +82,6 @@ auth_bp = Blueprint("auth", __name__)
 # ------------------------------------------------------------------
 @auth_bp.route("/")
 def accueil():
-    """
-    Page d'accueil publique.
-    Si l'utilisateur est déjà connecté → dashboard.
-    Sinon → page de présentation de MentorLink.
-    """
     if current_user.is_authenticated:
         return redirect(url_for("auth.dashboard"))
     return render_template("accueil.html")
@@ -69,46 +93,40 @@ def accueil():
 @auth_bp.route("/dashboard")
 @login_required
 def dashboard():
-    """
-    Tableau de bord affiché après connexion.
-    - Top 3 mentors compatibles avec l'utilisateur connecté
-    - Ses demandes de mentorat envoyées
-    - Ses derniers messages reçus
-    """
-    # Top 3 mentors pour l'utilisateur connecté
-    autres_users = User.query.filter(
-        User.id != current_user.id
-    ).all()
+    autres_users = User.query.filter(User.id != current_user.id).all()
 
-    top_mentors_ids = get_top_mentors(current_user, autres_users)
+    top_mentors   = []
+    top_mentores  = []
 
-    # Récupère les objets User correspondants (pour afficher nom/prénom)
-    top_mentors = []
-    for item in top_mentors_ids:
-        mentor = User.query.get(item["mentor_id"])
-        if mentor:
-            top_mentors.append({
-                "user":  mentor,
-                "score": item["score"]
-            })
+    # Si l'user peut être mentoré → on lui propose des mentors
+    if current_user.role in ("etudiant", "mentore", "les_deux"):
+        for item in get_top_mentors(current_user, autres_users):
+            mentor = User.query.get(item["mentor_id"])
+            if mentor:
+                top_mentors.append({"user": mentor, "score": item["score"]})
 
-    # Demandes de mentorat envoyées par l'utilisateur connecté
+    # Si l'user est mentor → on lui propose des mentorés
+    if current_user.role in ("mentor", "les_deux"):
+        for item in get_top_mentores(current_user, autres_users):
+            mentore = User.query.get(item["mentore_id"])
+            if mentore:
+                top_mentores.append({"user": mentore, "score": item["score"]})
+
     demandes = DemandeMentorat.query.filter_by(
         etudiant_id=current_user.id
     ).order_by(DemandeMentorat.date_demande.desc()).limit(5).all()
 
-    # Derniers messages reçus
     messages_recents = current_user.messages_recus[-5:] \
         if current_user.messages_recus else []
 
     return render_template(
-    "dashboard.html",
-    user=current_user,
-    top_mentors=top_mentors,
-    demandes=demandes,
-    messages_recents=messages_recents
-)
-
+        "dashboard.html",
+        user=current_user,
+        top_mentors=top_mentors,
+        top_mentores=top_mentores,
+        demandes=demandes,
+        messages_recents=messages_recents
+    )
 
 
 # ------------------------------------------------------------------
@@ -121,15 +139,14 @@ def inscription():
 
     if request.method == "POST":
         success, message = inscrire_etudiant(
-            nom        = request.form.get("nom"),
-            prenom     = request.form.get("prenom"),
-            email      = request.form.get("email"),
-            telephone  = request.form.get("telephone"),
-            filiere    = request.form.get("filiere"),
-            role       = request.form.get("role", "etudiant"),
+            nom          = request.form.get("nom"),
+            prenom       = request.form.get("prenom"),
+            email        = request.form.get("email"),
+            telephone    = request.form.get("telephone"),
+            filiere      = request.form.get("filiere"),
+            role         = request.form.get("role", "etudiant"),
             mot_de_passe = request.form.get("mot_de_passe")
         )
-
         if success:
             flash("Inscription réussie ! Connecte-toi maintenant.", "success")
             return redirect(url_for("auth.connexion"))
@@ -151,7 +168,6 @@ def connexion():
             request.form.get("email"),
             request.form.get("mot_de_passe")
         )
-
         if user:
             login_user(user, remember=True)
             flash("Connexion réussie !", "success")
@@ -231,58 +247,102 @@ def profil():
 @auth_bp.route("/matching")
 @login_required
 def matching_page():
-    """Affiche la page de matching (frontend)."""
-    return render_template("matching.html")
+    return render_template("matching.html", user=current_user)
 
 
 # ------------------------------------------------------------------
-# CRÉER UNE DEMANDE DE MENTORAT  /demande/<mentor_id>
+# CRÉER UNE DEMANDE DE MENTORAT  /demande/<cible_id>
+# Fonctionne dans les deux sens : mentoré → mentor  ET  mentor → mentoré
 # ------------------------------------------------------------------
-@auth_bp.route("/demande/<int:mentor_id>", methods=["POST"])
+@auth_bp.route("/demande/<int:cible_id>", methods=["POST"])
 @login_required
-def creer_demande(mentor_id):
-    """L'utilisateur connecté envoie une demande au mentor choisi."""
-    mentor = User.query.get_or_404(mentor_id)
-    sujet  = request.form.get("sujet", "").strip()
+def creer_demande(cible_id):
+    cible = User.query.get_or_404(cible_id)
+    sujet = request.form.get("sujet", "").strip()
 
     if not sujet:
         flash("Le sujet de la demande ne peut pas être vide.", "danger")
-        return redirect(url_for("auth.dashboard"))
+        return redirect(url_for("auth.matching_page"))
+
+    # Détermine qui est mentor et qui est mentoré selon les rôles
+    # Si current_user est mentor et cible est mentoré → current_user propose son aide
+    if current_user.role in ("mentor", "les_deux") and cible.role not in ("mentor",):
+        etudiant_id = cible.id
+        mentor_id   = current_user.id
+    else:
+        # Cas classique : current_user (mentoré) demande à cible (mentor)
+        etudiant_id = current_user.id
+        mentor_id   = cible.id
 
     # Vérifie qu'une demande identique n'existe pas déjà
     existante = DemandeMentorat.query.filter_by(
-        etudiant_id = current_user.id,
-        mentor_id   = mentor.id
+        etudiant_id=etudiant_id,
+        mentor_id=mentor_id
     ).first()
 
     if existante:
-        flash("Tu as déjà envoyé une demande à ce mentor.", "warning")
-        return redirect(url_for("auth.dashboard"))
+        flash("Une demande existe déjà entre ces deux personnes.", "warning")
+        return redirect(url_for("auth.matching_page"))
 
     demande = DemandeMentorat(
-        etudiant_id = current_user.id,
-        mentor_id   = mentor.id,
-        sujet       = sujet
+        etudiant_id=etudiant_id,
+        mentor_id=mentor_id,
+        sujet=sujet
     )
     db.session.add(demande)
     db.session.commit()
 
-    flash(f"Demande envoyée à {mentor.prenom} {mentor.nom} !", "success")
-    return redirect(url_for("auth.dashboard"))
+    flash(f"Demande envoyée à {cible.prenom} {cible.nom} !", "success")
+    return redirect(url_for("auth.demandes"))
+
+
+# ------------------------------------------------------------------
+# CHANGER LE STATUT D'UNE DEMANDE  /demande/<id>/statut
+# Utilisé par demandes.html (boutons Accepter / Refuser)
+# ------------------------------------------------------------------
+@auth_bp.route("/demande/<int:demande_id>/statut", methods=["POST"])
+@login_required
+def changer_statut_demande(demande_id):
+    demande = DemandeMentorat.query.get_or_404(demande_id)
+
+    # Seul le mentor concerné peut changer le statut
+    if demande.mentor_id != current_user.id:
+        flash("Action non autorisée.", "danger")
+        return redirect(url_for("auth.demandes"))
+
+    nouveau_statut = request.form.get("statut", "").strip()
+    if nouveau_statut not in ("acceptee", "refusee"):
+        flash("Statut invalide.", "danger")
+        return redirect(url_for("auth.demandes"))
+
+    demande.statut = nouveau_statut
+    db.session.commit()
+
+    msg = "Demande acceptée ✓" if nouveau_statut == "acceptee" else "Demande refusée."
+    flash(msg, "success" if nouveau_statut == "acceptee" else "info")
+    return redirect(url_for("auth.demandes"))
 
 
 # ------------------------------------------------------------------
 # LISTE DES DEMANDES  /demandes
+# Envoyées ET reçues (pour le template avec onglets)
 # ------------------------------------------------------------------
 @auth_bp.route("/demandes")
 @login_required
 def demandes():
-    """Liste des demandes envoyées par l'utilisateur connecté."""
-    mes_demandes = DemandeMentorat.query.filter_by(
+    demandes_envoyees = DemandeMentorat.query.filter_by(
         etudiant_id=current_user.id
     ).order_by(DemandeMentorat.date_demande.desc()).all()
 
-    return render_template("demandes.html", demandes=mes_demandes)
+    demandes_recues = DemandeMentorat.query.filter_by(
+        mentor_id=current_user.id
+    ).order_by(DemandeMentorat.date_demande.desc()).all()
+
+    return render_template(
+        "demandes.html",
+        demandes_envoyees=demandes_envoyees,
+        demandes_recues=demandes_recues
+    )
 
 
 # ------------------------------------------------------------------
