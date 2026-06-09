@@ -4,58 +4,58 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block titre %}MentorLink{% endblock %}</title>
-
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
       theme: {
         extend: {
-          colors: {
-            primary: '#1E3A5F',
-            accent:  '#2563EB',
-          }
+          colors: { primary: '#1E3A5F', accent: '#2563EB' }
         }
       }
     }
   </script>
-
   {% block styles %}{% endblock %}
 </head>
 
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
 
-  <nav class="bg-slate-900 shadow-md">
+  <nav class="bg-slate-900 shadow-md sticky top-0 z-50">
     <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
 
-      <a href="/" class="text-white font-semibold text-lg tracking-wide">
+      <a href="{{ url_for('auth.dashboard') if current_user.is_authenticated else url_for('auth.accueil') }}"
+         class="text-white font-semibold text-lg tracking-wide">
         Mentor<span class="text-blue-400">Link</span>
       </a>
 
       <div class="flex items-center gap-6">
         {% if current_user.is_authenticated %}
-          <a href="/matching"
+          <a href="{{ url_for('auth.dashboard') }}"
+             class="text-slate-300 hover:text-white text-sm transition-colors">
+            Tableau de bord
+          </a>
+          <a href="{{ url_for('auth.matching_page') }}"
              class="text-slate-300 hover:text-white text-sm transition-colors">
             Matching
           </a>
-          <a href="/messages"
+          <a href="{{ url_for('messagerie.messages') }}"
              class="text-slate-300 hover:text-white text-sm transition-colors">
             Messages
           </a>
-          <a href="/profil"
+          <a href="{{ url_for('auth.profil') }}"
              class="text-slate-300 hover:text-white text-sm transition-colors">
             Mon profil
           </a>
-          <a href="/deconnexion"
+          <a href="{{ url_for('auth.deconnexion') }}"
              class="bg-slate-700 hover:bg-slate-600 text-white text-sm
                     px-4 py-2 rounded-lg transition-colors">
             Déconnexion
           </a>
         {% else %}
-          <a href="/inscription"
+          <a href="{{ url_for('auth.inscription') }}"
              class="text-slate-300 hover:text-white text-sm transition-colors">
             S'inscrire
           </a>
-          <a href="/connexion"
+          <a href="{{ url_for('auth.connexion') }}"
              class="bg-accent hover:bg-blue-700 text-white text-sm
                     px-4 py-2 rounded-lg transition-colors">
             Se connecter
@@ -66,9 +66,9 @@
     </div>
   </nav>
 
-  <main class="flex-1 max-w-6xl mx-auto w-full px-4 py-8">
-    {% block contenu %}
-    {% endblock %}
+  <!-- ↓ Suppression de max-w-6xl : laisse chaque page gérer sa largeur -->
+  <main class="flex-1">
+    {% block contenu %}{% endblock %}
   </main>
 
   <footer class="bg-slate-900 text-slate-400 text-sm text-center py-4 mt-auto">
