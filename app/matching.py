@@ -92,16 +92,13 @@ def calculer_score_disponibilite(mentore, mentor):
 
     return meilleur_score
 
-
-
-# ------------------------
+# -----------------------
 # FILIÈRE (sur 20)
 # -------------------------
 def calculer_score_filiere(mentore, mentor):
 
     if mentore.filiere == mentor.filiere:
         return 20
-
     return 10
 
 
@@ -140,6 +137,7 @@ def calculer_match(mentore, mentor):
 def quality_match(mentore, mentor):
 
     score = calculer_match(mentore, mentor)
+
 
     return {
         "score": score,
