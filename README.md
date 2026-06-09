@@ -1,10 +1,16 @@
-# IFRI_MentorLink
+# Rising Minds — MentorLink
+
+## 🌐 Application en ligne
+
+👉 **[https://rising-minds-mentorlink.onrender.com](https://rising-minds-mentorlink.onrender.com)**
+
+---
 
 ## 📌 Présentation du projet
 
-IFRI_MentorLink est une application web de mise en relation entre étudiants de l’IFRI (Université d’Abomey-Calavi) dans un contexte de mentorat académique et professionnel.
+Rising Minds MentorLink est une application web de mise en relation entre étudiants de l'IFRI (Université d'Abomey-Calavi) dans un contexte de mentorat académique et professionnel.
 
-Chaque utilisateur peut créer un profil (compétences, filière, disponibilités), publier ou rechercher des offres de mentorat, et être automatiquement mis en relation avec d’autres utilisateurs grâce à un système de matching intelligent.
+Chaque utilisateur peut créer un profil (compétences, filière, disponibilités), publier ou rechercher des offres de mentorat, et être automatiquement mis en relation avec d'autres utilisateurs grâce à un système de matching intelligent.
 
 ---
 
@@ -31,159 +37,101 @@ Ce projet vise à :
 - Modification des informations personnelles
 
 ### 2. Système de mentorat (matching)
-- Recherche de mentors / mentorés
+- Recherche de mentors **et** de mentorés (matching bidirectionnel)
 - Algorithme de compatibilité basé sur :
-  - Compétences
+  - Compétences communes
   - Filière
   - Disponibilités
-- Suggestions automatiques de correspondance
+- Suggestions automatiques des 3 meilleurs profils compatibles
+- Envoi de demandes de mentorat avec sujet
+- Acceptation / refus des demandes reçues
 
-### 3. Messagerie
-- Chat entre utilisateurs
-- Organisation des sessions de mentorat
+### 3. Messagerie temps réel
+- Chat instantané entre utilisateurs (Flask-SocketIO)
+- Indicateur "en train d'écrire"
+- Historique des conversations
 
 ---
 
 ## 🏗️ Architecture du projet
 
-- Frontend : HTML / CSS / JavaScript  
-- Backend : Python (Flask ou autre framework)  
-- Base de données : MySQL / SQLite  
-- Versioning : Git + GitHub  
+- **Frontend** : HTML / CSS / JavaScript (Tailwind CSS + Vue.js)
+- **Backend** : Python — Flask
+- **Temps réel** : Flask-SocketIO
+- **Base de données** : MySQL (PostgreSQL sur Render)
+- **Déploiement** : Render
+- **Versioning** : Git + GitHub
 
 ---
 
 ## 📁 Structure du projet
+
 ```
 IFRI_MentorLink/
 │
-├── __pycache__
-├── app/                # Code principal backend
-├── config.py           # Configuration de l’application
-├── run.py              # Point d’entrée du serveur
-├── requirements.txt    # Dépendances Python
-├── venv/               # Environnement virtuel (non versionné)
-├── .gitignore          # Fichiers ignorés par Git
+├── app/
+│   ├── __init__.py
+│   ├── models.py             # Modèles SQLAlchemy
+│   ├── routes.py             # Routes auth + matching + demandes
+│   ├── routes_messagerie.py  # Routes messagerie + SocketIO
+│   ├── matching.py           # Algorithme de matching
+│   ├── securite.py           # Inscription / connexion
+│   ├── static/               # CSS, JS, images
+│   └── templates/            # HTML Jinja2
+│
+├── config.py                 # Configuration de l'application
+├── run.py                    # Point d'entrée du serveur
+├── requirements.txt          # Dépendances Python
+├── runtime.txt               # Version Python pour Render
+├── .gitignore
 └── README.md
 ```
 
 ---
 
-## 🚀 Installation et exécution
+## 🚀 Installation et exécution en local
 
 ### 1. Cloner le projet
 
-``bash
-git clone https://github.com/Real-Win/IFRI_MentorLink.git
-cd IFRI_MentorLink
+```bash
+git clone https://github.com/Real-Win/PIL1_2526_34.git
+cd PIL1_2526_34
+```
 
-### 2. Activer l’environnement virtuel
-source venv/Scripts/activate
+### 2. Activer l'environnement virtuel
+
+```bash
+# Windows
+venv\Scripts\activate
+
+# Linux / Mac
+source venv/bin/activate
+```
 
 ### 3. Installer les dépendances
+
+```bash
 pip install -r requirements.txt
-
-### 4. Lancer l’application
-python run.py
-
-### ✍️ Auteur
-
-God Win FADONOUGBO — Responsable du groupe 34 : RISING MINDS
-Projet académique IFRI - 2025-2026
-Université d’Abomey-Calavi
-
-=======
-# IFRI_MentorLink
-
-## 📌 Présentation du projet
-
-IFRI_MentorLink est une application web de mise en relation entre étudiants de l’IFRI (Université d’Abomey-Calavi) dans un contexte de mentorat académique et professionnel.
-
-Chaque utilisateur peut créer un profil (compétences, filière, disponibilités), publier ou rechercher des offres de mentorat, et être automatiquement mis en relation avec d’autres utilisateurs grâce à un système de matching intelligent.
-
----
-
-## 🎯 Objectifs du projet
-
-Ce projet vise à :
-
-- Mettre en pratique les notions de :
-  - Algorithmique
-  - Développement web
-  - Base de données (SQL / algèbre relationnelle)
-  - Programmation Python
-- Développer une application web complète (client-serveur)
-- Travailler en équipe avec Git et outils collaboratifs
-- Concevoir une solution réelle à un problème académique
-
----
-
-## ⚙️ Fonctionnalités principales
-
-### 1. Gestion des utilisateurs
-- Inscription / connexion
-- Gestion de profil (filière, compétences, disponibilité)
-- Modification des informations personnelles
-
-### 2. Système de mentorat (matching)
-- Recherche de mentors / mentorés
-- Algorithme de compatibilité basé sur :
-  - Compétences
-  - Filière
-  - Disponibilités
-- Suggestions automatiques de correspondance
-
-### 3. Messagerie
-- Chat entre utilisateurs
-- Organisation des sessions de mentorat
-
----
-
-## 🏗️ Architecture du projet
-
-- Frontend : HTML / CSS / JavaScript  
-- Backend : Python (Flask ou autre framework)  
-- Base de données : MySQL / SQLite  
-- Versioning : Git + GitHub  
-
----
-
-## 📁 Structure du projet
 ```
-IFRI_MentorLink/
-│
-├── __pycache__
-├── app/                # Code principal backend
-├── config.py           # Configuration de l’application
-├── run.py              # Point d’entrée du serveur
-├── requirements.txt    # Dépendances Python
-├── venv/               # Environnement virtuel (non versionné)
-├── .gitignore          # Fichiers ignorés par Git
-└── README.md
+
+### 4. Lancer l'application
+
+```bash
+python run.py
 ```
 
 ---
 
-## 🚀 Installation et exécution
+## 👥 Équipe — Groupe 34 : RISING MINDS
 
-### 1. Cloner le projet
+| Nom | Filière | Rôle |
+|-----|---------|------|
+| God Win FADONOUGBO | IM | Chef de groupe + Algorithme de matching |
+| *(GL)* | GL | Backend Flask / Routes |
+| *(SI)* | SI | Auth / Sécurité / Base de données |
+| *(IM)* | IM | Frontend |
+| *(SE)* | SE | Messagerie temps réel |
 
-``bash
-git clone https://github.com/Real-Win/IFRI_MentorLink.git
-cd IFRI_MentorLink
+---
 
-### 2. Activer l’environnement virtuel
-source venv/Scripts/activate
-
-### 3. Installer les dépendances
-pip install -r requirements.txt
-
-### 4. Lancer l’application
-python run.py
-
-### ✍️ Auteur
-
-God Win FADONOUGBO — Responsable du groupe 34 : RISING MINDS
-Projet académique IFRI - 2025-2026
-Université d’Abomey-Calavi
-
+*Projet académique IFRI — 2025-2026 — Université d'Abomey-Calavi*
