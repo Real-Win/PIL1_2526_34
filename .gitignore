@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 
+=======
+cat > .gitignore << 'EOF'
+>>>>>>> 48f46398085bd5705c6474876c27d607d64cfde6
 # Base de données SQLite
 instance/
 *.db
