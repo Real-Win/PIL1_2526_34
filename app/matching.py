@@ -12,8 +12,8 @@ def calculer_score_competences(mentore, mentor):
     avec celles du mentor.
     """
 
-    competences_mentore = {c.nom for c in mentore.competences}
-    competences_mentor = {c.nom for c in mentor.competences}
+    competences_mentore = {c.nom.strip().lower() for c in mentore.competences}
+    competences_mentor = {c.nom.strip().lower() for c in mentor.competences}
 
     if not competences_mentore:
         return 0
@@ -92,16 +92,13 @@ def calculer_score_disponibilite(mentore, mentor):
 
     return meilleur_score
 
-
-
-# ------------------------
+# -----------------------
 # FILIÈRE (sur 20)
 # -------------------------
 def calculer_score_filiere(mentore, mentor):
 
     if mentore.filiere == mentor.filiere:
         return 20
-
     return 10
 
 
@@ -140,6 +137,7 @@ def calculer_match(mentore, mentor):
 def quality_match(mentore, mentor):
 
     score = calculer_match(mentore, mentor)
+
 
     return {
         "score": score,

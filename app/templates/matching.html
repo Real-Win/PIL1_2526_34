@@ -199,37 +199,85 @@
 
 {% block scripts %}
 <script>
-  function lancerMatching() {
+  // Lancement automatique au chargement
+  document.addEventListener('DOMContentLoaded', lancerMatching);
 
+  function lancerMatching() {
     document.getElementById('loading').classList.remove('hidden');
     document.getElementById('mentors-grid').classList.add('hidden');
     document.getElementById('no-results').classList.add('hidden');
 
-    fetch('/top3', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        mentore: { id: 1 },
-        mentors: []
+    // ← GET /top3/<id_utilisateur_connecté>
+    fetch('/top3/{{ current_user.id }}')
+      .then(r => r.json())
+      .then(data => {
+        document.getElementById('loading').classList.add('hidden');
+
+        if (!data || data.length === 0) {
+          document.getElementById('no-results').classList.remove('hidden');
+          return;
+        }
+
+        const grid = document.getElementById('mentors-grid');
+        grid.innerHTML = '';   // vide la carte hardcodée
+
+        data.forEach(item => {
+          const initiales = (item.prenom[0] + item.nom[0]).toUpperCase();
+          const score     = item.score;
+
+          grid.innerHTML += `
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200
+                        p-5 hover:border-accent transition-colors">
+
+              <div class="flex items-center gap-3 mb-4">
+                <div class="w-12 h-12 rounded-full bg-accent flex items-center
+                            justify-center text-white font-bold flex-shrink-0">
+                  ${initiales}
+                </div>
+                <div>
+                  <p class="font-semibold text-slate-900 text-sm">
+                    ${item.prenom} ${item.nom}
+                  </p>
+                  <span class="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full">
+                    ${item.filiere}
+                  </span>
+                </div>
+              </div>
+
+              <div class="mb-4">
+                <div class="flex items-center justify-between mb-1">
+                  <span class="text-xs text-slate-500">Compatibilité</span>
+                  <span class="text-sm font-bold text-accent">${score}%</span>
+                </div>
+                <div class="w-full bg-slate-100 rounded-full h-2">
+                  <div class="bg-accent rounded-full h-2" style="width:${score}%"></div>
+                </div>
+              </div>
+
+              <p class="text-xs text-slate-500 mb-4">${item.bio}</p>
+
+              <form action="/demande/${item.mentor_id}" method="POST">
+                <input type="text" name="sujet" required
+                       placeholder="Sujet de la demande…"
+                       class="w-full px-3 py-1.5 rounded-lg border border-slate-300
+                              text-sm mb-2 focus:outline-none focus:ring-2 focus:ring-accent">
+                <button type="submit"
+                        class="w-full bg-slate-50 hover:bg-accent hover:text-white
+                               text-slate-700 text-sm font-medium py-2 rounded-lg
+                               transition-colors border border-slate-200 hover:border-accent">
+                  Envoyer une demande
+                </button>
+              </form>
+
+            </div>`;
+        });
+
+        grid.classList.remove('hidden');
       })
-    })
-    .then(response => response.json())
-    .then(data => {
-
-      document.getElementById('loading').classList.add('hidden');
-
-      if (!data || data.length === 0) {
+      .catch(() => {
+        document.getElementById('loading').classList.add('hidden');
         document.getElementById('no-results').classList.remove('hidden');
-        return;
-      }
-
-      document.getElementById('mentors-grid').classList.remove('hidden');
-    })
-    .catch(error => {
-      console.error('Erreur matching:', error);
-      document.getElementById('loading').classList.add('hidden');
-      document.getElementById('no-results').classList.remove('hidden');
-    });
+      });
   }
 </script>
 {% endblock %}

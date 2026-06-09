@@ -95,8 +95,34 @@
                 Contacte un mentor depuis la page matching
               </p>
             </div>
-
           {% endif %}
+          
+          {% if autres_users %}
+            {% for contact in autres_users %}
+              <div class="flex items-center gap-3 p-4 hover:bg-slate-50 cursor-pointer
+                border-b border-slate-100 transition-colors"
+                   onclick="ouvrirConversation({{ contact.id }}, '{{ contact.prenom }} {{ contact.nom }}')">
+
+              <div class="w-10 h-10 rounded-full bg-accent flex items-center
+                  justify-center text-white text-sm font-bold flex-shrink-0">
+              {{ contact.prenom[0]|upper }}{{ contact.nom[0]|upper }}
+              </div>
+
+              <div class="flex-1 min-w-0">
+              <p class="text-sm font-medium text-slate-900 truncate">
+              {{ contact.prenom }} {{ contact.nom }}
+              </p>
+              <p class="text-xs text-slate-400">{{ contact.filiere }}</p>
+              </div>
+              </div>
+            {% endfor %}
+          {% else %}
+            <div class="flex flex-col items-center justify-center h-full p-8 text-center">
+            <p class="text-sm text-slate-500">Aucun contact disponible</p>
+            <p class="text-xs text-slate-400 mt-1">Trouve un mentor d'abord !</p>
+            </div>
+         {% endif %}
+
 
         </div>
 
@@ -205,31 +231,30 @@
 {% block scripts %}
 <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.js"></script>
 <script>
-
   const { createApp, ref, reactive, nextTick } = Vue;
 
-  const app = createApp({
+  // ID de l'utilisateur connecté (injecté par Jinja2)
+  const MOI_ID = {{ current_user.id }};
 
+  const app = createApp({
     delimiters: ['[[', ']]'],
 
     setup() {
-
-      const conversationActive = ref(false);
-      const nouveauMessage = ref('');
-      const interlocuteur = reactive({ nom: '', initiales: '', id: null });
+      const conversationActive  = ref(false);
+      const nouveauMessage      = ref('');
+      const interlocuteur       = reactive({ nom: '', initiales: '', id: null });
       const messagesConversation = ref([]);
 
       const socket = io();
 
-      socket.on('nouveau_message', (data) => {
-        if (data.sender_id === interlocuteur.id) {
+      // ← Correction : écouter 'diffusion_message' (nom émis par le serveur)
+      socket.on('diffusion_message', (data) => {
+        if (data.sender_id === interlocuteur.id || data.sender_id === MOI_ID) {
           messagesConversation.value.push({
-            id: Date.now(),
-            contenu: data.contenu,
-            heure: new Date().toLocaleTimeString('fr-FR', {
-              hour: '2-digit', minute: '2-digit'
-            }),
-            estMoi: false
+            id:     Date.now(),
+            contenu: data.msg,
+            heure:  data.date,
+            estMoi: data.sender_id === MOI_ID
           });
           faireDefiler();
         }
@@ -237,46 +262,41 @@
 
       function ouvrirConversation(userId, nomComplet) {
         conversationActive.value = true;
-        interlocuteur.id = userId;
-        interlocuteur.nom = nomComplet;
-        interlocuteur.initiales = nomComplet
-          .split(' ')
-          .map(n => n[0])
-          .join('')
-          .toUpperCase();
+        interlocuteur.id         = userId;
+        interlocuteur.nom        = nomComplet;
+        interlocuteur.initiales  = nomComplet.split(' ')
+          .map(n => n[0]).join('').toUpperCase();
 
+        // Rejoindre la salle Socket.IO ← AJOUT
+        socket.emit('rejoindre_salle', {
+          user_id:    MOI_ID,
+          contact_id: userId
+        });
+
+        // Charger l'historique via l'API Flask
         fetch(`/api/messages/${userId}`)
           .then(res => res.json())
           .then(data => {
             messagesConversation.value = data.map(m => ({
-              id: m.id,
+              id:     m.id,
               contenu: m.contenu,
-              heure: m.heure,
+              heure:  m.heure,
               estMoi: m.est_moi
             }));
             faireDefiler();
           })
-          .catch(() => {
-            messagesConversation.value = [];
-          });
+          .catch(() => { messagesConversation.value = []; });
       }
 
       function envoyerMessage() {
         const texte = nouveauMessage.value.trim();
         if (!texte || !interlocuteur.id) return;
 
-        messagesConversation.value.push({
-          id: Date.now(),
-          contenu: texte,
-          heure: new Date().toLocaleTimeString('fr-FR', {
-            hour: '2-digit', minute: '2-digit'
-          }),
-          estMoi: true
-        });
-
-        socket.emit('envoyer_message', {
-          destinataire_id: interlocuteur.id,
-          contenu: texte
+        // ← Correction : 'nouveau_message' avec sender_id et receiver_id
+        socket.emit('nouveau_message', {
+          sender_id:   MOI_ID,
+          receiver_id: interlocuteur.id,
+          contenu:     texte
         });
 
         nouveauMessage.value = '';
@@ -291,21 +311,17 @@
       }
 
       return {
-        conversationActive,
-        nouveauMessage,
-        interlocuteur,
-        messagesConversation,
-        ouvrirConversation,
-        envoyerMessage
+        conversationActive, nouveauMessage, interlocuteur,
+        messagesConversation, ouvrirConversation, envoyerMessage
       };
     }
   });
 
-  app.mount('#app');
+  // ← Stocker l'instance pour y accéder depuis le HTML (sidebar)
+  const vueInstance = app.mount('#app');
 
   window.ouvrirConversation = (userId, nomComplet) => {
-    app._context.app._instance.proxy.ouvrirConversation(userId, nomComplet);
+    vueInstance.ouvrirConversation(userId, nomComplet);
   };
-
 </script>
 {% endblock %}
