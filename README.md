@@ -126,11 +126,11 @@ python run.py
 
 | Nom | Filière | Rôle |
 |-----|---------|------|
-| God Win FADONOUGBO | IM | Chef de groupe + Algorithme de matching |
-| MONNOUKOUN Hironde | GL | Backend Flask / Routes |
-| NOUGBOGNONHOUN Mariel | SI | Auth / Sécurité / Base de données |
-| BOUKOH Jean-Marc | IM | Frontend |
-| SALIOU Samuel Exaucé | SE | Messagerie temps réel |
+| God Win FADONOUGBO | Intelligence Artificielle | Chef de groupe + Algorithme de matching |
+| MONNOUKOUN Hironde | Génie Logiciel | Backend Flask / Routes |
+| NOUGBOGNONHOUN Mariel | Sécurité Informatique | Auth / Sécurité / Base de données |
+| BOUKOH Jean-Marc | Internet et Multimédia | Frontend |
+| SALIOU Samuel Exaucé | Systèmes Embarqués & IoT | Messagerie temps réel |
 
 ---
 
