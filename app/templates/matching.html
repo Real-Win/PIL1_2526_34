@@ -1,0 +1,235 @@
+{% extends "base.html" %}
+
+{% block titre %}Matching — MentorLink{% endblock %}
+
+{% block contenu %}
+
+<div class="max-w-4xl mx-auto py-10 px-4">
+
+  <!-- En-tête -->
+  <div class="mb-8">
+    <h1 class="text-2xl font-bold text-slate-900">
+      Trouver un mentor
+    </h1>
+    <p class="text-slate-500 text-sm mt-1">
+      Notre algorithme analyse vos compétences, disponibilités
+      et filières pour vous proposer les meilleures correspondances
+    </p>
+  </div>
+
+  <!-- Explication du score -->
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-8">
+
+    <h2 class="text-sm font-medium text-slate-500 uppercase
+               tracking-wide mb-4">
+      Comment fonctionne le matching ?
+    </h2>
+
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+
+      <!-- Compétences -->
+      <div class="flex items-start gap-3">
+        <div class="w-10 h-10 rounded-xl bg-blue-50 flex items-center
+                    justify-center flex-shrink-0">
+          <span class="text-blue-600 font-bold text-sm">50</span>
+        </div>
+        <div>
+          <p class="text-sm font-medium text-slate-800">Compétences</p>
+          <p class="text-xs text-slate-500 mt-0.5">
+            Compatibilité entre tes lacunes et les compétences du mentor
+          </p>
+        </div>
+      </div>
+
+      <!-- Disponibilités -->
+      <div class="flex items-start gap-3">
+        <div class="w-10 h-10 rounded-xl bg-green-50 flex items-center
+                    justify-center flex-shrink-0">
+          <span class="text-green-600 font-bold text-sm">30</span>
+        </div>
+        <div>
+          <p class="text-sm font-medium text-slate-800">Disponibilités</p>
+          <p class="text-xs text-slate-500 mt-0.5">
+            Chevauchement de vos horaires habituels
+          </p>
+        </div>
+      </div>
+
+      <!-- Filière -->
+      <div class="flex items-start gap-3">
+        <div class="w-10 h-10 rounded-xl bg-purple-50 flex items-center
+                    justify-center flex-shrink-0">
+          <span class="text-purple-600 font-bold text-sm">20</span>
+        </div>
+        <div>
+          <p class="text-sm font-medium text-slate-800">Filière</p>
+          <p class="text-xs text-slate-500 mt-0.5">
+            Proximité de vos domaines d'études
+          </p>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Section résultats -->
+  <div>
+
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-lg font-semibold text-slate-900">
+        Mentors suggérés
+      </h2>
+      <button
+        onclick="lancerMatching()"
+        class="bg-accent hover:bg-blue-700 text-white text-sm
+               font-medium px-5 py-2 rounded-lg transition-colors">
+        Actualiser
+      </button>
+    </div>
+
+    <!-- Zone de chargement -->
+    <div id="loading" class="hidden text-center py-12">
+      <div class="inline-block w-8 h-8 border-4 border-accent
+                  border-t-transparent rounded-full animate-spin">
+      </div>
+      <p class="text-slate-500 text-sm mt-3">
+        Analyse en cours...
+      </p>
+    </div>
+
+    <!-- Message si pas de résultats -->
+    <div id="no-results" class="hidden">
+      <div class="bg-white rounded-2xl border border-slate-200 p-12
+                  text-center">
+        <p class="text-slate-400 text-sm">
+          Complète ton profil avec tes compétences et disponibilités
+          pour obtenir des suggestions de mentors.
+        </p>
+      </div>
+    </div>
+
+    <!-- Grille des cards mentors -->
+    <div id="mentors-grid"
+         class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+
+      <!-- Card mentor exemple -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200
+                  p-5 hover:border-accent transition-colors">
+
+        <!-- En-tête card -->
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-12 h-12 rounded-full bg-accent flex items-center
+                      justify-center text-white font-bold flex-shrink-0">
+            KA
+          </div>
+          <div>
+            <p class="font-semibold text-slate-900 text-sm">
+              Koffi Ahouansou
+            </p>
+            <span class="text-xs bg-blue-50 text-blue-700
+                         px-2 py-0.5 rounded-full">
+              GL
+            </span>
+          </div>
+        </div>
+
+        <!-- Barre de score -->
+        <div class="mb-4">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-xs text-slate-500">Compatibilité</span>
+            <span class="text-sm font-bold text-accent">87%</span>
+          </div>
+          <div class="w-full bg-slate-100 rounded-full h-2">
+            <div class="bg-accent rounded-full h-2"
+                 style="width: 87%">
+            </div>
+          </div>
+        </div>
+
+        <!-- Compétences communes -->
+        <div class="mb-4">
+          <p class="text-xs text-slate-500 mb-2">
+            Compétences en commun
+          </p>
+          <div class="flex flex-wrap gap-1">
+            <span class="text-xs bg-slate-100 text-slate-600
+                         px-2 py-0.5 rounded-full">
+              Python
+            </span>
+            <span class="text-xs bg-slate-100 text-slate-600
+                         px-2 py-0.5 rounded-full">
+              Flask
+            </span>
+            <span class="text-xs bg-slate-100 text-slate-600
+                         px-2 py-0.5 rounded-full">
+              SQL
+            </span>
+          </div>
+        </div>
+
+        <!-- Disponibilités communes -->
+        <div class="mb-4">
+          <p class="text-xs text-slate-500 mb-1">
+            Disponible
+          </p>
+          <p class="text-xs text-slate-700">
+            Lundi 14h–17h · Jeudi 10h–12h
+          </p>
+        </div>
+
+        <!-- Bouton contacter -->
+        <a href="/messages"
+           class="block w-full text-center bg-slate-50 hover:bg-accent
+                  hover:text-white text-slate-700 text-sm font-medium
+                  py-2 rounded-lg transition-colors border border-slate-200
+                  hover:border-accent">
+          Contacter
+        </a>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function lancerMatching() {
+
+    document.getElementById('loading').classList.remove('hidden');
+    document.getElementById('mentors-grid').classList.add('hidden');
+    document.getElementById('no-results').classList.add('hidden');
+
+    fetch('/top3', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        mentore: { id: 1 },
+        mentors: []
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+
+      document.getElementById('loading').classList.add('hidden');
+
+      if (!data || data.length === 0) {
+        document.getElementById('no-results').classList.remove('hidden');
+        return;
+      }
+
+      document.getElementById('mentors-grid').classList.remove('hidden');
+    })
+    .catch(error => {
+      console.error('Erreur matching:', error);
+      document.getElementById('loading').classList.add('hidden');
+      document.getElementById('no-results').classList.remove('hidden');
+    });
+  }
+</script>
+{% endblock %}

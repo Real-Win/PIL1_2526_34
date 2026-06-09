@@ -39,7 +39,7 @@
       {% endwith %}
 
       <form action="/connexion" method="POST" class="space-y-5">
-        
+        {{ form.hidden_tag() if form else '' }}
 
         
         <div>

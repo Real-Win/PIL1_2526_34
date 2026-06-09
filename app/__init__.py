@@ -2,13 +2,11 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_bcrypt import Bcrypt
-from flask_socketio import SocketIO
 from config import Config
 
-db            = SQLAlchemy()
+db           = SQLAlchemy()
 login_manager = LoginManager()
 bcrypt        = Bcrypt()
-socketio      = SocketIO()          # ← nouveau
 
 
 def create_app():
@@ -18,10 +16,10 @@ def create_app():
     db.init_app(app)
     login_manager.init_app(app)
     bcrypt.init_app(app)
-    socketio.init_app(app, cors_allowed_origins="*")   # ← nouveau
 
     login_manager.login_view = "auth.connexion"
 
+    # user_loader à l'intérieur pour éviter l'import circulaire
     from app.models import User
 
     @login_manager.user_loader
@@ -30,12 +28,10 @@ def create_app():
 
     # Blueprints
     from app.routes import matching_bp, auth_bp
-    from app.routes_messagerie import messagerie_bp   # ← nouveau
-
     app.register_blueprint(auth_bp)
     app.register_blueprint(matching_bp)
-    app.register_blueprint(messagerie_bp)             # ← nouveau
 
+    # Création automatique des tables si elles n'existent pas
     with app.app_context():
         db.create_all()
 
