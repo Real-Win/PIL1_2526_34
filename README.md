@@ -129,7 +129,7 @@ python run.py
 | God Win FADONOUGBO | Intelligence Artificielle | Chef de groupe + Algorithme de matching |
 | MONNOUKOUN Hironde | Génie Logiciel | Backend Flask / Routes |
 | NOUGBOGNONHOUN Mariel | Sécurité Informatique | Auth / Sécurité / Base de données |
-| BOUKOH Jean-Marc | Internet et Multimédia | Frontend |
+| BOUKOH Jean-Marc | Internet et Multimédia | Frontend + Porte-parole du groupe |
 | SALIOU Samuel Exaucé | Systèmes Embarqués & IoT | Messagerie temps réel |
 
 ---
