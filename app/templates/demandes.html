@@ -1,0 +1,339 @@
+{% extends "base.html" %}
+
+{% block titre %}Mes demandes — MentorLink{% endblock %}
+
+{% block contenu %}
+
+<div class="max-w-4xl mx-auto py-10 px-4">
+
+  <!-- En-tête -->
+  <div class="mb-8">
+    <h1 class="text-2xl font-bold text-slate-900">Mes demandes</h1>
+    <p class="text-slate-500 text-sm mt-1">
+      Suis l'état de tes demandes de mentorat envoyées et reçues
+    </p>
+  </div>
+
+  <!-- Messages flash -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="mb-6 p-3 rounded-lg text-sm
+          {% if category == 'success' %}
+            bg-green-50 text-green-700 border border-green-200
+          {% elif category == 'danger' %}
+            bg-red-50 text-red-700 border border-red-200
+          {% else %}
+            bg-blue-50 text-blue-700 border border-blue-200
+          {% endif %}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <!-- Onglets -->
+  <div class="flex gap-2 mb-6" id="onglets">
+
+    <button
+      onclick="afficherOnglet('envoyees')"
+      id="btn-envoyees"
+      class="px-5 py-2 rounded-xl text-sm font-medium transition-colors
+             bg-accent text-white">
+      Demandes envoyées
+      {% if demandes_envoyees %}
+        <span class="ml-1.5 bg-white text-accent text-xs
+                     px-1.5 py-0.5 rounded-full font-bold">
+          {{ demandes_envoyees | length }}
+        </span>
+      {% endif %}
+    </button>
+
+    <button
+      onclick="afficherOnglet('recues')"
+      id="btn-recues"
+      class="px-5 py-2 rounded-xl text-sm font-medium transition-colors
+             bg-slate-100 text-slate-600 hover:bg-slate-200">
+      Demandes reçues
+      {% if demandes_recues %}
+        {% set nb_attente = demandes_recues
+           | selectattr('statut', 'equalto', 'en_attente')
+           | list | length %}
+        {% if nb_attente > 0 %}
+          <span class="ml-1.5 bg-red-500 text-white text-xs
+                       px-1.5 py-0.5 rounded-full font-bold">
+            {{ nb_attente }}
+          </span>
+        {% endif %}
+      {% endif %}
+    </button>
+
+  </div>
+
+  <!-- ── ONGLET 1 : Demandes envoyées ── -->
+  <div id="tab-envoyees">
+
+    {% if demandes_envoyees %}
+
+      <div class="space-y-4">
+        {% for demande in demandes_envoyees %}
+
+          <div class="bg-white rounded-2xl border border-slate-200 p-5">
+
+            <div class="flex items-start justify-between gap-4">
+
+              <!-- Infos mentor -->
+              <div class="flex items-center gap-3 flex-1 min-w-0">
+
+                <div class="w-10 h-10 rounded-full bg-accent flex items-center
+                            justify-center text-white text-sm font-bold
+                            flex-shrink-0">
+                  {{ demande.mentor.prenom[0] | upper }}{{ demande.mentor.nom[0] | upper }}
+                </div>
+
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm font-semibold text-slate-900">
+                    {{ demande.mentor.prenom }} {{ demande.mentor.nom }}
+                  </p>
+                  <span class="text-xs bg-blue-50 text-blue-700
+                               px-2 py-0.5 rounded-full">
+                    {{ demande.mentor.filiere }}
+                  </span>
+                </div>
+
+              </div>
+
+              <!-- Statut -->
+              <div class="flex-shrink-0">
+                {% if demande.statut == 'en_attente' %}
+                  <span class="text-xs font-medium px-3 py-1.5 rounded-full
+                               bg-amber-50 text-amber-700 border border-amber-200">
+                    En attente
+                  </span>
+                {% elif demande.statut == 'acceptee' %}
+                  <span class="text-xs font-medium px-3 py-1.5 rounded-full
+                               bg-green-50 text-green-700 border border-green-200">
+                    Acceptée ✓
+                  </span>
+                {% elif demande.statut == 'refusee' %}
+                  <span class="text-xs font-medium px-3 py-1.5 rounded-full
+                               bg-red-50 text-red-700 border border-red-200">
+                    Refusée ✕
+                  </span>
+                {% endif %}
+              </div>
+
+            </div>
+
+            <!-- Sujet -->
+            <div class="mt-4 bg-slate-50 rounded-xl p-3 border border-slate-200">
+              <p class="text-xs text-slate-500 mb-1">Sujet</p>
+              <p class="text-sm text-slate-700">{{ demande.sujet }}</p>
+            </div>
+
+            <!-- Date + action si acceptée -->
+            <div class="mt-3 flex items-center justify-between">
+              <p class="text-xs text-slate-400">
+                Envoyée le
+                {{ demande.date_demande.strftime('%d/%m/%Y à %H:%M')
+                   if demande.date_demande else 'N/A' }}
+              </p>
+              {% if demande.statut == 'acceptee' %}
+                <a href="/messages"
+                   class="text-xs bg-accent hover:bg-blue-700 text-white
+                          px-4 py-1.5 rounded-lg transition-colors font-medium">
+                  Ouvrir la conversation
+                </a>
+              {% endif %}
+            </div>
+
+          </div>
+
+        {% endfor %}
+      </div>
+
+    {% else %}
+
+      <div class="bg-white rounded-2xl border border-slate-200 p-12 text-center">
+        <p class="text-slate-400 text-sm font-medium">
+          Tu n'as pas encore envoyé de demande
+        </p>
+        <p class="text-slate-300 text-xs mt-1 mb-4">
+          Va sur la page matching pour trouver un mentor
+        </p>
+        <a href="/matching"
+           class="inline-block bg-accent hover:bg-blue-700 text-white
+                  text-sm font-medium px-6 py-2 rounded-lg transition-colors">
+          Trouver un mentor
+        </a>
+      </div>
+
+    {% endif %}
+
+  </div>
+
+  <!-- ── ONGLET 2 : Demandes reçues ── -->
+  <div id="tab-recues" class="hidden">
+
+    {% if demandes_recues %}
+
+      <div class="space-y-4">
+        {% for demande in demandes_recues %}
+
+          <div class="bg-white rounded-2xl border border-slate-200 p-5">
+
+            <div class="flex items-start justify-between gap-4">
+
+              <!-- Infos mentoré -->
+              <div class="flex items-center gap-3 flex-1 min-w-0">
+
+                <div class="w-10 h-10 rounded-full bg-green-500 flex items-center
+                            justify-center text-white text-sm font-bold
+                            flex-shrink-0">
+                  {{ demande.etudiant.prenom[0] | upper }}{{ demande.etudiant.nom[0] | upper }}
+                </div>
+
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm font-semibold text-slate-900">
+                    {{ demande.etudiant.prenom }} {{ demande.etudiant.nom }}
+                  </p>
+                  <span class="text-xs bg-green-50 text-green-700
+                               px-2 py-0.5 rounded-full">
+                    {{ demande.etudiant.filiere }}
+                  </span>
+                </div>
+
+              </div>
+
+              <!-- Statut -->
+              <div class="flex-shrink-0">
+                {% if demande.statut == 'en_attente' %}
+                  <span class="text-xs font-medium px-3 py-1.5 rounded-full
+                               bg-amber-50 text-amber-700 border border-amber-200">
+                    En attente
+                  </span>
+                {% elif demande.statut == 'acceptee' %}
+                  <span class="text-xs font-medium px-3 py-1.5 rounded-full
+                               bg-green-50 text-green-700 border border-green-200">
+                    Acceptée ✓
+                  </span>
+                {% elif demande.statut == 'refusee' %}
+                  <span class="text-xs font-medium px-3 py-1.5 rounded-full
+                               bg-red-50 text-red-700 border border-red-200">
+                    Refusée ✕
+                  </span>
+                {% endif %}
+              </div>
+
+            </div>
+
+            <!-- Sujet -->
+            <div class="mt-4 bg-slate-50 rounded-xl p-3 border border-slate-200">
+              <p class="text-xs text-slate-500 mb-1">Sujet de la demande</p>
+              <p class="text-sm text-slate-700">{{ demande.sujet }}</p>
+            </div>
+
+            <!-- Date + boutons accepter/refuser -->
+            <div class="mt-3 flex items-center justify-between gap-3">
+
+              <p class="text-xs text-slate-400">
+                Reçue le
+                {{ demande.date_demande.strftime('%d/%m/%Y à %H:%M')
+                   if demande.date_demande else 'N/A' }}
+              </p>
+
+              {% if demande.statut == 'en_attente' %}
+                <div class="flex gap-2">
+
+                  <!-- Refuser -->
+                  <form action="/demande/{{ demande.id }}/statut"
+                        method="POST">
+                    <input type="hidden" name="statut" value="refusee">
+                    <button type="submit"
+                      class="text-xs text-red-600 hover:text-red-700
+                             border border-red-200 hover:border-red-400
+                             px-4 py-1.5 rounded-lg transition-colors
+                             bg-white font-medium">
+                      Refuser
+                    </button>
+                  </form>
+
+                  <!-- Accepter -->
+                  <form action="/demande/{{ demande.id }}/statut"
+                        method="POST">
+                    <input type="hidden" name="statut" value="acceptee">
+                    <button type="submit"
+                      class="text-xs bg-green-600 hover:bg-green-700
+                             text-white px-4 py-1.5 rounded-lg
+                             transition-colors font-medium">
+                      Accepter
+                    </button>
+                  </form>
+
+                </div>
+
+              {% elif demande.statut == 'acceptee' %}
+                <a href="/messages"
+                   class="text-xs bg-accent hover:bg-blue-700 text-white
+                          px-4 py-1.5 rounded-lg transition-colors font-medium">
+                  Ouvrir la conversation
+                </a>
+              {% endif %}
+
+            </div>
+
+          </div>
+
+        {% endfor %}
+      </div>
+
+    {% else %}
+
+      <div class="bg-white rounded-2xl border border-slate-200 p-12 text-center">
+        <p class="text-slate-400 text-sm font-medium">
+          Tu n'as pas encore reçu de demande
+        </p>
+        <p class="text-slate-300 text-xs mt-1">
+          Complète ton profil pour apparaître dans les résultats de matching
+        </p>
+      </div>
+
+    {% endif %}
+
+  </div>
+
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function afficherOnglet(onglet) {
+
+    const tabEnvoyees = document.getElementById('tab-envoyees');
+    const tabRecues   = document.getElementById('tab-recues');
+    const btnEnvoyees = document.getElementById('btn-envoyees');
+    const btnRecues   = document.getElementById('btn-recues');
+
+    if (onglet === 'envoyees') {
+      tabEnvoyees.classList.remove('hidden');
+      tabRecues.classList.add('hidden');
+      btnEnvoyees.className = btnEnvoyees.className
+        .replace('bg-slate-100 text-slate-600 hover:bg-slate-200',
+                 'bg-accent text-white');
+      btnRecues.className = btnRecues.className
+        .replace('bg-accent text-white',
+                 'bg-slate-100 text-slate-600 hover:bg-slate-200');
+    } else {
+      tabRecues.classList.remove('hidden');
+      tabEnvoyees.classList.add('hidden');
+      btnRecues.className = btnRecues.className
+        .replace('bg-slate-100 text-slate-600 hover:bg-slate-200',
+                 'bg-accent text-white');
+      btnEnvoyees.className = btnEnvoyees.className
+        .replace('bg-accent text-white',
+                 'bg-slate-100 text-slate-600 hover:bg-slate-200');
+    }
+  }
+</script>
+{% endblock %}
