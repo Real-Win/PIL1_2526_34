@@ -1,25 +1,101 @@
-from flask import Flask, render_template
-from flask_socketio import SocketIO, emit, join_room, leave_room
+from flask import Blueprint, render_template, jsonify
+from flask_login import login_required, current_user
+from flask_socketio import emit, join_room, leave_room
+from app import db, socketio
+from app.models import Message, User
+from datetime import datetime
 
-# 1. Initialisation de l'application Flask
-app = Flask(__name__)
-app.config['SECRET_KEY'] = 'cle_secrete_ifri_mentorlink'
+messagerie_bp = Blueprint("messagerie", __name__)
 
-# 2. [span_0](start_span)[span_1](start_span)Configuration de SocketIO pour activer le temps réel[span_0](end_span)[span_1](end_span)
-socketio = SocketIO(app, cors_allowed_origins="*")
 
-# 3. [span_2](start_span)[span_3](start_span)Route de base pour vérifier que le serveur web fonctionne[span_2](end_span)[span_3](end_span)
-@app.route('/')
-def index():
-    return render_template("index.html") 
+# ------------------------------------------------------------------
+# PAGE MESSAGES  /messages
+# ------------------------------------------------------------------
+@messagerie_bp.route("/messages")
+@login_required
+def messages():
+    autres_users = User.query.filter(User.id != current_user.id).all()
+    historique   = Message.query.filter(
+        (Message.sender_id   == current_user.id) |
+        (Message.receiver_id == current_user.id)
+    ).order_by(Message.date_envoi.asc()).all()
 
-# 4. Événement : Quand un utilisateur envoie un message
-@socketio.on('nouveau_message')
+    return render_template(
+        "messages.html",
+        historique=historique,
+        autres_users=autres_users
+    )
+
+
+# ------------------------------------------------------------------
+# API : historique d'une conversation  GET /api/messages/<id>
+# ------------------------------------------------------------------
+@messagerie_bp.route("/api/messages/<int:contact_id>")
+@login_required
+def get_messages(contact_id):
+    """Retourne l'historique JSON entre l'utilisateur connecté et contact_id."""
+    msgs = Message.query.filter(
+        ((Message.sender_id   == current_user.id) & (Message.receiver_id == contact_id)) |
+        ((Message.sender_id   == contact_id)       & (Message.receiver_id == current_user.id))
+    ).order_by(Message.date_envoi.asc()).all()
+
+    return jsonify([{
+        "id":      m.id,
+        "contenu": m.contenu,
+        "heure":   m.date_envoi.strftime("%H:%M") if m.date_envoi else "",
+        "est_moi": m.sender_id == current_user.id
+    } for m in msgs])
+
+
+# ------------------------------------------------------------------
+# SOCKET.IO : rejoindre une salle privée
+# ------------------------------------------------------------------
+@socketio.on("rejoindre_salle")
+def rejoindre_salle(data):
+    ids   = sorted([int(data["user_id"]), int(data["contact_id"])])
+    salle = f"salle_{ids[0]}_{ids[1]}"
+    join_room(salle)
+
+
+# ------------------------------------------------------------------
+# SOCKET.IO : recevoir et diffuser un message
+# ------------------------------------------------------------------
+@socketio.on("nouveau_message")
 def gerer_message(data):
-    print("Message reçu : " + str(data['contenu']))
-    # broadcast=True permet de renvoyer le message à TOUS les utilisateurs connectés
-    emit('diffusion_message', {'pseudo': data['pseudo'], 'msg': data['contenu']}, broadcast=True)
+    sender_id   = int(data.get("sender_id"))
+    receiver_id = int(data.get("receiver_id"))
+    contenu     = data.get("contenu", "").strip()
 
-# 5. [span_4](start_span)[span_5](start_span)Démarrage du serveur sur le port 5000[span_4](end_span)[span_5](end_span)
-if __name__ == '__main__':
-    socketio.run(app, debug=True)
+    if not contenu:
+        return
+
+    # Sauvegarde en base
+    msg = Message(
+        sender_id=sender_id,
+        receiver_id=receiver_id,
+        contenu=contenu,
+        date_envoi=datetime.utcnow(),
+        lu=False
+    )
+    db.session.add(msg)
+    db.session.commit()
+
+    expediteur = User.query.get(sender_id)
+    pseudo     = f"{expediteur.prenom} {expediteur.nom}" if expediteur else "Inconnu"
+
+    ids   = sorted([sender_id, receiver_id])
+    salle = f"salle_{ids[0]}_{ids[1]}"
+
+    emit("diffusion_message", {
+        "pseudo":     pseudo,
+        "msg":        contenu,
+        "date":       msg.date_envoi.strftime("%H:%M"),
+        "sender_id":  sender_id
+    }, room=salle)
+
+
+@socketio.on("quitter_salle")
+def quitter_salle(data):
+    ids   = sorted([int(data["user_id"]), int(data["contact_id"])])
+    salle = f"salle_{ids[0]}_{ids[1]}"
+    leave_room(salle)

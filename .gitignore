@@ -1,0 +1,19 @@
+cat > .gitignore << 'EOF'
+# Base de données SQLite
+instance/
+*.db
+*.sqlite3
+
+# Cache Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Environnement virtuel
+venv/
+env/
+
+# Fichiers système
+.DS_Store
+Thumbs.db
+EOF
