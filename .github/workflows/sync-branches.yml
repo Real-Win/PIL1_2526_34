@@ -1,0 +1,27 @@
+name: Sync branches with main
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '0 * * * *'
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        branch: [auth, database, frontend, messaging, matching]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Sync ${{ matrix.branch }} with main
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git fetch origin
+          git checkout ${{ matrix.branch }}
+          git merge origin/main --no-edit || true
+          git push origin ${{ matrix.branch }} || true

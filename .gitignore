@@ -1,23 +1,23 @@
-# venv
-venv/
-env/
+<<<<<<< HEAD
 
-# Python cache
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-
-# Env variables
-.env
-
-# VS Code
-.vscode/
-
-# DB
+=======
+cat > .gitignore << 'EOF'
+>>>>>>> 48f46398085bd5705c6474876c27d607d64cfde6
+# Base de données SQLite
+instance/
 *.db
 *.sqlite3
 
-# Windows
+# Cache Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Environnement virtuel
+venv/
+env/
+
+# Fichiers système
+.DS_Store
 Thumbs.db
-desktop.ini
+EOF

@@ -1,55 +1,631 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <title>Rising Minds - Rapport</title>
-</head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rapport de projet — Rising Minds (Groupe 34)</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+    :root {
+      --primary: #1e3a5f;
+      --accent:  #2563eb;
+      --accent-light: #eff6ff;
+      --slate-50:  #f8fafc;
+      --slate-100: #f1f5f9;
+      --slate-200: #e2e8f0;
+      --slate-400: #94a3b8;
+      --slate-500: #64748b;
+      --slate-700: #334155;
+      --slate-900: #0f172a;
+      --green:     #16a34a;
+      --green-light: #f0fdf4;
+      --purple:    #7c3aed;
+      --purple-light: #f5f3ff;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--slate-50);
+      color: var(--slate-700);
+      line-height: 1.7;
+      font-size: 15px;
+    }
+
+    /* ── Navigation ────────────────────────────────── */
+    nav {
+      background: var(--slate-900);
+      position: sticky; top: 0; z-index: 100;
+      padding: 1rem 2rem;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    nav .brand { color: #fff; font-size: 1.1rem; font-weight: 700; }
+    nav .brand span { color: #60a5fa; }
+    nav .nav-links { display: flex; gap: 1.5rem; }
+    nav .nav-links a {
+      color: #94a3b8; text-decoration: none; font-size: 0.85rem;
+      transition: color .2s;
+    }
+    nav .nav-links a:hover { color: #fff; }
+
+    /* ── Hero ──────────────────────────────────────── */
+    .hero {
+      background: linear-gradient(135deg, var(--primary) 0%, #1e40af 100%);
+      color: #fff; text-align: center;
+      padding: 5rem 2rem 4rem;
+    }
+    .hero .badge {
+      display: inline-flex; align-items: center; gap: .5rem;
+      background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.2);
+      border-radius: 9999px; padding: .3rem 1rem;
+      font-size: .75rem; color: #bfdbfe; margin-bottom: 1.5rem;
+    }
+    .hero .badge span { width: 8px; height: 8px; border-radius: 50%; background: #4ade80; display: inline-block; }
+    .hero h1 { font-size: clamp(2rem, 4vw, 3rem); font-weight: 800; margin-bottom: 1rem; }
+    .hero h1 em { font-style: normal; color: #93c5fd; }
+    .hero p { font-size: 1.05rem; color: #bfdbfe; max-width: 600px; margin: 0 auto; }
+    .hero .meta { margin-top: 2rem; display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap; }
+    .hero .meta-item { text-align: center; }
+    .hero .meta-item strong { display: block; font-size: 1.5rem; font-weight: 800; }
+    .hero .meta-item small { font-size: .75rem; color: #bfdbfe; }
+
+    /* ── Layout ────────────────────────────────────── */
+    .container { max-width: 900px; margin: 0 auto; padding: 0 1.5rem; }
+
+    section { padding: 3.5rem 0 2rem; }
+    section + section { border-top: 1px solid var(--slate-200); }
+
+    /* ── Section titles ────────────────────────────── */
+    .section-label {
+      font-size: .7rem; font-weight: 700; letter-spacing: .12em;
+      text-transform: uppercase; color: var(--accent);
+      margin-bottom: .5rem;
+    }
+    h2 {
+      font-size: 1.5rem; font-weight: 800;
+      color: var(--slate-900); margin-bottom: 1.5rem;
+    }
+    h3 { font-size: 1rem; font-weight: 700; color: var(--slate-900); margin-bottom: .5rem; }
+    p  { color: var(--slate-500); margin-bottom: 1rem; }
+
+    /* ── Cards ─────────────────────────────────────── */
+    .card {
+      background: #fff; border: 1px solid var(--slate-200);
+      border-radius: 1rem; padding: 1.5rem;
+      margin-bottom: 1rem;
+    }
+
+    /* ── Team grid ─────────────────────────────────── */
+    .team-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 1rem;
+    }
+    .member {
+      background: #fff; border: 1px solid var(--slate-200);
+      border-radius: 1rem; padding: 1.25rem 1.5rem;
+      display: flex; align-items: flex-start; gap: 1rem;
+    }
+    .avatar {
+      width: 48px; height: 48px; border-radius: 50%;
+      background: var(--accent); color: #fff;
+      font-weight: 700; font-size: 1rem;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .avatar.green  { background: var(--green); }
+    .avatar.purple { background: var(--purple); }
+    .avatar.amber  { background: #d97706; }
+    .avatar.teal   { background: #0d9488; }
+    .member-info h3 { margin-bottom: .2rem; }
+    .tag {
+      display: inline-block; font-size: .7rem; font-weight: 600;
+      padding: .15rem .6rem; border-radius: 9999px;
+      background: var(--accent-light); color: var(--accent);
+      margin-bottom: .4rem;
+    }
+    .tag.green  { background: var(--green-light); color: var(--green); }
+    .tag.purple { background: var(--purple-light); color: var(--purple); }
+    .member-info p { font-size: .82rem; margin: 0; color: var(--slate-500); }
+
+    /* ── Tech stack ─────────────────────────────────── */
+    .tech-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: .75rem;
+    }
+    .tech-card {
+      background: #fff; border: 1px solid var(--slate-200);
+      border-radius: .75rem; padding: 1rem 1.25rem;
+      text-align: center;
+    }
+    .tech-icon { font-size: 1.75rem; margin-bottom: .4rem; }
+    .tech-card h3 { font-size: .85rem; margin-bottom: .2rem; }
+    .tech-card p  { font-size: .75rem; margin: 0; }
+
+    /* ── DB schema ─────────────────────────────────── */
+    .schema-table {
+      width: 100%; border-collapse: collapse; font-size: .85rem;
+      margin-bottom: 1.5rem;
+    }
+    .schema-table caption {
+      text-align: left; font-weight: 700; font-size: .9rem;
+      color: var(--slate-900); padding: .5rem 0 .4rem;
+    }
+    .schema-table th {
+      background: var(--slate-100); text-align: left;
+      padding: .5rem .75rem; border: 1px solid var(--slate-200);
+      color: var(--slate-700); font-size: .75rem; text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+    .schema-table td {
+      padding: .45rem .75rem; border: 1px solid var(--slate-200);
+      color: var(--slate-500);
+    }
+    .schema-table tr:nth-child(even) td { background: var(--slate-50); }
+    .pk { color: var(--accent); font-weight: 700; }
+    .fk { color: var(--green); font-weight: 600; }
+
+    /* ── Algorithm box ─────────────────────────────── */
+    .algo-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1rem; }
+    .algo-card {
+      background: #fff; border: 1px solid var(--slate-200);
+      border-radius: 1rem; padding: 1.25rem; text-align: center;
+    }
+    .algo-score {
+      font-size: 2rem; font-weight: 800;
+      margin-bottom: .25rem;
+    }
+    .algo-card h3 { font-size: .9rem; margin-bottom: .4rem; }
+    .algo-card p  { font-size: .8rem; margin: 0; }
+
+    /* ── Steps (deploy) ─────────────────────────────── */
+    .steps { counter-reset: step; }
+    .step {
+      display: flex; gap: 1.25rem; align-items: flex-start;
+      margin-bottom: 1.25rem;
+    }
+    .step::before {
+      counter-increment: step;
+      content: counter(step);
+      width: 36px; height: 36px; border-radius: 50%;
+      background: var(--accent); color: #fff;
+      font-weight: 700; font-size: .9rem;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .step-body h3 { margin-bottom: .25rem; }
+
+    code {
+      background: var(--slate-100); border: 1px solid var(--slate-200);
+      border-radius: .35rem; padding: .1rem .4rem;
+      font-size: .82rem; font-family: 'Courier New', monospace;
+      color: var(--slate-700);
+    }
+    pre {
+      background: var(--slate-900); color: #e2e8f0;
+      border-radius: .75rem; padding: 1.25rem 1.5rem;
+      font-size: .82rem; overflow-x: auto;
+      margin-bottom: 1rem; line-height: 1.6;
+    }
+    pre code { background: none; border: none; padding: 0; color: inherit; }
+
+    /* ── Feature list ──────────────────────────────── */
+    .feature-list { list-style: none; }
+    .feature-list li {
+      display: flex; align-items: flex-start; gap: .75rem;
+      padding: .6rem 0; border-bottom: 1px solid var(--slate-100);
+      font-size: .9rem;
+    }
+    .feature-list li:last-child { border-bottom: none; }
+    .check { color: var(--green); font-size: 1rem; flex-shrink: 0; }
+
+    /* ── Footer ────────────────────────────────────── */
+    footer {
+      background: var(--slate-900); color: var(--slate-400);
+      text-align: center; padding: 2rem 1rem; font-size: .82rem;
+      margin-top: 4rem;
+    }
+
+    @media (max-width: 640px) {
+      .algo-grid { grid-template-columns: 1fr; }
+      .hero .meta { gap: 1rem; }
+      nav .nav-links { display: none; }
+    }
+  </style>
+</head>
 <body>
 
-<h1>📘 IFRI_MentorLink - Rapport de projet</h1>
+<!-- ── Navigation ────────────────────────────────────────── -->
+<nav>
+  <div class="brand">Mentor<span>Link</span> — Rapport</div>
+  <div class="nav-links">
+    <a href="#equipe">Équipe</a>
+    <a href="#architecture">Architecture</a>
+    <a href="#bdd">Base de données</a>
+    <a href="#algo">Algorithme</a>
+    <a href="#deploiement">Déploiement</a>
+    <a href="#manuel">Manuel</a>
+  </div>
+</nav>
 
-<h2>📌 Présentation</h2>
-<p>
-IFRI_MentorLink est une application web de mentorat académique permettant de connecter les étudiants selon leurs compétences, filières et disponibilités.
-</p>
+<!-- ── Hero ─────────────────────────────────────────────── -->
+<div class="hero">
+  <div class="badge"><span></span> Projet intégrateur 2025–2026</div>
+  <h1>Rising Minds<br><em>IFRI MentorLink</em></h1>
+  <p>Plateforme de mentorat académique connectant les étudiants de l'IFRI par leurs compétences, filières et disponibilités.</p>
+  <div class="meta">
+    <div class="meta-item"><strong>Groupe 34</strong><small>PIL1 2526</small></div>
+    <div class="meta-item"><strong>5</strong><small>membres</small></div>
+    <div class="meta-item"><strong>Flask + MySQL</strong><small>stack technique</small></div>
+    <div class="meta-item"><strong>10 juin 2026</strong><small>date de rendu</small></div>
+  </div>
+</div>
 
-<h2>🎯 Objectif</h2>
-<p>
-Créer une plateforme permettant la mise en relation intelligente entre étudiants pour favoriser l'entraide académique et professionnelle.
-</p>
+<div class="container">
 
-<h2>🏗️ Architecture</h2>
-<ul>
-    <li>Frontend : HTML / CSS / JavaScript</li>
-    <li>Backend : Python (Flask)</li>
-    <li>Base de données : MySQL / SQLite</li>
-    <li>Versioning : Git + GitHub</li>
-</ul>
+<!-- ── Présentation ──────────────────────────────────────── -->
+<section id="presentation">
+  <div class="section-label">Présentation</div>
+  <h2>Le projet</h2>
+  <p>
+    IFRI MentorLink est une application web de mentorat académique développée dans le cadre du projet intégrateur PIL1 2025–2026.
+    Elle met en relation les étudiants de l'IFRI pour du soutien académique et professionnel, en s'appuyant sur un algorithme de matching intelligent.
+  </p>
+  <p>
+    L'application permet à chaque étudiant de créer un profil détaillé (compétences, disponibilités, filière), de trouver des mentors compatibles,
+    d'envoyer des demandes de mentorat et de communiquer en temps réel via une messagerie instantanée.
+  </p>
 
-<h2>👥 Équipe</h2>
-<ul>
-    <li>God Win : Chef de projet / IA matching / coordination</li>
-    <li>BOUKOH Jean-Marc : Frontend</li>
-    <li>MONNOUKOUN Hironde : Backend / API</li>
-    <li>NOUGBOGNONHOU Mariel : Auth / sécurité / base de données</li>
-    <li>SALIOU Samuel Exaucé : Messagerie</li>
-</ul>
+  <div class="card">
+    <h3>Fonctionnalités principales</h3>
+    <ul class="feature-list">
+      <li><span class="check">✓</span> Inscription et connexion sécurisées (hachage bcrypt, Flask-Login)</li>
+      <li><span class="check">✓</span> Profil utilisateur complet : bio, compétences, disponibilités horaires, filière, niveau</li>
+      <li><span class="check">✓</span> Algorithme de matching pondéré (compétences 50 pts, disponibilités 30 pts, filière 20 pts)</li>
+      <li><span class="check">✓</span> Système de demandes de mentorat avec suivi du statut</li>
+      <li><span class="check">✓</span> Messagerie instantanée en temps réel (Flask-SocketIO + Vue.js)</li>
+      <li><span class="check">✓</span> Tableau de bord personnalisé avec activité récente</li>
+      <li><span class="check">✓</span> Interface responsive (Tailwind CSS)</li>
+    </ul>
+  </div>
+</section>
 
-<h2>⚙️ Fonctionnalités</h2>
-<ul>
-    <li>Gestion des comptes utilisateurs</li>
-    <li>Système de matching intelligent</li>
-    <li>Messagerie entre utilisateurs</li>
-</ul>
+<!-- ── Équipe ─────────────────────────────────────────────── -->
+<section id="equipe">
+  <div class="section-label">Équipe</div>
+  <h2>Membres du groupe 34</h2>
+  <p>Équipe constituée de 5 étudiants issus de différentes filières, chacun responsable d'un domaine technique précis.</p>
 
-<h2>🚀 Déploiement</h2>
-<p>
-1. Cloner le projet<br>
-2. Activer le venv<br>
-3. Installer requirements.txt<br>
-4. Lancer run.py
-</p>
+  <div class="team-grid">
+
+    <div class="member">
+      <div class="avatar">GW</div>
+      <div class="member-info">
+        <div class="tag">IA — Chef de projet</div>
+        <h3>God Win</h3>
+        <p>Coordination générale, algorithme de matching, intégration des branches Git, architecture globale.</p>
+      </div>
+    </div>
+
+    <div class="member">
+      <div class="avatar purple">BJ</div>
+      <div class="member-info">
+        <div class="tag purple">IM — Frontend</div>
+        <h3>BOUKOH Jean-Marc</h3>
+        <p>Conception et développement de toutes les interfaces utilisateur (HTML/CSS/Tailwind, templates Jinja2).</p>
+      </div>
+    </div>
+
+    <div class="member">
+      <div class="avatar green">MH</div>
+      <div class="member-info">
+        <div class="tag green">GL — Backend</div>
+        <h3>MONNOUKOUN Hironde</h3>
+        <p>Développement des routes Flask, API REST, logique métier backend, blueprints.</p>
+      </div>
+    </div>
+
+    <div class="member">
+      <div class="avatar amber">NM</div>
+      <div class="member-info">
+        <div class="tag" style="background:#fef3c7;color:#b45309;">SI — Sécurité & BDD</div>
+        <h3>NOUGBOGNONHOU Mariel</h3>
+        <p>Authentification sécurisée, schéma de la base de données MySQL, gestion des sessions.</p>
+      </div>
+    </div>
+
+    <div class="member">
+      <div class="avatar teal">SS</div>
+      <div class="member-info">
+        <div class="tag" style="background:#f0fdfa;color:#0d9488;">SE — Messagerie</div>
+        <h3>SALIOU Samuel Exaucé</h3>
+        <p>Implémentation de la messagerie temps réel avec Flask-SocketIO, gestion des salles et de l'historique.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="card" style="margin-top:1.5rem;">
+    <h3>Démarche de travail collaboratif</h3>
+    <p>
+      Le groupe a travaillé avec un dépôt GitHub partagé, une branche par membre (<code>matching</code>, <code>auth</code>, <code>frontend</code>, <code>messagerie</code>, <code>main</code>).
+      Les branches ont été intégrées progressivement dans <code>main</code> sous la coordination du chef de projet.
+      Des échanges réguliers ont permis de maintenir la cohérence entre les modules et de résoudre les conflits de fusion.
+    </p>
+  </div>
+</section>
+
+<!-- ── Architecture ───────────────────────────────────────── -->
+<section id="architecture">
+  <div class="section-label">Conception</div>
+  <h2>Architecture du projet</h2>
+
+  <div class="tech-grid">
+    <div class="tech-card">
+      <div class="tech-icon">🐍</div>
+      <h3>Python / Flask</h3>
+      <p>Framework backend, blueprints, routing</p>
+    </div>
+    <div class="tech-card">
+      <div class="tech-icon">🗄️</div>
+      <h3>MySQL</h3>
+      <p>Base de données relationnelle, SQLAlchemy ORM</p>
+    </div>
+    <div class="tech-card">
+      <div class="tech-icon">⚡</div>
+      <h3>Flask-SocketIO</h3>
+      <p>Messagerie temps réel, salles privées</p>
+    </div>
+    <div class="tech-card">
+      <div class="tech-icon">🎨</div>
+      <h3>Tailwind CSS</h3>
+      <p>Interface responsive et moderne</p>
+    </div>
+    <div class="tech-card">
+      <div class="tech-icon">💚</div>
+      <h3>Vue.js 3</h3>
+      <p>Composant messagerie réactif</p>
+    </div>
+    <div class="tech-card">
+      <div class="tech-icon">🔐</div>
+      <h3>Flask-Bcrypt</h3>
+      <p>Hachage sécurisé des mots de passe</p>
+    </div>
+  </div>
+
+  <h3 style="margin-top:2rem;margin-bottom:.75rem;">Structure du projet</h3>
+  <pre><code>PIL1_2526_34/
+├── app/
+│   ├── __init__.py          # Factory, extensions (db, login, socketio)
+│   ├── models.py            # Modèles SQLAlchemy (User, Message, …)
+│   ├── routes.py            # Blueprints auth + matching
+│   ├── routes_messagerie.py # Blueprint messagerie + Socket.IO
+│   ├── matching.py          # Algorithme de matching
+│   ├── securite.py          # Inscription / connexion
+│   └── templates/
+│       ├── base.html
+│       ├── accueil.html
+│       ├── dashboard.html
+│       ├── inscription.html
+│       ├── connexion.html
+│       ├── profil.html
+│       ├── matching.html
+│       └── messages.html
+├── config.py                # Configuration Flask + URI MySQL
+├── run.py                   # Point d'entrée (socketio.run)
+├── schema.sql               # Structure BDD exportée
+├── rapport.html             # Ce rapport
+└── requirements.txt</code></pre>
+</section>
+
+<!-- ── Base de données ────────────────────────────────────── -->
+<section id="bdd">
+  <div class="section-label">Base de données</div>
+  <h2>Schéma relationnel</h2>
+  <p>La base de données comporte 7 tables interconnectées par des clés étrangères.</p>
+
+  <table class="schema-table">
+    <caption>Table : users</caption>
+    <thead><tr><th>Colonne</th><th>Type</th><th>Contrainte</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td class="pk">id</td><td>INT</td><td>PK, AUTO_INCREMENT</td><td>Identifiant unique</td></tr>
+      <tr><td>nom</td><td>VARCHAR(50)</td><td>NOT NULL</td><td>Nom de famille</td></tr>
+      <tr><td>prenom</td><td>VARCHAR(50)</td><td>NOT NULL</td><td>Prénom</td></tr>
+      <tr><td>email</td><td>VARCHAR(100)</td><td>NOT NULL, UNIQUE</td><td>Adresse e-mail</td></tr>
+      <tr><td>telephone</td><td>VARCHAR(20)</td><td>NOT NULL, UNIQUE</td><td>Numéro de téléphone</td></tr>
+      <tr><td>filiere</td><td>VARCHAR(100)</td><td>NOT NULL</td><td>Filière (IA, GL, IM, SI, SEIOT)</td></tr>
+      <tr><td>niveau</td><td>VARCHAR(10)</td><td>DEFAULT 'L1'</td><td>Niveau d'études (L1/L2/L3)</td></tr>
+      <tr><td>role</td><td>VARCHAR(20)</td><td>DEFAULT 'etudiant'</td><td>mentor / mentore / les_deux</td></tr>
+      <tr><td>password_hash</td><td>VARCHAR(255)</td><td>NOT NULL</td><td>Mot de passe haché (bcrypt)</td></tr>
+      <tr><td>bio</td><td>TEXT</td><td>NULL</td><td>Biographie courte</td></tr>
+      <tr><td>date_inscription</td><td>DATETIME</td><td>DEFAULT NOW()</td><td>Date de création du compte</td></tr>
+    </tbody>
+  </table>
+
+  <table class="schema-table">
+    <caption>Table : competences</caption>
+    <thead><tr><th>Colonne</th><th>Type</th><th>Contrainte</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td class="pk">id</td><td>INT</td><td>PK</td><td>Identifiant</td></tr>
+      <tr><td>nom</td><td>VARCHAR(100)</td><td>NOT NULL, UNIQUE</td><td>Nom de la compétence</td></tr>
+    </tbody>
+  </table>
+
+  <table class="schema-table">
+    <caption>Table : user_competences (table de liaison)</caption>
+    <thead><tr><th>Colonne</th><th>Type</th><th>Contrainte</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td class="fk">user_id</td><td>INT</td><td>PK, FK → users.id</td><td>Référence utilisateur</td></tr>
+      <tr><td class="fk">competence_id</td><td>INT</td><td>PK, FK → competences.id</td><td>Référence compétence</td></tr>
+      <tr><td>niveau</td><td>VARCHAR(20)</td><td>DEFAULT 'debutant'</td><td>Niveau de maîtrise</td></tr>
+    </tbody>
+  </table>
+
+  <table class="schema-table">
+    <caption>Table : disponibilites</caption>
+    <thead><tr><th>Colonne</th><th>Type</th><th>Contrainte</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td class="pk">id</td><td>INT</td><td>PK</td><td>Identifiant</td></tr>
+      <tr><td class="fk">user_id</td><td>INT</td><td>FK → users.id</td><td>Utilisateur concerné</td></tr>
+      <tr><td>jour_semaine</td><td>VARCHAR(15)</td><td>NOT NULL</td><td>Lundi, Mardi…</td></tr>
+      <tr><td>heure_debut</td><td>TIME</td><td>NOT NULL</td><td>Début du créneau</td></tr>
+      <tr><td>heure_fin</td><td>TIME</td><td>NOT NULL</td><td>Fin du créneau</td></tr>
+    </tbody>
+  </table>
+
+  <table class="schema-table">
+    <caption>Table : messages</caption>
+    <thead><tr><th>Colonne</th><th>Type</th><th>Contrainte</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td class="pk">id</td><td>INT</td><td>PK</td><td>Identifiant</td></tr>
+      <tr><td class="fk">sender_id</td><td>INT</td><td>FK → users.id</td><td>Expéditeur</td></tr>
+      <tr><td class="fk">receiver_id</td><td>INT</td><td>FK → users.id</td><td>Destinataire</td></tr>
+      <tr><td>contenu</td><td>TEXT</td><td>NOT NULL</td><td>Corps du message</td></tr>
+      <tr><td>lu</td><td>BOOLEAN</td><td>DEFAULT FALSE</td><td>Statut de lecture</td></tr>
+      <tr><td>date_envoi</td><td>DATETIME</td><td>DEFAULT NOW()</td><td>Horodatage</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ── Algorithme ─────────────────────────────────────────── -->
+<section id="algo">
+  <div class="section-label">Intelligence</div>
+  <h2>Algorithme de matching</h2>
+  <p>
+    Le score de compatibilité est calculé sur 100 points, répartis en trois composantes :
+  </p>
+
+  <div class="algo-grid" style="margin-bottom:1.5rem;">
+    <div class="algo-card">
+      <div class="algo-score" style="color:var(--accent)">50</div>
+      <h3>Compétences</h3>
+      <p>Intersection entre les compétences du mentoré et celles du mentor, rapportée au nombre total de compétences du mentoré.</p>
+    </div>
+    <div class="algo-card">
+      <div class="algo-score" style="color:var(--green)">30</div>
+      <h3>Disponibilités</h3>
+      <p>Chevauchement temporel entre les créneaux horaires des deux utilisateurs, pondéré par la durée du créneau du mentoré.</p>
+    </div>
+    <div class="algo-card">
+      <div class="algo-score" style="color:var(--purple)">20</div>
+      <h3>Filière</h3>
+      <p>Score fixe de 20 si même filière, 10 si filières différentes (toutes les filières sont proches à l'IFRI).</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Formules</h3>
+    <pre><code># Compétences (C sur 50)
+C = (|compétences_mentor ∩ compétences_mentoré| / |compétences_mentoré|) × 50
+
+# Disponibilités (H sur 30)  — meilleur créneau commun
+H = (durée_chevauchement / durée_créneau_mentoré) × 30
+
+# Filière (F sur 20)
+F = 20  si même filière
+F = 10  sinon
+
+# Score total
+Score = C + H + F   (sur 100)
+Seuil bon match : Score ≥ 60</code></pre>
+  </div>
+</section>
+
+<!-- ── Déploiement ────────────────────────────────────────── -->
+<section id="deploiement">
+  <div class="section-label">Instructions techniques</div>
+  <h2>Déploiement</h2>
+
+  <div class="steps">
+
+    <div class="step">
+      <div class="step-body">
+        <h3>Cloner le dépôt GitHub</h3>
+        <pre><code>git clone https://github.com/Real-Win/PIL1_2526_34.git
+cd PIL1_2526_34</code></pre>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-body">
+        <h3>Créer et activer l'environnement virtuel</h3>
+        <pre><code># Linux / macOS
+python3 -m venv venv
+source venv/bin/activate
+
+# Windows
+python -m venv venv
+venv\Scripts\activate</code></pre>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-body">
+        <h3>Installer les dépendances</h3>
+        <pre><code>pip install -r requirements.txt</code></pre>
+        <p style="margin-top:.5rem;">Dépendances principales : <code>flask</code>, <code>flask-sqlalchemy</code>, <code>flask-login</code>, <code>flask-bcrypt</code>, <code>flask-socketio</code>, <code>pymysql</code>.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-body">
+        <h3>Configurer la base de données MySQL</h3>
+        <p>Créer la base de données et importer le schéma :</p>
+        <pre><code>mysql -u root -p -e "CREATE DATABASE mentorlink CHARACTER SET utf8mb4;"
+mysql -u root -p mentorlink &lt; schema.sql</code></pre>
+        <p style="margin-top:.5rem;">Puis modifier <code>config.py</code> :</p>
+        <pre><code>SQLALCHEMY_DATABASE_URI = "mysql+pymysql://user:password@localhost/mentorlink"</code></pre>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-body">
+        <h3>Lancer l'application</h3>
+        <pre><code>python run.py</code></pre>
+        <p style="margin-top:.5rem;">L'application est accessible sur <code>http://127.0.0.1:5000</code>.</p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── Manuel utilisateur ─────────────────────────────────── -->
+<section id="manuel">
+  <div class="section-label">Guide</div>
+  <h2>Manuel d'utilisation</h2>
+
+  <div class="card">
+    <h3>1. Créer un compte</h3>
+    <p>Accéder à <code>/inscription</code>, remplir les champs nom, prénom, e-mail, téléphone, filière et rôle (mentor, mentoré ou les deux). Le mot de passe doit faire au moins 6 caractères.</p>
+  </div>
+
+  <div class="card">
+    <h3>2. Compléter son profil</h3>
+    <p>Depuis <code>/profil</code>, renseigner ses compétences (séparées par des virgules) et ses créneaux de disponibilité. Ces informations sont essentielles pour que l'algorithme propose des correspondances pertinentes.</p>
+  </div>
+
+  <div class="card">
+    <h3>3. Trouver un mentor</h3>
+    <p>Depuis <code>/matching</code>, l'algorithme analyse le profil et affiche les 3 mentors les plus compatibles avec leur score de compatibilité. Cliquer sur « Envoyer une demande » pour initier le mentorat.</p>
+  </div>
+
+  <div class="card">
+    <h3>4. Utiliser la messagerie</h3>
+    <p>Depuis <code>/messages</code>, sélectionner un contact dans la colonne gauche pour ouvrir la conversation. Les messages s'affichent en temps réel grâce à Socket.IO. L'historique est conservé en base de données.</p>
+  </div>
+
+  <div class="card">
+    <h3>5. Tableau de bord</h3>
+    <p>Le tableau de bord (<code>/dashboard</code>) présente un récapitulatif : messages non lus, complétion du profil, filière et date d'inscription. Il affiche aussi l'activité récente (derniers messages reçus).</p>
+  </div>
+
+</section>
+
+</div><!-- /container -->
+
+<footer>
+  <p>© 2026 — Rising Minds · Groupe 34 · PIL1 2525–2026 · IFRI, Université d'Abomey-Calavi</p>
+  <p style="margin-top:.5rem;">Dépôt GitHub : <a href="https://github.com/Real-Win/PIL1_2526_34" style="color:#60a5fa;">github.com/Real-Win/PIL1_2526_34</a></p>
+</footer>
 
 </body>
 </html>
