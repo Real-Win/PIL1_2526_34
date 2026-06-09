@@ -103,6 +103,7 @@ def dashboard():
 
     return render_template(
         "dashboard.html",
+        user=current_user,
         top_mentors=top_mentors,
         demandes=demandes,
         messages_recents=messages_recents
