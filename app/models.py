@@ -1,28 +1,31 @@
 from app import db
 from flask_login import UserMixin
 
+
 # =========================
 # UTILISATEURS
 # =========================
-class User(UserMixin,db.Model):
+
+class User(UserMixin, db.Model):
 
     __tablename__ = "users"
 
     id = db.Column(db.Integer, primary_key=True)
 
-    nom = db.Column(db.String(50), nullable=False)
-    prenom = db.Column(db.String(50), nullable=False)
+    nom    = db.Column(db.String(50),  nullable=False)
+    prenom = db.Column(db.String(50),  nullable=False)
 
-    email = db.Column(db.String(100), unique=True, nullable=False)
-    telephone = db.Column(db.String(20), unique=True, nullable=False)
+    email     = db.Column(db.String(100), unique=True, nullable=False)
+    telephone = db.Column(db.String(20),  unique=True, nullable=False)
 
     filiere = db.Column(db.String(100), nullable=False)
-    role = db.Column(db.String(20), default="etudiant")
+    niveau  = db.Column(db.String(10),  default="L1")   # ← AJOUT
+    role    = db.Column(db.String(20),  default="etudiant")
 
     password_hash = db.Column(db.String(255), nullable=False)
 
     photo_profil = db.Column(db.String(255), nullable=True)
-    bio = db.Column(db.Text, nullable=True)
+    bio          = db.Column(db.Text,        nullable=True)
 
     date_inscription = db.Column(
         db.DateTime,
@@ -71,8 +74,7 @@ class User(UserMixin,db.Model):
         backref="destinataire",
         lazy=True
     )
-    def __repr__(self):
-        return f"<User {self.email}>"
+
 
 # =========================
 # COMPÉTENCES
@@ -80,12 +82,12 @@ class User(UserMixin,db.Model):
 class Competence(db.Model):
     __tablename__ = "competences"
 
-    id = db.Column(db.Integer, primary_key=True)
+    id  = db.Column(db.Integer, primary_key=True)
     nom = db.Column(db.String(100), unique=True, nullable=False)
 
 
 # =========================
-# RELATION USER - COMPÉTENCES
+# RELATION USER – COMPÉTENCES
 # =========================
 class UserCompetence(db.Model):
     __tablename__ = "user_competences"
@@ -102,10 +104,7 @@ class UserCompetence(db.Model):
         primary_key=True
     )
 
-    niveau = db.Column(
-        db.String(20),
-        default="debutant"
-    )
+    niveau = db.Column(db.String(20), default="debutant")
 
 
 # =========================
@@ -122,20 +121,9 @@ class Disponibilite(db.Model):
         nullable=False
     )
 
-    jour_semaine = db.Column(
-        db.String(15),
-        nullable=False
-    )
-
-    heure_debut = db.Column(
-        db.Time,
-        nullable=False
-    )
-
-    heure_fin = db.Column(
-        db.Time,
-        nullable=False
-    )
+    jour_semaine = db.Column(db.String(15), nullable=False)
+    heure_debut  = db.Column(db.Time,       nullable=False)
+    heure_fin    = db.Column(db.Time,       nullable=False)
 
 
 # =========================
@@ -158,20 +146,10 @@ class DemandeMentorat(db.Model):
         nullable=False
     )
 
-    sujet = db.Column(
-        db.Text,
-        nullable=False
-    )
+    sujet  = db.Column(db.Text,    nullable=False)
+    statut = db.Column(db.String(20), default="en_attente")
 
-    statut = db.Column(
-        db.String(20),
-        default="en_attente"
-    )
-
-    score_compatibilite = db.Column(
-        db.Float,
-        default=0
-    )
+    score_compatibilite = db.Column(db.Float, default=0)
 
     date_demande = db.Column(
         db.DateTime,
@@ -200,28 +178,11 @@ class SessionMentorat(db.Model):
         nullable=False
     )
 
-    date_session = db.Column(
-        db.Date,
-        nullable=False
-    )
-
-    heure_debut = db.Column(
-        db.Time,
-        nullable=False
-    )
-
-    heure_fin = db.Column(
-        db.Time,
-        nullable=False
-    )
-
-    lien_visio = db.Column(
-        db.String(255)
-    )
-
-    notes = db.Column(
-        db.Text
-    )
+    date_session = db.Column(db.Date, nullable=False)
+    heure_debut  = db.Column(db.Time, nullable=False)
+    heure_fin    = db.Column(db.Time, nullable=False)
+    lien_visio   = db.Column(db.String(255))
+    notes        = db.Column(db.Text)
 
 
 # =========================
@@ -244,18 +205,9 @@ class Message(db.Model):
         nullable=False
     )
 
-    contenu = db.Column(
-        db.Text,
-        nullable=False
-    )
-
-    lu = db.Column(
-        db.Boolean,
-        default=False
-    )
-
+    contenu    = db.Column(db.Text,    nullable=False)
+    lu         = db.Column(db.Boolean, default=False)
     date_envoi = db.Column(
         db.DateTime,
         server_default=db.func.current_timestamp()
     )
-

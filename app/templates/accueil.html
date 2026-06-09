@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+
+{% block titre %}Bienvenue sur MentorLink — IFRI{% endblock %}
+
+{% block contenu %}
+
+<!-- HERO -->
+<div class="bg-slate-900 text-white">
+  <div class="max-w-5xl mx-auto px-4 py-24 text-center">
+
+    <!-- Badge -->
+    <div class="inline-flex items-center gap-2 bg-slate-800 border
+                border-slate-700 rounded-full px-4 py-1.5 text-xs
+                text-slate-300 mb-8">
+      <span class="w-2 h-2 rounded-full bg-green-400
+                   animate-pulse inline-block"></span>
+      Plateforme de mentorat — IFRI, Université d'Abomey-Calavi
+    </div>
+
+    <!-- Titre principal -->
+    <h1 class="text-4xl sm:text-5xl font-bold leading-tight mb-6">
+      Trouve ton mentor.<br>
+      <span class="text-blue-400">Progresse plus vite.</span>
+    </h1>
+
+    <!-- Sous-titre -->
+    <p class="text-slate-400 text-lg max-w-xl mx-auto mb-10">
+      MentorLink met en relation les étudiants de l'IFRI pour
+      du soutien académique et professionnel. Trouve le mentor
+      idéal grâce à notre algorithme de matching intelligent.
+    </p>
+
+    <!-- Boutons -->
+    <div class="flex items-center justify-center gap-4 flex-wrap">
+      <a href="/inscription"
+         class="bg-accent hover:bg-blue-700 text-white font-medium
+                px-8 py-3 rounded-xl transition-colors text-sm">
+        Créer un compte
+      </a>
+      <a href="/connexion"
+         class="bg-slate-800 hover:bg-slate-700 text-white font-medium
+                px-8 py-3 rounded-xl transition-colors text-sm
+                border border-slate-700">
+        Se connecter
+      </a>
+    </div>
+
+  </div>
+</div>
+
+<!-- COMMENT ÇA MARCHE -->
+<div class="max-w-5xl mx-auto px-4 py-20">
+
+  <div class="text-center mb-12">
+    <h2 class="text-2xl font-bold text-slate-900">
+      Comment ça marche ?
+    </h2>
+    <p class="text-slate-500 text-sm mt-2">
+      Trois étapes simples pour trouver ton mentor idéal
+    </p>
+  </div>
+
+  <div class="grid grid-cols-1 gap-8 sm:grid-cols-3">
+
+    <!-- Étape 1 -->
+    <div class="text-center">
+      <div class="w-14 h-14 rounded-2xl bg-blue-50 flex items-center
+                  justify-center mx-auto mb-4">
+        <span class="text-2xl font-bold text-accent">1</span>
+      </div>
+      <h3 class="font-semibold text-slate-900 mb-2">
+        Crée ton profil
+      </h3>
+      <p class="text-sm text-slate-500 leading-relaxed">
+        Renseigne ta filière, tes compétences, tes lacunes
+        et tes disponibilités horaires.
+      </p>
+    </div>
+
+    <!-- Étape 2 -->
+    <div class="text-center">
+      <div class="w-14 h-14 rounded-2xl bg-green-50 flex items-center
+                  justify-center mx-auto mb-4">
+        <span class="text-2xl font-bold text-green-600">2</span>
+      </div>
+      <h3 class="font-semibold text-slate-900 mb-2">
+        Trouve ton match
+      </h3>
+      <p class="text-sm text-slate-500 leading-relaxed">
+        Notre algorithme analyse vos profils et te propose
+        les mentors les plus compatibles avec toi.
+      </p>
+    </div>
+
+    <!-- Étape 3 -->
+    <div class="text-center">
+      <div class="w-14 h-14 rounded-2xl bg-purple-50 flex items-center
+                  justify-center mx-auto mb-4">
+        <span class="text-2xl font-bold text-purple-600">3</span>
+      </div>
+      <h3 class="font-semibold text-slate-900 mb-2">
+        Démarre le mentorat
+      </h3>
+      <p class="text-sm text-slate-500 leading-relaxed">
+        Contacte ton mentor via la messagerie intégrée
+        et organise tes sessions de travail.
+      </p>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- CHIFFRES CLÉS -->
+<div class="bg-slate-50 border-y border-slate-200">
+  <div class="max-w-5xl mx-auto px-4 py-16">
+
+    <div class="grid grid-cols-2 gap-8 sm:grid-cols-4 text-center">
+
+      <div>
+        <p class="text-3xl font-bold text-slate-900">5</p>
+        <p class="text-sm text-slate-500 mt-1">Filières</p>
+      </div>
+
+      <div>
+        <p class="text-3xl font-bold text-slate-900">100%</p>
+        <p class="text-sm text-slate-500 mt-1">Gratuit</p>
+      </div>
+
+      <div>
+        <p class="text-3xl font-bold text-accent">IA</p>
+        <p class="text-sm text-slate-500 mt-1">Algorithme de matching</p>
+      </div>
+
+      <div>
+        <p class="text-3xl font-bold text-slate-900">IFRI</p>
+        <p class="text-sm text-slate-500 mt-1">Université d'Abomey-Calavi</p>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<!-- FILIÈRES -->
+<div class="max-w-5xl mx-auto px-4 py-20">
+
+  <div class="text-center mb-10">
+    <h2 class="text-2xl font-bold text-slate-900">
+      Toutes les filières de l'IFRI
+    </h2>
+    <p class="text-slate-500 text-sm mt-2">
+      MentorLink est ouvert à tous les étudiants de l'IFRI
+    </p>
+  </div>
+
+  <div class="flex flex-wrap justify-center gap-3">
+
+    <span class="px-5 py-2.5 rounded-xl bg-purple-50 text-purple-700
+                 border border-purple-200 text-sm font-medium">
+      Intelligence Artificielle
+    </span>
+    <span class="px-5 py-2.5 rounded-xl bg-green-50 text-green-700
+                 border border-green-200 text-sm font-medium">
+      Génie Logiciel
+    </span>
+    <span class="px-5 py-2.5 rounded-xl bg-amber-50 text-amber-700
+                 border border-amber-200 text-sm font-medium">
+      Internet et Multimédia
+    </span>
+    <span class="px-5 py-2.5 rounded-xl bg-red-50 text-red-700
+                 border border-red-200 text-sm font-medium">
+      Sécurité Informatique
+    </span>
+    <span class="px-5 py-2.5 rounded-xl bg-teal-50 text-teal-700
+                 border border-teal-200 text-sm font-medium">
+      Systèmes Embarqués et IoT
+    </span>
+
+  </div>
+
+</div>
+
+<!-- CALL TO ACTION -->
+<div class="bg-slate-900 text-white">
+  <div class="max-w-5xl mx-auto px-4 py-20 text-center">
+
+    <h2 class="text-3xl font-bold mb-4">
+      Prêt à booster tes études ?
+    </h2>
+    <p class="text-slate-400 mb-8 max-w-md mx-auto">
+      Rejoins la communauté MentorLink et trouve le mentor
+      qui t'aidera à atteindre tes objectifs académiques.
+    </p>
+    <a href="/inscription"
+       class="inline-block bg-accent hover:bg-blue-700 text-white
+              font-medium px-10 py-3 rounded-xl transition-colors">
+      Rejoindre MentorLink
+    </a>
+
+  </div>
+</div>
+
+{% endblock %}

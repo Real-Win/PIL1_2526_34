@@ -1,6 +1,8 @@
-flask
-flask-sqlalchemy
-flask-login
-flask-bcrypt
-pymysql
-flask-socketio
+flask==3.0.3
+flask-sqlalchemy==3.1.1
+flask-login==0.6.3
+flask-bcrypt==1.0.1
+flask-socketio==5.3.6
+pymysql==1.1.1
+python-engineio==4.9.1
+python-socketio==5.11.3
