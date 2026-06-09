@@ -1,10 +1,16 @@
-# IFRI_MentorLink
+# Rising Minds — MentorLink
+
+## 🌐 Application en ligne
+
+👉 **[https://rising-minds-mentorlink.onrender.com](https://rising-minds-mentorlink.onrender.com)**
+
+---
 
 ## 📌 Présentation du projet
 
-IFRI_MentorLink est une application web de mise en relation entre étudiants de l'IFRI (Université d'Abomey-Calavi) dans un contexte de mentorat académique et professionnel.
+Rising Minds MentorLink est une application web de mise en relation entre étudiants de l'IFRI (Université d'Abomey-Calavi) dans un contexte de mentorat académique et professionnel.
 
-L'application permet aux étudiants de créer un profil, de renseigner leurs compétences et disponibilités, puis d'être mis en relation grâce à un système de matching intelligent.
+Chaque utilisateur peut créer un profil (compétences, filière, disponibilités), publier ou rechercher des offres de mentorat, et être automatiquement mis en relation avec d'autres utilisateurs grâce à un système de matching intelligent.
 
 ---
 
@@ -12,120 +18,93 @@ L'application permet aux étudiants de créer un profil, de renseigner leurs com
 
 Ce projet vise à :
 
-* Mettre en pratique les notions de :
-
-  * Développement Web
-  * Base de Données
-  * Génie Logiciel
-  * Sécurité Informatique
-  * Intelligence Artificielle
-  * Programmation Python
-* Développer une application web complète client-serveur
-* Travailler en équipe avec Git et GitHub
-* Répondre à un besoin réel des étudiants de l'IFRI
+- Mettre en pratique les notions de :
+  - Algorithmique
+  - Développement web
+  - Base de données (SQL / algèbre relationnelle)
+  - Programmation Python
+- Développer une application web complète (client-serveur)
+- Travailler en équipe avec Git et outils collaboratifs
+- Concevoir une solution réelle à un problème académique
 
 ---
 
 ## ⚙️ Fonctionnalités principales
 
-### 👤 Gestion des utilisateurs
+### 1. Gestion des utilisateurs
+- Inscription / connexion
+- Gestion de profil (filière, compétences, disponibilité)
+- Modification des informations personnelles
 
-* Inscription sécurisée
-* Connexion sécurisée
-* Gestion du profil utilisateur
-* Modification des informations personnelles
+### 2. Système de mentorat (matching)
+- Recherche de mentors **et** de mentorés (matching bidirectionnel)
+- Algorithme de compatibilité basé sur :
+  - Compétences communes
+  - Filière
+  - Disponibilités
+- Suggestions automatiques des 3 meilleurs profils compatibles
+- Envoi de demandes de mentorat avec sujet
+- Acceptation / refus des demandes reçues
 
-### 🧠 Système de Matching
-
-* Recherche de mentors et mentorés
-* Calcul automatique de compatibilité
-* Prise en compte :
-
-  * des compétences
-  * de la filière
-  * des disponibilités
-* Suggestions automatiques de mentors
-
-### 💬 Messagerie
-
-* Communication entre mentor et mentoré
-* Historique des échanges
-* Organisation des sessions de mentorat
+### 3. Messagerie temps réel
+- Chat instantané entre utilisateurs (Flask-SocketIO)
+- Indicateur "en train d'écrire"
+- Historique des conversations
 
 ---
 
-## 🏗️ Technologies utilisées
+## 🏗️ Architecture du projet
 
-### Backend
-
-* Python 3
-* Flask
-* SQLAlchemy
-* Flask-Login
-* Flask-Bcrypt
-
-### Frontend
-
-* HTML5
-* Tailwind CSS
-* JavaScript
-
-### Base de données
-
-* SQLite
-
-### Versioning
-
-* Git
-* GitHub
+- **Frontend** : HTML / CSS / JavaScript (Tailwind CSS + Vue.js)
+- **Backend** : Python — Flask
+- **Temps réel** : Flask-SocketIO
+- **Base de données** : MySQL (PostgreSQL sur Render)
+- **Déploiement** : Render
+- **Versioning** : Git + GitHub
 
 ---
 
 ## 📁 Structure du projet
 
-```text
+```
 IFRI_MentorLink/
 │
 ├── app/
 │   ├── __init__.py
-│   ├── models.py
-│   ├── routes.py
-│   ├── matching.py
-│   ├── securite.py
-│   ├── templates/
-│   └── static/
+│   ├── models.py             # Modèles SQLAlchemy
+│   ├── routes.py             # Routes auth + matching + demandes
+│   ├── routes_messagerie.py  # Routes messagerie + SocketIO
+│   ├── matching.py           # Algorithme de matching
+│   ├── securite.py           # Inscription / connexion
+│   ├── static/               # CSS, JS, images
+│   └── templates/            # HTML Jinja2
 │
-├── config.py
-├── run.py
-├── requirements.txt
-├── README.md
-└── mentorlink.db
+├── config.py                 # Configuration de l'application
+├── run.py                    # Point d'entrée du serveur
+├── requirements.txt          # Dépendances Python
+├── runtime.txt               # Version Python pour Render
+├── .gitignore
+└── README.md
 ```
 
 ---
 
-## 🚀 Installation et exécution
+## 🚀 Installation et exécution en local
 
 ### 1. Cloner le projet
 
 ```bash
-git clone https://github.com/Real-Win/IFRI_MentorLink.git
-cd IFRI_MentorLink
+git clone https://github.com/Real-Win/PIL1_2526_34.git
+cd PIL1_2526_34
 ```
 
-### 2. Créer un environnement virtuel
-
-#### Windows
+### 2. Activer l'environnement virtuel
 
 ```bash
-python -m venv venv
+# Windows
 venv\Scripts\activate
-```
 
-#### Linux / Mac
-
-```bash
-python3 -m venv venv
+# Linux / Mac
 source venv/bin/activate
 ```
 
@@ -141,57 +120,18 @@ pip install -r requirements.txt
 python run.py
 ```
 
-### 5. Ouvrir dans le navigateur
+---
 
-God Win FADONOUGBO — Responsable du groupe 34 : RISING MINDS
-Projet académique IFRI - 2025-2026
-Université d’Abomey-Calavi
+## 👥 Équipe — Groupe 34 : RISING MINDS
 
-```text
-http://127.0.0.1:5000/connexion
-```
+| Nom | Filière | Rôle |
+|-----|---------|------|
+| God Win FADONOUGBO | IM | Chef de groupe + Algorithme de matching |
+| *(GL)* | GL | Backend Flask / Routes |
+| *(SI)* | SI | Auth / Sécurité / Base de données |
+| *(IM)* | IM | Frontend |
+| *(SE)* | SE | Messagerie temps réel |
 
 ---
 
-## 🗄️ Base de données
-
-L'application utilise SQLite.
-
-Aucune installation de MySQL n'est nécessaire.
-
-Au premier lancement, les tables sont créées automatiquement.
-
-Le fichier de base de données est :
-
-```text
-mentorlink.db
-```
-
----
-
-## 👥 Membres du groupe 34 – RISING MINDS
-
-| Nom et prénom        | Filière               | Responsabilité                                |
-| -------------------- | --------------------- | --------------------------------------------- |
-| FADONOUGBO God Win   | IA                    | Algorithme de matching + Coordination         |
-| MONNOUKOUN Hironde   | Génie Logiciel        | Backend Flask + API                           |
-| NOUGBOGNONHOU Mariel | Sécurité Informatique | Authentification + Sécurité + Base de données |
-| SALIOU Samuel Exaucé | SE&IoT                | Messagerie et communication                   |
-| BOUKOH Jean-Marc     | Internet & Multimédia | Interface utilisateur                         |
-
----
-
-## 📚 Projet académique
-
-Université d'Abomey-Calavi (UAC)
-
-Institut de Formation et de Recherche en Informatique (IFRI)
-
-Année académique 2025 - 2026
-
----
-
-## 📄 Licence
-
-Projet réalisé dans le cadre des enseignements de l'IFRI.
-Usage académique uniquement.
+*Projet académique IFRI — 2025-2026 — Université d'Abomey-Calavi*
