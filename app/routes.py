@@ -178,7 +178,45 @@ def deconnexion():
 @login_required
 def profil():
     if request.method == "POST":
-        current_user.bio = request.form.get("bio")
+        from app.models import Competence, UserCompetence, Disponibilite
+        from datetime import datetime
+
+        current_user.nom     = request.form.get("nom",     current_user.nom)
+        current_user.prenom  = request.form.get("prenom",  current_user.prenom)
+        current_user.filiere = request.form.get("filiere", current_user.filiere)
+        current_user.niveau  = request.form.get("niveau",  current_user.niveau)
+        current_user.role    = request.form.get("role",    current_user.role)
+        current_user.bio     = request.form.get("bio",     current_user.bio)
+
+        # Compétences
+        competences_raw = request.form.get("competences", "").strip()
+        if competences_raw:
+            UserCompetence.query.filter_by(user_id=current_user.id).delete()
+            for nom_comp in [c.strip().lower() for c in competences_raw.split(",") if c.strip()]:
+                comp = Competence.query.filter_by(nom=nom_comp).first()
+                if not comp:
+                    comp = Competence(nom=nom_comp)
+                    db.session.add(comp)
+                    db.session.flush()
+                lien = UserCompetence(user_id=current_user.id, competence_id=comp.id)
+                db.session.add(lien)
+
+        # Disponibilités
+        jours        = request.form.getlist("jours[]")
+        heures_debut = request.form.getlist("heures_debut[]")
+        heures_fin   = request.form.getlist("heures_fin[]")
+        if jours:
+            Disponibilite.query.filter_by(user_id=current_user.id).delete()
+            for jour, h_debut, h_fin in zip(jours, heures_debut, heures_fin):
+                if jour and h_debut and h_fin:
+                    dispo = Disponibilite(
+                        user_id      = current_user.id,
+                        jour_semaine = jour,
+                        heure_debut  = datetime.strptime(h_debut, "%H:%M").time(),
+                        heure_fin    = datetime.strptime(h_fin,   "%H:%M").time()
+                    )
+                    db.session.add(dispo)
+
         db.session.commit()
         flash("Profil mis à jour !", "success")
         return redirect(url_for("auth.profil"))
