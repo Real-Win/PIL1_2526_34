@@ -26,9 +26,6 @@ def match(mentore_id, mentor_id):
     return jsonify({"score": score, "bon_match": score >= 60})
 
 
-# ------------------------------------------------------------------
-# TOP 3
-# ------------------------------------------------------------------
 @matching_bp.route("/top3/<int:user_id>")
 @login_required
 def top3(user_id):
@@ -47,9 +44,6 @@ def top3(user_id):
     return jsonify(result)
 
 
-# ------------------------------------------------------------------
-# API PROFIL UTILISATEUR
-# ------------------------------------------------------------------
 @matching_bp.route("/api/user/<int:user_id>")
 @login_required
 def api_user(user_id):
@@ -69,9 +63,6 @@ def api_user(user_id):
 auth_bp = Blueprint("auth", __name__)
 
 
-# ------------------------------------------------------------------
-# PAGE D'ACCUEIL  /
-# ------------------------------------------------------------------
 @auth_bp.route("/")
 def accueil():
     if current_user.is_authenticated:
@@ -79,9 +70,6 @@ def accueil():
     return render_template("accueil.html")
 
 
-# ------------------------------------------------------------------
-# DASHBOARD  /dashboard
-# ------------------------------------------------------------------
 @auth_bp.route("/dashboard")
 @login_required
 def dashboard():
@@ -119,9 +107,6 @@ def dashboard():
     )
 
 
-# ------------------------------------------------------------------
-# INSCRIPTION  /inscription
-# ------------------------------------------------------------------
 @auth_bp.route("/inscription", methods=["GET", "POST"])
 def inscription():
     if current_user.is_authenticated:
@@ -146,9 +131,6 @@ def inscription():
     return render_template("inscription.html")
 
 
-# ------------------------------------------------------------------
-# CONNEXION  /connexion
-# ------------------------------------------------------------------
 @auth_bp.route("/connexion", methods=["GET", "POST"])
 def connexion():
     if current_user.is_authenticated:
@@ -168,9 +150,6 @@ def connexion():
     return render_template("connexion.html")
 
 
-# ------------------------------------------------------------------
-# DÉCONNEXION  /deconnexion
-# ------------------------------------------------------------------
 @auth_bp.route("/deconnexion")
 @login_required
 def deconnexion():
@@ -179,18 +158,14 @@ def deconnexion():
     return redirect(url_for("auth.connexion"))
 
 
-# ------------------------------------------------------------------
-# PROFIL (son propre profil)  /profil
-# ------------------------------------------------------------------
+# ⭐⭐⭐ MON PROFIL (PAGE AFFICHAGE) - CORRIGÉE ⭐⭐⭐
 @auth_bp.route("/profil", methods=["GET"])
 @login_required
 def profil():
-    return render_template("profil.html", user=current_user)
+    return render_template("profil.html", profil=current_user)
 
 
-# ------------------------------------------------------------------
-# MODIFICATION PROFIL  /profil/modifier
-# ------------------------------------------------------------------
+# ⭐⭐⭐ MODIFIER MON PROFIL ⭐⭐⭐
 @auth_bp.route("/profil/modifier", methods=["GET", "POST"])
 @login_required
 def profil_modifier():
@@ -205,7 +180,7 @@ def profil_modifier():
         current_user.role    = request.form.get("role",    current_user.role)
         current_user.bio     = request.form.get("bio",     current_user.bio)
 
-        # Gestion des compétences
+        # Compétences
         competences_raw = request.form.get("competences", "").strip()
         UserCompetence.query.filter_by(user_id=current_user.id).delete()
         if competences_raw:
@@ -217,7 +192,7 @@ def profil_modifier():
                     db.session.flush()
                 db.session.add(UserCompetence(user_id=current_user.id, competence_id=comp.id))
 
-        # Gestion des lacunes
+        # Lacunes
         lacunes_raw = request.form.get("lacunes", "").strip()
         UserLacune.query.filter_by(user_id=current_user.id).delete()
         if lacunes_raw:
@@ -229,7 +204,7 @@ def profil_modifier():
                     db.session.flush()
                 db.session.add(UserLacune(user_id=current_user.id, lacune_id=lacune.id))
 
-        # Gestion des disponibilités
+        # Disponibilités
         jours        = request.form.getlist("jours[]")
         heures_debut = request.form.getlist("heures_debut[]")
         heures_fin   = request.form.getlist("heures_fin[]")
@@ -251,9 +226,7 @@ def profil_modifier():
     return render_template("profil_edit.html", user=current_user)
 
 
-# ------------------------------------------------------------------
-# PROFIL PUBLIC  /profil/<user_id>  — lecture seule
-# ------------------------------------------------------------------
+# ⭐⭐⭐ PROFIL PUBLIC (VOIR LE PROFIL D'UN AUTRE UTILISATEUR) ⭐⭐⭐
 @auth_bp.route("/profil/<int:user_id>")
 @login_required
 def profil_public(user_id):
@@ -275,25 +248,15 @@ def profil_public(user_id):
         )
     ).first()
 
-    return render_template(
-        "profil.html",
-        profil=profil,
-        demande_existante=demande_existante
-    )
+    return render_template("profil.html", profil=profil, demande_existante=demande_existante)
 
 
-# ------------------------------------------------------------------
-# PAGE MATCHING  /matching
-# ------------------------------------------------------------------
 @auth_bp.route("/matching")
 @login_required
 def matching_page():
     return render_template("matching.html", user=current_user)
 
 
-# ------------------------------------------------------------------
-# CRÉER UNE DEMANDE DE MENTORAT  /demande/<cible_id>
-# ------------------------------------------------------------------
 @auth_bp.route("/demande/<int:cible_id>", methods=["POST"])
 @login_required
 def creer_demande(cible_id):
@@ -332,9 +295,6 @@ def creer_demande(cible_id):
     return redirect(url_for("auth.demandes"))
 
 
-# ------------------------------------------------------------------
-# CHANGER LE STATUT D'UNE DEMANDE  /demande/<id>/statut
-# ------------------------------------------------------------------
 @auth_bp.route("/demande/<int:demande_id>/statut", methods=["POST"])
 @login_required
 def changer_statut_demande(demande_id):
@@ -357,9 +317,6 @@ def changer_statut_demande(demande_id):
     return redirect(url_for("auth.demandes"))
 
 
-# ------------------------------------------------------------------
-# LISTE DES DEMANDES  /demandes
-# ------------------------------------------------------------------
 @auth_bp.route("/demandes")
 @login_required
 def demandes():
@@ -378,9 +335,7 @@ def demandes():
     )
 
 
-# ------------------------------------------------------------------
-# RÉINITIALISATION MOT DE PASSE
-# ------------------------------------------------------------------
+# ⭐⭐⭐ MOT DE PASSE OUBLIÉ - RÉINITIALISATION ⭐⭐⭐
 @auth_bp.route("/reinitialisation", methods=["GET", "POST"])
 def demande_reinitialisation():
     if current_user.is_authenticated:
@@ -391,8 +346,6 @@ def demande_reinitialisation():
         if email:
             success, message = demander_reinitialisation(email)
             flash(message, "success" if success else "danger")
-            if success:
-                return redirect(url_for("auth.connexion"))
         else:
             flash("Veuillez entrer votre adresse email.", "danger")
 
@@ -419,3 +372,7 @@ def nouveau_mot_de_passe(token):
                 return redirect(url_for("auth.connexion"))
 
     return render_template("nouveau_mot_de_passe.html", token=token)
+
+
+# ⭐⭐⭐ MESSAGERIE - REDIRECTION VERS LE BLUEPRINT ⭐⭐⭐
+# Note: Les routes /messages sont gérées par messagerie_bp dans routes_messagerie.py
