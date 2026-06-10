@@ -1,12 +1,10 @@
 from app import db, bcrypt
 from app.models import User
 import secrets
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
+import requests
 from datetime import datetime, timedelta
 import os
-import traceback
+import json
 
 reset_tokens = {}
 
@@ -44,49 +42,50 @@ def verifier_connexion(email, mot_de_passe_saisi):
         return None, f"Erreur connexion : {e}"
 
 
-def envoyer_email_smtp(destinataire, sujet, contenu_html):
-    """Envoie un email via SMTP Brevo avec logs détaillés"""
+def envoyer_email_brevo_api(destinataire, sujet, contenu_html):
+    """Envoie un email via l'API Brevo (port 443 - toujours ouvert)"""
     try:
-        print("📧 [1/6] Début de l'envoi d'email...")
+        api_key = os.environ.get("BREVO_SMTP_PASSWORD")  # La clé API Brevo
         
-        smtp_user = os.environ.get("BREVO_SMTP_USER")
-        smtp_password = os.environ.get("BREVO_SMTP_PASSWORD")
-        EMAIL_EXPEDITEUR = os.environ.get("BREVO_SMTP_USER")  # Utilise l'email SMTP comme expéditeur
-        
-        print(f"📧 [2/6] SMTP User configuré: {smtp_user is not None}")
-        print(f"📧 [3/6] SMTP Password configuré: {smtp_password is not None}")
-        
-        if not smtp_user or not smtp_password:
-            print("❌ [ERREUR] Identifiants SMTP non configurés")
+        if not api_key:
+            print("❌ Clé API Brevo non configurée")
             return False
         
-        smtp_server = "smtp-relay.brevo.com"
-        smtp_port = 587
+        url = "https://api.brevo.com/v3/smtp/email"
         
-        print(f"📧 [4/6] Connexion à {smtp_server}:{smtp_port}...")
+        headers = {
+            "accept": "application/json",
+            "api-key": api_key,
+            "content-type": "application/json"
+        }
         
-        msg = MIMEMultipart()
-        msg["From"] = EMAIL_EXPEDITEUR
-        msg["To"] = destinataire
-        msg["Subject"] = sujet
-        msg.attach(MIMEText(contenu_html, "html"))
+        data = {
+            "sender": {
+                "name": "MentorLink",
+                "email": "ae3c1a001@smtp-brevo.com"  # Email expéditeur
+            },
+            "to": [
+                {
+                    "email": destinataire,
+                    "name": destinataire
+                }
+            ],
+            "subject": sujet,
+            "htmlContent": contenu_html
+        }
         
-        # Connexion et envoi
-        server = smtplib.SMTP(smtp_server, smtp_port)
-        server.set_debuglevel(True)  # Affiche toute la communication SMTP
-        server.starttls()
-        print(f"📧 [5/6] Tentative de login...")
-        server.login(smtp_user, smtp_password)
-        print(f"📧 [6/6] Login réussi, envoi du message...")
-        server.send_message(msg)
-        server.quit()
+        print(f"📧 Envoi via API à {destinataire}...")
+        response = requests.post(url, json=data, headers=headers, timeout=30)
         
-        print(f"✅ Email envoyé à {destinataire}")
-        return True
-        
+        if response.status_code == 201:
+            print(f"✅ Email envoyé à {destinataire}")
+            return True
+        else:
+            print(f"❌ API erreur: {response.status_code} - {response.text}")
+            return False
+            
     except Exception as e:
-        print(f"❌ ERREUR DETAILLEE: {type(e).__name__}: {e}")
-        traceback.print_exc()
+        print(f"❌ Erreur API: {e}")
         return False
 
 
@@ -98,8 +97,6 @@ def demander_reinitialisation(email):
         if not user:
             return False, "Aucun compte associé à cet email."
         
-        print(f"🔐 Utilisateur trouvé: {user.prenom} {user.nom}")
-        
         token = secrets.token_urlsafe(32)
         reset_tokens[token] = {
             "user_id": user.id, 
@@ -109,44 +106,48 @@ def demander_reinitialisation(email):
         site_url = os.environ.get("SITE_URL", "http://localhost:5000")
         lien_reset = f"{site_url}/reinitialisation/{token}"
         
-        print(f"🔐 Lien généré: {lien_reset}")
-        
         contenu_html = f"""
         <!DOCTYPE html>
         <html>
         <body style="font-family: Arial, sans-serif;">
-            <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-                <div style="background-color: #1e3a5f; color: white; padding: 20px; text-align: center;">
-                    <h1>MentorLink</h1>
-                    <p>Réinitialisation de votre mot de passe</p>
+            <div style="max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f0f4f8;">
+                <div style="background-color: #1e3a5f; color: white; padding: 20px; text-align: center; border-radius: 10px 10px 0 0;">
+                    <h1 style="margin: 0;">🔐 MentorLink</h1>
+                    <p style="margin: 5px 0 0;">IFRI - Université d'Abomey-Calavi</p>
                 </div>
-                <div style="padding: 20px;">
+                <div style="background-color: white; padding: 30px; border-radius: 0 0 10px 10px;">
                     <p>Bonjour <strong>{user.prenom} {user.nom}</strong>,</p>
-                    <p>Cliquez sur le lien ci-dessous :</p>
+                    
+                    <p>Vous avez demandé à réinitialiser votre mot de passe.</p>
+                    
                     <div style="text-align: center; margin: 30px 0;">
-                        <a href="{lien_reset}" style="background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px;">Réinitialiser</a>
+                        <a href="{lien_reset}" style="background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; display: inline-block;">
+                            🔑 Réinitialiser mon mot de passe
+                        </a>
                     </div>
-                    <p><a href="{lien_reset}">{lien_reset}</a></p>
-                    <p>Ce lien expire dans 24 heures.</p>
+                    
+                    <p>Ou copiez ce lien : <a href="{lien_reset}">{lien_reset}</a></p>
+                    
+                    <p><strong>⚠️ Ce lien expire dans 24 heures.</strong></p>
+                    
+                    <hr style="margin: 20px 0;">
+                    
+                    <p style="font-size: 12px; color: #666;">L'équipe MentorLink - IFRI</p>
                 </div>
             </div>
         </body>
         </html>
         """
         
-        print(f"🔐 Envoi de l'email...")
-        resultat = envoyer_email_smtp(email, "Réinitialisation de votre mot de passe", contenu_html)
+        resultat = envoyer_email_brevo_api(email, "🔐 Réinitialisation de votre mot de passe", contenu_html)
         
         if resultat:
-            print(f"✅ Email envoyé avec succès à {email}")
-            return True, "Un email de réinitialisation a été envoyé à votre adresse."
+            return True, "Un email de réinitialisation a été envoyé (vérifiez vos spams)."
         else:
-            print(f"❌ Échec de l'envoi d'email")
             return False, "Erreur lors de l'envoi de l'email. Veuillez réessayer."
             
     except Exception as e:
-        print(f"❌ Exception dans demander_reinitialisation: {e}")
-        traceback.print_exc()
+        print(f"❌ Exception: {e}")
         return False, f"Erreur: {e}"
 
 
