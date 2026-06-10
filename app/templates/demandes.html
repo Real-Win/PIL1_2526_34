@@ -85,20 +85,26 @@
               <!-- Infos mentor -->
               <div class="flex items-center gap-3 flex-1 min-w-0">
 
-                <div class="w-10 h-10 rounded-full bg-accent flex items-center
+                <a href="/profil/{{ demande.mentor.id }}"
+                   class="w-10 h-10 rounded-full bg-accent flex items-center
                             justify-center text-white text-sm font-bold
-                            flex-shrink-0">
+                            flex-shrink-0 hover:opacity-80 transition-opacity">
                   {{ demande.mentor.prenom[0] | upper }}{{ demande.mentor.nom[0] | upper }}
-                </div>
+                </a>
 
                 <div class="flex-1 min-w-0">
-                  <p class="text-sm font-semibold text-slate-900">
+                  <a href="/profil/{{ demande.mentor.id }}"
+                     class="text-sm font-semibold text-slate-900 hover:text-accent
+                            transition-colors">
                     {{ demande.mentor.prenom }} {{ demande.mentor.nom }}
-                  </p>
-                  <span class="text-xs bg-blue-50 text-blue-700
-                               px-2 py-0.5 rounded-full">
-                    {{ demande.mentor.filiere }}
-                  </span>
+                  </a>
+                  <div class="flex items-center gap-2 mt-0.5">
+                    <span class="text-xs bg-blue-50 text-blue-700
+                                 px-2 py-0.5 rounded-full">
+                      {{ demande.mentor.filiere }}
+                    </span>
+                    <span class="text-xs text-slate-400">{{ demande.mentor.niveau }}</span>
+                  </div>
                 </div>
 
               </div>
@@ -139,10 +145,10 @@
                    if demande.date_demande else 'N/A' }}
               </p>
               {% if demande.statut == 'acceptee' %}
-                <a href="/messages"
+                <a href="/messages?contact={{ demande.mentor_id }}"
                    class="text-xs bg-accent hover:bg-blue-700 text-white
                           px-4 py-1.5 rounded-lg transition-colors font-medium">
-                  Ouvrir la conversation
+                  💬 Ouvrir la conversation
                 </a>
               {% endif %}
             </div>
@@ -187,20 +193,26 @@
               <!-- Infos mentoré -->
               <div class="flex items-center gap-3 flex-1 min-w-0">
 
-                <div class="w-10 h-10 rounded-full bg-green-500 flex items-center
+                <a href="/profil/{{ demande.etudiant.id }}"
+                   class="w-10 h-10 rounded-full bg-green-500 flex items-center
                             justify-center text-white text-sm font-bold
-                            flex-shrink-0">
+                            flex-shrink-0 hover:opacity-80 transition-opacity">
                   {{ demande.etudiant.prenom[0] | upper }}{{ demande.etudiant.nom[0] | upper }}
-                </div>
+                </a>
 
                 <div class="flex-1 min-w-0">
-                  <p class="text-sm font-semibold text-slate-900">
+                  <a href="/profil/{{ demande.etudiant.id }}"
+                     class="text-sm font-semibold text-slate-900 hover:text-accent
+                            transition-colors">
                     {{ demande.etudiant.prenom }} {{ demande.etudiant.nom }}
-                  </p>
-                  <span class="text-xs bg-green-50 text-green-700
-                               px-2 py-0.5 rounded-full">
-                    {{ demande.etudiant.filiere }}
-                  </span>
+                  </a>
+                  <div class="flex items-center gap-2 mt-0.5">
+                    <span class="text-xs bg-green-50 text-green-700
+                                 px-2 py-0.5 rounded-full">
+                      {{ demande.etudiant.filiere }}
+                    </span>
+                    <span class="text-xs text-slate-400">{{ demande.etudiant.niveau }}</span>
+                  </div>
                 </div>
 
               </div>
@@ -246,8 +258,7 @@
                 <div class="flex gap-2">
 
                   <!-- Refuser -->
-                  <form action="/demande/{{ demande.id }}/statut"
-                        method="POST">
+                  <form action="/demande/{{ demande.id }}/statut" method="POST">
                     <input type="hidden" name="statut" value="refusee">
                     <button type="submit"
                       class="text-xs text-red-600 hover:text-red-700
@@ -259,8 +270,7 @@
                   </form>
 
                   <!-- Accepter -->
-                  <form action="/demande/{{ demande.id }}/statut"
-                        method="POST">
+                  <form action="/demande/{{ demande.id }}/statut" method="POST">
                     <input type="hidden" name="statut" value="acceptee">
                     <button type="submit"
                       class="text-xs bg-green-600 hover:bg-green-700
@@ -273,10 +283,10 @@
                 </div>
 
               {% elif demande.statut == 'acceptee' %}
-                <a href="/messages"
+                <a href="/messages?contact={{ demande.etudiant_id }}"
                    class="text-xs bg-accent hover:bg-blue-700 text-white
                           px-4 py-1.5 rounded-lg transition-colors font-medium">
-                  Ouvrir la conversation
+                  💬 Ouvrir la conversation
                 </a>
               {% endif %}
 
