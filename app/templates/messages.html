@@ -3,283 +3,238 @@
 {% block titre %}Messages — MentorLink{% endblock %}
 
 {% block contenu %}
-
 <div class="max-w-5xl mx-auto py-6 px-4">
-
-  <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden"
-       style="height:75vh">
+  <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden" style="height:75vh">
     <div class="flex h-full">
 
-      <!-- ══ COLONNE GAUCHE : liste conversations ══ -->
-      <div style="width:300px;border-right:0.5px solid #f1f5f9;
-                  display:flex;flex-direction:column;flex-shrink:0">
-
-        <div style="padding:16px;border-bottom:0.5px solid #f1f5f9">
-          <h1 style="font-size:15px;font-weight:500;color:#0f172a;margin:0 0 2px">Messages</h1>
-          <p style="font-size:11px;color:#94a3b8;margin:0">Tes conversations de mentorat</p>
+      <!-- ══ LISTE DES CONVERSATIONS ══ -->
+      <div style="width:300px;border-right:1px solid #f1f5f9;display:flex;flex-direction:column;flex-shrink:0">
+        <div style="padding:16px;border-bottom:1px solid #f1f5f9">
+          <h1 class="text-lg font-semibold text-slate-900">Messages</h1>
+          <p class="text-xs text-slate-400">Tes conversations</p>
         </div>
-
-        <div style="flex:1;overflow-y:auto">
-
-          {% set ids_affiches = [] %}
-
-          {% if messages %}
-            {% for message in messages %}
-              {% if message.expediteur and message.expediteur.id not in ids_affiches %}
-                {% set _ = ids_affiches.append(message.expediteur.id) %}
-                <div onclick="ouvrirConversation({{ message.expediteur.id }},
-                              '{{ message.expediteur.prenom }} {{ message.expediteur.nom }}')"
-                     style="display:flex;align-items:center;gap:10px;padding:12px 14px;
-                            cursor:pointer;border-bottom:0.5px solid #f8fafc;transition:background .12s"
-                     onmouseover="this.style.background='#F8FAFC'"
-                     onmouseout="this.style.background='transparent'">
-                  <div style="width:38px;height:38px;border-radius:50%;
-                              background:linear-gradient(135deg,#6366f1,#2dd4bf);
-                              display:flex;align-items:center;justify-content:center;
-                              font-size:13px;font-weight:500;color:#fff;flex-shrink:0">
-                    {{ message.expediteur.prenom[0] | upper }}{{ message.expediteur.nom[0] | upper }}
-                  </div>
-                  <div style="flex:1;min-width:0">
-                    <div style="display:flex;align-items:center;justify-content:space-between">
-                      <p style="font-size:13px;font-weight:500;color:#0f172a;margin:0;
-                                overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
-                        {{ message.expediteur.prenom }} {{ message.expediteur.nom }}
-                      </p>
-                      <span style="font-size:10px;color:#cbd5e1;flex-shrink:0">
-                        {{ message.date_envoi.strftime('%H:%M') if message.date_envoi else '' }}
-                      </span>
-                    </div>
-                    <p style="font-size:11px;color:#94a3b8;margin:2px 0 0;
-                              overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
-                      {% if message.contenu %}{{ message.contenu[:40] }}...{% endif %}
-                    </p>
-                  </div>
-                  {% if not message.lu %}
-                    <div style="width:7px;height:7px;border-radius:50%;background:#6366f1;flex-shrink:0"></div>
-                  {% endif %}
+        <div class="flex-1 overflow-y-auto" id="liste-contacts">
+          {% if contacts %}
+            {% for contact in contacts %}
+              <div id="contact-item-{{ contact.id }}"
+                   onclick="ouvrirConversation({{ contact.id }}, '{{ contact.prenom }} {{ contact.nom }}')"
+                   style="display:flex;align-items:center;gap:10px;padding:12px 14px;
+                          cursor:pointer;border-bottom:1px solid #f8fafc;transition:background .12s"
+                   onmouseover="this.style.background='#F8FAFC'"
+                   onmouseout="if(!this.classList.contains('actif')) this.style.background='transparent'">
+                <div style="width:38px;height:38px;border-radius:50%;
+                            background:linear-gradient(135deg,#6366f1,#2dd4bf);
+                            display:flex;align-items:center;justify-content:center;
+                            font-size:13px;font-weight:600;color:#fff;flex-shrink:0">
+                  {{ contact.prenom[0]|upper }}{{ contact.nom[0]|upper }}
                 </div>
-              {% endif %}
-            {% endfor %}
-          {% endif %}
-
-          {% if autres_users %}
-            {% for contact in autres_users %}
-              {% if contact.id not in ids_affiches %}
-                {% set _ = ids_affiches.append(contact.id) %}
-                <div onclick="ouvrirConversation({{ contact.id }},
-                              '{{ contact.prenom }} {{ contact.nom }}')"
-                     style="display:flex;align-items:center;gap:10px;padding:12px 14px;
-                            cursor:pointer;border-bottom:0.5px solid #f8fafc;transition:background .12s"
-                     onmouseover="this.style.background='#F8FAFC'"
-                     onmouseout="this.style.background='transparent'">
-                  <div style="width:38px;height:38px;border-radius:50%;background:#94a3b8;
-                              display:flex;align-items:center;justify-content:center;
-                              font-size:13px;font-weight:500;color:#fff;flex-shrink:0">
-                    {{ contact.prenom[0] | upper }}{{ contact.nom[0] | upper }}
-                  </div>
-                  <div style="flex:1;min-width:0">
-                    <p style="font-size:13px;font-weight:500;color:#0f172a;margin:0;
-                              overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
-                      {{ contact.prenom }} {{ contact.nom }}
-                    </p>
-                    <p style="font-size:11px;color:#94a3b8;margin:2px 0 0">{{ contact.filiere }}</p>
-                  </div>
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm font-semibold text-slate-900 truncate">
+                    {{ contact.prenom }} {{ contact.nom }}
+                  </p>
+                  <p class="text-xs text-slate-500 truncate">{{ contact.filiere }}</p>
                 </div>
-              {% endif %}
-            {% endfor %}
-          {% endif %}
-
-          {% if not messages and not autres_users %}
-            <div style="display:flex;flex-direction:column;align-items:center;
-                        justify-content:center;height:100%;padding:32px;text-align:center">
-              <div style="width:44px;height:44px;border-radius:50%;background:#F8FAFC;
-                          border:0.5px solid #e2e8f0;display:flex;align-items:center;
-                          justify-content:center;margin-bottom:12px">
-                <i class="ti ti-message-circle" style="font-size:20px;color:#cbd5e1"></i>
               </div>
-              <p style="font-size:13px;color:#94a3b8;font-weight:500;margin:0 0 4px">Aucun contact</p>
-              <p style="font-size:11px;color:#cbd5e1;margin:0">Contacte un mentor depuis la page matching</p>
+            {% endfor %}
+          {% else %}
+            <div class="flex flex-col items-center justify-center h-full p-8 text-center">
+              <div class="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mb-3">
+                <i class="ti ti-message-circle text-slate-400 text-xl"></i>
+              </div>
+              <p class="text-sm text-slate-500">Aucune conversation</p>
+              <p class="text-xs text-slate-400 mt-1">Envoie une demande de mentorat pour commencer</p>
             </div>
           {% endif %}
-
         </div>
       </div>
 
-      <!-- ══ COLONNE DROITE : zone de chat Vue.js ══ -->
-      <div class="flex-1 flex flex-col" id="app">
+      <!-- ══ ZONE DE CHAT ══ -->
+      <div class="flex-1 flex flex-col" id="zone-chat">
 
-        <!-- Aucune conversation sélectionnée -->
-        <div v-if="!conversationActive"
-             style="flex:1;display:flex;flex-direction:column;
-                    align-items:center;justify-content:center;
-                    text-align:center;padding:32px;background:#FAFAFA">
-          <div style="width:56px;height:56px;border-radius:16px;background:#EEF2FF;
-                      display:flex;align-items:center;justify-content:center;margin-bottom:14px">
-            <i class="ti ti-message-circle" style="font-size:26px;color:#6366f1"></i>
+        <!-- État initial : rien sélectionné -->
+        <div id="etat-initial" class="flex-1 flex items-center justify-center text-slate-400">
+          <div class="text-center">
+            <i class="ti ti-message-circle" style="font-size:40px;color:#e2e8f0"></i>
+            <p class="mt-3 text-sm">Sélectionne une conversation</p>
           </div>
-          <p style="font-size:14px;font-weight:500;color:#94a3b8;margin:0 0 4px">
-            Sélectionne une conversation
-          </p>
-          <p style="font-size:12px;color:#cbd5e1;margin:0">
-            ou contacte un mentor depuis la page matching
-          </p>
         </div>
 
-        <!-- Conversation active -->
-        <div v-if="conversationActive" style="display:flex;flex-direction:column;height:100%">
+        <!-- Conversation active (cachée au départ) -->
+        <div id="etat-conversation" class="hidden flex-col h-full">
 
           <!-- Header -->
-          <div style="padding:12px 20px;border-bottom:0.5px solid #f1f5f9;
-                      display:flex;align-items:center;gap:10px;background:#fff">
-            <div style="width:36px;height:36px;border-radius:50%;
+          <div id="chat-header" class="p-4 border-b flex items-center gap-3" style="border-bottom:1px solid #f1f5f9">
+            <div id="chat-avatar"
+                 style="width:36px;height:36px;border-radius:50%;
                         background:linear-gradient(135deg,#6366f1,#2dd4bf);
                         display:flex;align-items:center;justify-content:center;
-                        font-size:12px;font-weight:500;color:#fff">
-              [[ interlocuteur.initiales ]]
+                        font-size:13px;font-weight:600;color:#fff;flex-shrink:0">
+              --
             </div>
             <div>
-              <p style="font-size:14px;font-weight:500;color:#0f172a;margin:0 0 1px">
-                [[ interlocuteur.nom ]]
-              </p>
-              <p style="font-size:11px;color:#4ade80;margin:0">En ligne</p>
+              <p id="chat-nom" class="font-semibold text-slate-900 text-sm"></p>
+              <p class="text-xs text-green-500">En ligne</p>
             </div>
           </div>
 
-          <!-- Zone messages -->
-          <div style="flex:1;overflow-y:auto;padding:20px;
-                      display:flex;flex-direction:column;gap:10px;background:#FAFAFA"
-               id="messages-zone">
-            <div v-for="msg in messagesConversation" :key="msg.id"
-                 :style="msg.estMoi ? 'display:flex;justify-content:flex-end'
-                                    : 'display:flex;justify-content:flex-start'">
-              <div :style="msg.estMoi
-                  ? 'background:#6366f1;color:#fff;border-bottom-right-radius:4px'
-                  : 'background:#fff;color:#0f172a;border:0.5px solid #e2e8f0;border-bottom-left-radius:4px'"
-                   style="max-width:65%;padding:10px 14px;border-radius:14px;
-                          font-size:13px;line-height:1.5">
-                <!-- formatMessage de main : support liens, images, vidéos -->
-                <div v-html="formatMessage(msg.contenu)"></div>
-                <div :style="msg.estMoi ? 'color:rgba(255,255,255,0.6)' : 'color:#94a3b8'"
-                     style="font-size:10px;margin-top:4px;text-align:right">
-                  [[ msg.heure ]]
-                </div>
-              </div>
+          <!-- Messages -->
+          <div class="flex-1 overflow-y-auto p-4 bg-slate-50" id="messages-zone"></div>
+
+          <!-- Input -->
+          <div class="p-4 border-t bg-white" style="border-top:1px solid #f1f5f9">
+            <div class="flex items-end gap-2">
+              <textarea id="message-input" rows="2"
+                placeholder="Écris ton message... (Entrée pour envoyer)"
+                class="flex-1 px-4 py-2 rounded-xl border border-slate-300 text-sm
+                       focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 resize-none"></textarea>
+              <button id="send-btn"
+                class="bg-indigo-500 hover:bg-indigo-600 text-white p-2.5 rounded-xl transition-colors">
+                <i class="ti ti-send text-lg"></i>
+              </button>
             </div>
           </div>
-
-          <!-- Input message — textarea de main -->
-          <div style="padding:14px 20px;border-top:0.5px solid #f1f5f9;
-                      display:flex;align-items:flex-start;gap:10px;background:#fff">
-            <textarea id="message-input" rows="2"
-              placeholder="Écris ton message... (supporte liens, images, vidéos)"
-              style="flex:1;background:#F8FAFC;border:0.5px solid #e2e8f0;
-                     border-radius:14px;padding:10px 16px;font-size:13px;
-                     color:#374151;outline:none;resize:none;transition:all .15s;
-                     font-family:inherit"
-              onfocus="this.style.borderColor='#6366f1';this.style.background='#fff'"
-              onblur="this.style.borderColor='#e2e8f0';this.style.background='#F8FAFC'">
-            </textarea>
-            <button id="send-btn"
-              style="width:40px;height:40px;border-radius:50%;background:#6366f1;
-                     border:none;display:flex;align-items:center;justify-content:center;
-                     cursor:pointer;flex-shrink:0;margin-top:2px">
-              <i class="ti ti-send" style="font-size:16px;color:#fff"></i>
-            </button>
-          </div>
-
         </div>
-      </div>
 
+      </div>
     </div>
   </div>
-
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.js"></script>
 <script>
-  const { createApp, ref, nextTick } = Vue;
   const MOI_ID = {{ current_user.id }};
+  let interlocuteurActif = null;
+  const socket = io();
 
-  const app = createApp({
-    delimiters: ['[[', ']]'],
-    setup() {
-      const conversationActive   = ref(false);
-      const interlocuteur        = ref({ nom: '', initiales: '', id: null });
-      const messagesConversation = ref([]);
-      const socket               = io();
+  // Rejoindre la salle personnelle (notifications)
+  socket.emit('rejoindre_salle_perso', { user_id: MOI_ID });
 
-      socket.on('diffusion_message', (data) => {
-        if (data.sender_id === interlocuteur.value.id || data.sender_id === MOI_ID) {
-          messagesConversation.value.push({
-            id: Date.now(), contenu: data.msg, heure: data.date, estMoi: data.sender_id === MOI_ID
-          });
-          faireDefiler();
-        }
-      });
+  // ── Ouvrir une conversation ──────────────────────────────
+  function ouvrirConversation(userId, nomComplet) {
+    if (interlocuteurActif === userId) return;
 
-      function ouvrirConversation(userId, nomComplet) {
-        conversationActive.value = true;
-        interlocuteur.value = {
-          id: userId,
-          nom: nomComplet,
-          initiales: nomComplet.split(' ').map(n => n[0]).join('').toUpperCase()
-        };
-        socket.emit('rejoindre_salle', { user_id: MOI_ID, contact_id: userId });
-        fetch(`/api/messages/${userId}`)
-          .then(res => res.json())
-          .then(data => {
-            messagesConversation.value = data.map(m => ({ ...m, estMoi: m.est_moi }));
-            faireDefiler();
-          });
-      }
-
-      function envoyerMessage() {
-        const texte = document.getElementById('message-input').value.trim();
-        if (!texte || !interlocuteur.value.id) return;
-        socket.emit('nouveau_message', {
-          sender_id:   MOI_ID,
-          receiver_id: interlocuteur.value.id,
-          contenu:     texte
-        });
-        document.getElementById('message-input').value = '';
-        faireDefiler();
-      }
-
-      function faireDefiler() {
-        nextTick(() => {
-          const zone = document.getElementById('messages-zone');
-          if (zone) zone.scrollTop = zone.scrollHeight;
-        });
-      }
-
-      // Support liens, images, vidéos (de main)
-      function formatMessage(texte) {
-        const urlRegex = /(https?:\/\/[^\s]+)/g;
-        return texte.replace(urlRegex, function(url) {
-          if (/\.(jpg|jpeg|png|gif|webp)$/i.test(url))
-            return `<img src="${url}" class="max-w-xs rounded-lg my-1">`;
-          if (/\.(mp4|webm|ogg)$/i.test(url))
-            return `<video controls class="max-w-xs rounded-lg my-1"><source src="${url}"></video>`;
-          return `<a href="${url}" target="_blank" style="text-decoration:underline;color:#93c5fd">${url}</a>`;
-        });
-      }
-
-      document.getElementById('send-btn')?.addEventListener('click', envoyerMessage);
-      document.getElementById('message-input')?.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); envoyerMessage(); }
-      });
-
-      return {
-        conversationActive, interlocuteur, messagesConversation,
-        ouvrirConversation, formatMessage
-      };
+    // Quitter l'ancienne salle
+    if (interlocuteurActif !== null) {
+      socket.emit('quitter_salle', { user_id: MOI_ID, contact_id: interlocuteurActif });
     }
-  }).mount('#app');
+    interlocuteurActif = userId;
 
-  window.ouvrirConversation = (userId, nom) => app._instance.proxy.ouvrirConversation(userId, nom);
+    // Rejoindre la nouvelle salle
+    socket.emit('rejoindre_salle', { user_id: MOI_ID, contact_id: userId });
 
+    // Mettre à jour le header
+    const initiales = nomComplet.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    document.getElementById('chat-avatar').textContent = initiales;
+    document.getElementById('chat-nom').textContent    = nomComplet;
+
+    // Afficher la zone conversation
+    document.getElementById('etat-initial').classList.add('hidden');
+    const zoneConv = document.getElementById('etat-conversation');
+    zoneConv.classList.remove('hidden');
+    zoneConv.style.display = 'flex';
+
+    // Highlight contact actif dans la liste
+    document.querySelectorAll('[id^="contact-item-"]').forEach(el => {
+      el.classList.remove('actif');
+      el.style.background = 'transparent';
+    });
+    const itemActif = document.getElementById('contact-item-' + userId);
+    if (itemActif) {
+      itemActif.classList.add('actif');
+      itemActif.style.background = '#EEF2FF';
+    }
+
+    // Vider et charger les messages
+    document.getElementById('messages-zone').innerHTML = '';
+    fetch('/api/messages/' + userId)
+      .then(r => r.json())
+      .then(data => {
+        data.forEach(m => ajouterMessage(m.contenu, m.heure, m.est_moi, m.id));
+        faireDefiler();
+      });
+  }
+
+  // ── Ajouter un message dans la zone ─────────────────────
+  function ajouterMessage(contenu, heure, estMoi, id) {
+    // Éviter les doublons
+    if (id && document.getElementById('msg-' + id)) return;
+
+    const zone = document.getElementById('messages-zone');
+    const wrapper = document.createElement('div');
+    wrapper.className = 'flex ' + (estMoi ? 'justify-end' : 'justify-start');
+    wrapper.style.marginBottom = '10px';
+    if (id) wrapper.id = 'msg-' + id;
+
+    const bubble = document.createElement('div');
+    bubble.style.cssText = [
+      'max-width:70%',
+      'padding:10px 14px',
+      'border-radius:18px',
+      'font-size:13px',
+      'line-height:1.5',
+      estMoi
+        ? 'background:#6366f1;color:#fff;border-bottom-right-radius:4px'
+        : 'background:#fff;color:#1e293b;border:1px solid #e2e8f0;border-bottom-left-radius:4px'
+    ].join(';');
+
+    bubble.innerHTML = formatMessage(contenu) +
+      '<div style="font-size:10px;opacity:0.6;text-align:right;margin-top:4px">' + heure + '</div>';
+
+    wrapper.appendChild(bubble);
+    zone.appendChild(wrapper);
+  }
+
+  // ── Formater les liens/images dans les messages ──────────
+  function formatMessage(texte) {
+    return texte.replace(/(https?:\/\/[^\s]+)/g, function(url) {
+      if (/\.(jpg|jpeg|png|gif|webp)$/i.test(url))
+        return '<img src="' + url + '" style="max-width:200px;border-radius:8px;margin-top:4px">';
+      if (/\.(mp4|webm|ogg)$/i.test(url))
+        return '<video controls style="max-width:200px;border-radius:8px;margin-top:4px"><source src="' + url + '"></video>';
+      return '<a href="' + url + '" target="_blank" style="color:inherit;text-decoration:underline">' + url + '</a>';
+    });
+  }
+
+  // ── Scroll vers le bas ────────────────────────────────────
+  function faireDefiler() {
+    const zone = document.getElementById('messages-zone');
+    if (zone) zone.scrollTop = zone.scrollHeight;
+  }
+
+  // ── Envoyer un message ────────────────────────────────────
+  function envoyerMessage() {
+    const input = document.getElementById('message-input');
+    const texte = input.value.trim();
+    if (!texte || interlocuteurActif === null) return;
+    socket.emit('nouveau_message', {
+      sender_id:   MOI_ID,
+      receiver_id: interlocuteurActif,
+      contenu:     texte
+    });
+    input.value = '';
+  }
+
+  // ── Réception message temps réel ─────────────────────────
+  socket.on('diffusion_message', function(data) {
+    // N'afficher que si la conversation concernée est ouverte
+    if (data.sender_id === interlocuteurActif || data.sender_id === MOI_ID) {
+      ajouterMessage(data.msg, data.date, data.sender_id === MOI_ID, data.id);
+      faireDefiler();
+    }
+  });
+
+  // ── Événements bouton + touche Entrée ────────────────────
+  document.getElementById('send-btn').addEventListener('click', envoyerMessage);
+  document.getElementById('message-input').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      envoyerMessage();
+    }
+  });
+
+  // ── Auto-ouvrir si ?contact=ID ────────────────────────────
   {% if contact_ouverture %}
-  window.addEventListener('load', () => {
+  window.addEventListener('load', function() {
     ouvrirConversation(
       {{ contact_ouverture.id }},
       "{{ contact_ouverture.prenom }} {{ contact_ouverture.nom }}"
@@ -287,5 +242,4 @@
   });
   {% endif %}
 </script>
-
 {% endblock %}
