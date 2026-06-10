@@ -185,7 +185,7 @@ def deconnexion():
 @auth_bp.route("/profil", methods=["GET"])
 @login_required
 def profil():
-    return render_template("profil.html", profil=current_user)
+    return render_template("profil.html", profil=current_user, demande_existante=None)
 
 
 # ------------------------------------------------------------------
