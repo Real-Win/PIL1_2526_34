@@ -126,7 +126,7 @@ python run.py
 
 | Nom | Filière | Rôle |
 |-----|---------|------|
-| God Win FADONOUGBO | Intelligence Artificielle | Chef de groupe + Algorithme de matching |
+| FADONOUGBO God Win | Intelligence Artificielle | Chef de groupe + Algorithme de matching |
 | MONNOUKOUN Hironde | Génie Logiciel | Backend Flask / Routes |
 | NOUGBOGNONHOUN Mariel | Sécurité Informatique | Auth / Sécurité / Base de données |
 | BOUKOH Jean-Marc | Internet et Multimédia | Frontend + Porte-parole du groupe |

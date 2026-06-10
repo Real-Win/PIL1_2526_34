@@ -7,7 +7,8 @@ from flask_login import (
     login_required, current_user
 )
 from app import db
-from app.models import User, DemandeMentorat
+from app.models import (Competence, UserCompetence, UserLacune, Lacune,
+                         Disponibilite, User, DemandeMentorat)
 from app.matching import calculer_match, get_top_mentors, get_top_mentores
 from app.securite import inscrire_etudiant, verifier_connexion
 
@@ -26,26 +27,17 @@ def match(mentore_id, mentor_id):
 
 
 # ------------------------------------------------------------------
-# TOP 3  —  adapté au rôle demandé via paramètre ?cherche=mentor|mentore
+# TOP 3
 # ------------------------------------------------------------------
 @matching_bp.route("/top3/<int:user_id>")
 @login_required
 def top3(user_id):
-    """
-    ?cherche=mentor   → l'user est mentoré, cherche les meilleurs mentors
-    ?cherche=mentore  → l'user est mentor,  cherche les meilleurs mentorés
-    Sans paramètre    → comportement selon le rôle de l'user
-    """
-    user       = User.query.get_or_404(user_id)
-    cherche    = request.args.get("cherche", "").strip()
-    autres     = User.query.filter(User.id != user_id).all()
+    user    = User.query.get_or_404(user_id)
+    cherche = request.args.get("cherche", "").strip()
+    autres  = User.query.filter(User.id != user_id).all()
 
-    # Détermine ce qu'on cherche si non précisé
     if not cherche:
-        if user.role == "mentor":
-            cherche = "mentore"
-        else:
-            cherche = "mentor"
+        cherche = "mentore" if user.role == "mentor" else "mentor"
 
     if cherche == "mentore":
         result = get_top_mentores(user, autres)
@@ -56,7 +48,7 @@ def top3(user_id):
 
 
 # ------------------------------------------------------------------
-# API PROFIL UTILISATEUR  —  utilisée par le JS de matching.html
+# API PROFIL UTILISATEUR
 # ------------------------------------------------------------------
 @matching_bp.route("/api/user/<int:user_id>")
 @login_required
@@ -95,17 +87,15 @@ def accueil():
 def dashboard():
     autres_users = User.query.filter(User.id != current_user.id).all()
 
-    top_mentors   = []
-    top_mentores  = []
+    top_mentors  = []
+    top_mentores = []
 
-    # Si l'user peut être mentoré → on lui propose des mentors
     if current_user.role in ("etudiant", "mentore", "les_deux"):
         for item in get_top_mentors(current_user, autres_users):
             mentor = User.query.get(item["mentor_id"])
             if mentor:
                 top_mentors.append({"user": mentor, "score": item["score"]})
 
-    # Si l'user est mentor → on lui propose des mentorés
     if current_user.role in ("mentor", "les_deux"):
         for item in get_top_mentores(current_user, autres_users):
             mentore = User.query.get(item["mentore_id"])
@@ -189,7 +179,7 @@ def deconnexion():
 
 
 # ------------------------------------------------------------------
-# PROFIL  /profil
+# PROFIL (son propre profil)  /profil
 # ------------------------------------------------------------------
 @auth_bp.route("/profil", methods=["GET", "POST"])
 @login_required
@@ -205,7 +195,6 @@ def profil():
         current_user.role    = request.form.get("role",    current_user.role)
         current_user.bio     = request.form.get("bio",     current_user.bio)
 
-        # Compétences
         competences_raw = request.form.get("competences", "").strip()
         if competences_raw:
             UserCompetence.query.filter_by(user_id=current_user.id).delete()
@@ -215,10 +204,8 @@ def profil():
                     comp = Competence(nom=nom_comp)
                     db.session.add(comp)
                     db.session.flush()
-                lien = UserCompetence(user_id=current_user.id, competence_id=comp.id)
-                db.session.add(lien)
+                db.session.add(UserCompetence(user_id=current_user.id, competence_id=comp.id))
 
-        # Disponibilités
         jours        = request.form.getlist("jours[]")
         heures_debut = request.form.getlist("heures_debut[]")
         heures_fin   = request.form.getlist("heures_fin[]")
@@ -226,19 +213,110 @@ def profil():
             Disponibilite.query.filter_by(user_id=current_user.id).delete()
             for jour, h_debut, h_fin in zip(jours, heures_debut, heures_fin):
                 if jour and h_debut and h_fin:
-                    dispo = Disponibilite(
+                    db.session.add(Disponibilite(
                         user_id      = current_user.id,
                         jour_semaine = jour,
                         heure_debut  = datetime.strptime(h_debut, "%H:%M").time(),
                         heure_fin    = datetime.strptime(h_fin,   "%H:%M").time()
-                    )
-                    db.session.add(dispo)
+                    ))
 
         db.session.commit()
         flash("Profil mis à jour !", "success")
         return redirect(url_for("auth.profil"))
 
     return render_template("profil.html", user=current_user)
+
+
+# ------------------------------------------------------------------
+# PROFIL PUBLIC  /profil/<user_id>  — lecture seule
+# ------------------------------------------------------------------
+@auth_bp.route("/profil/<int:user_id>")
+@login_required
+def profil_public(user_id):
+    profil = User.query.get_or_404(user_id)
+
+    if profil.id == current_user.id:
+        return redirect(url_for("auth.profil"))
+
+    demande_existante = DemandeMentorat.query.filter(
+        db.or_(
+            db.and_(
+                DemandeMentorat.etudiant_id == current_user.id,
+                DemandeMentorat.mentor_id   == profil.id
+            ),
+            db.and_(
+                DemandeMentorat.etudiant_id == profil.id,
+                DemandeMentorat.mentor_id   == current_user.id
+            )
+        )
+    ).first()
+
+    return render_template(
+        "profil_public.html",
+        profil=profil,
+        demande_existante=demande_existante
+    )
+
+
+# ------------------------------------------------------------------
+# MODIFICATION PROFIL  /profil/modifier
+# ------------------------------------------------------------------
+@auth_bp.route("/profil/modifier", methods=["GET", "POST"])
+@login_required
+def profil_modifier():
+    if request.method == "POST":
+        from app.models import Competence, UserCompetence, Disponibilite
+        from datetime import datetime
+
+        current_user.nom     = request.form.get("nom",     current_user.nom)
+        current_user.prenom  = request.form.get("prenom",  current_user.prenom)
+        current_user.filiere = request.form.get("filiere", current_user.filiere)
+        current_user.niveau  = request.form.get("niveau",  current_user.niveau)
+        current_user.role    = request.form.get("role",    current_user.role)
+        current_user.bio     = request.form.get("bio",     current_user.bio)
+
+        competences_raw = request.form.get("competences", "").strip()
+        lacunes_raw     = request.form.get("lacunes", "").strip()
+
+        UserLacune.query.filter_by(user_id=current_user.id).delete()
+        if lacunes_raw:
+            for nom_lacune in [l.strip().lower() for l in lacunes_raw.split(",") if l.strip()]:
+                lacune = Lacune.query.filter_by(nom=nom_lacune).first()
+                if not lacune:
+                    lacune = Lacune(nom=nom_lacune)
+                    db.session.add(lacune)
+                    db.session.flush()
+                db.session.add(UserLacune(user_id=current_user.id, lacune_id=lacune.id))
+
+        UserCompetence.query.filter_by(user_id=current_user.id).delete()
+        if competences_raw:
+            for nom_comp in [c.strip().lower() for c in competences_raw.split(",") if c.strip()]:
+                comp = Competence.query.filter_by(nom=nom_comp).first()
+                if not comp:
+                    comp = Competence(nom=nom_comp)
+                    db.session.add(comp)
+                    db.session.flush()
+                db.session.add(UserCompetence(user_id=current_user.id, competence_id=comp.id))
+
+        jours        = request.form.getlist("jours[]")
+        heures_debut = request.form.getlist("heures_debut[]")
+        heures_fin   = request.form.getlist("heures_fin[]")
+
+        Disponibilite.query.filter_by(user_id=current_user.id).delete()
+        for jour, debut, fin in zip(jours, heures_debut, heures_fin):
+            if jour and debut and fin:
+                db.session.add(Disponibilite(
+                    user_id      = current_user.id,
+                    jour_semaine = jour,
+                    heure_debut  = datetime.strptime(debut, "%H:%M").time(),
+                    heure_fin    = datetime.strptime(fin,   "%H:%M").time()
+                ))
+
+        db.session.commit()
+        flash("Profil mis à jour avec succès.", "success")
+        return redirect(url_for("auth.profil"))
+
+    return render_template("profil_edit.html", user=current_user)
 
 
 # ------------------------------------------------------------------
@@ -252,7 +330,6 @@ def matching_page():
 
 # ------------------------------------------------------------------
 # CRÉER UNE DEMANDE DE MENTORAT  /demande/<cible_id>
-# Fonctionne dans les deux sens : mentoré → mentor  ET  mentor → mentoré
 # ------------------------------------------------------------------
 @auth_bp.route("/demande/<int:cible_id>", methods=["POST"])
 @login_required
@@ -264,17 +341,13 @@ def creer_demande(cible_id):
         flash("Le sujet de la demande ne peut pas être vide.", "danger")
         return redirect(url_for("auth.matching_page"))
 
-    # Détermine qui est mentor et qui est mentoré selon les rôles
-    # Si current_user est mentor et cible est mentoré → current_user propose son aide
     if current_user.role in ("mentor", "les_deux") and cible.role not in ("mentor",):
         etudiant_id = cible.id
         mentor_id   = current_user.id
     else:
-        # Cas classique : current_user (mentoré) demande à cible (mentor)
         etudiant_id = current_user.id
         mentor_id   = cible.id
 
-    # Vérifie qu'une demande identique n'existe pas déjà
     existante = DemandeMentorat.query.filter_by(
         etudiant_id=etudiant_id,
         mentor_id=mentor_id
@@ -298,14 +371,12 @@ def creer_demande(cible_id):
 
 # ------------------------------------------------------------------
 # CHANGER LE STATUT D'UNE DEMANDE  /demande/<id>/statut
-# Utilisé par demandes.html (boutons Accepter / Refuser)
 # ------------------------------------------------------------------
 @auth_bp.route("/demande/<int:demande_id>/statut", methods=["POST"])
 @login_required
 def changer_statut_demande(demande_id):
     demande = DemandeMentorat.query.get_or_404(demande_id)
 
-    # Seul le mentor concerné peut changer le statut
     if demande.mentor_id != current_user.id:
         flash("Action non autorisée.", "danger")
         return redirect(url_for("auth.demandes"))
@@ -325,7 +396,6 @@ def changer_statut_demande(demande_id):
 
 # ------------------------------------------------------------------
 # LISTE DES DEMANDES  /demandes
-# Envoyées ET reçues (pour le template avec onglets)
 # ------------------------------------------------------------------
 @auth_bp.route("/demandes")
 @login_required
@@ -344,12 +414,4 @@ def demandes():
         demandes_recues=demandes_recues
     )
 
-
-# ------------------------------------------------------------------
-# MESSAGES  /messages
-# ------------------------------------------------------------------
-@auth_bp.route("/messages")
-@login_required
-def messages():
-    messages_recus = current_user.messages_recus
-    return render_template("messages.html", messages=messages_recus)
+# NOTE : la route /messages est gérée par messagerie_bp dans routes_messagerie.py

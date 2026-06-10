@@ -4,150 +4,216 @@
 
 {% block contenu %}
 
-<div class="max-w-5xl mx-auto py-6 px-4" id="app">
+<div class="max-w-5xl mx-auto py-6 px-4">
 
-  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden" style="height: 75vh;">
+  <!-- Carte chat principale -->
+  <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden"
+       style="height:75vh">
 
     <div class="flex h-full">
 
-      <div class="w-80 border-r border-slate-200 flex flex-col">
+      <!-- ══ COLONNE GAUCHE : liste conversations ══ -->
+      <div style="width:300px;border-right:0.5px solid #f1f5f9;
+                  display:flex;flex-direction:column;flex-shrink:0">
 
-        <div class="p-4 border-b border-slate-200">
-          <h1 class="text-lg font-semibold text-slate-900">Messages</h1>
-          <p class="text-xs text-slate-400 mt-0.5">
+        <!-- Header -->
+        <div style="padding:16px;border-bottom:0.5px solid #f1f5f9">
+          <h1 style="font-size:15px;font-weight:500;color:#0f172a;margin:0 0 2px">
+            Messages
+          </h1>
+          <p style="font-size:11px;color:#94a3b8;margin:0">
             Tes conversations de mentorat
           </p>
         </div>
 
-        <div class="flex-1 overflow-y-auto">
+        <!-- Liste -->
+        <div style="flex:1;overflow-y:auto">
 
-          <div v-if="listeDiscussions.length > 0">
-            <div v-for="chat in listeDiscussions" :key="chat.contact_id"
-                 @click="ouvrirConversation(chat.contact_id, chat.contact_nom)"
-                 class="flex items-center gap-3 p-4 hover:bg-slate-50 cursor-pointer border-b border-slate-100 transition-colors conversation-item"
-                 :class="{'bg-slate-50': interlocuteur.id === chat.contact_id}">
+          {% set ids_affiches = [] %}
 
-              <div class="w-10 h-10 rounded-full bg-accent flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
-                [[ chat.contact_initiales ]]
-              </div>
+          {% if messages %}
+            {% for message in messages %}
+              {% if message.expediteur and message.expediteur.id not in ids_affiches %}
+                {% set _ = ids_affiches.append(message.expediteur.id) %}
 
-              <div class="flex-1 min-w-0">
-                <div class="flex items-center justify-between">
-                  <p class="text-sm font-medium text-slate-900 truncate">
-                    [[ chat.contact_nom ]]
-                  </p>
-                  <span class="text-xs text-slate-400 flex-shrink-0">
-                    [[ chat.heure ]]
-                  </span>
+                <div onclick="ouvrirConversation({{ message.expediteur.id }},
+                              '{{ message.expediteur.prenom }} {{ message.expediteur.nom }}')"
+                     style="display:flex;align-items:center;gap:10px;padding:12px 14px;
+                            cursor:pointer;border-bottom:0.5px solid #f8fafc;
+                            transition:background .12s"
+                     onmouseover="this.style.background='#F8FAFC'"
+                     onmouseout="this.style.background='transparent'">
+
+                  <div style="width:38px;height:38px;border-radius:50%;
+                              background:linear-gradient(135deg,#6366f1,#2dd4bf);
+                              display:flex;align-items:center;justify-content:center;
+                              font-size:13px;font-weight:500;color:#fff;flex-shrink:0">
+                    {{ message.expediteur.prenom[0] | upper }}{{ message.expediteur.nom[0] | upper }}
+                  </div>
+
+                  <div style="flex:1;min-width:0">
+                    <div style="display:flex;align-items:center;justify-content:space-between">
+                      <p style="font-size:13px;font-weight:500;color:#0f172a;
+                                margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+                        {{ message.expediteur.prenom }} {{ message.expediteur.nom }}
+                      </p>
+                      <span style="font-size:10px;color:#cbd5e1;flex-shrink:0">
+                        {{ message.date_envoi.strftime('%H:%M') if message.date_envoi else '' }}
+                      </span>
+                    </div>
+                    <p style="font-size:11px;color:#94a3b8;margin:2px 0 0;
+                              overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+                      {% if message.contenu %}{{ message.contenu[:40] }}...{% endif %}
+                    </p>
+                  </div>
+
+                  {% if not message.lu %}
+                    <div style="width:7px;height:7px;border-radius:50%;
+                                background:#6366f1;flex-shrink:0"></div>
+                  {% endif %}
+
                 </div>
-                <p class="text-xs text-slate-500 truncate mt-0.5">
-                  [[ chat.dernier_message ]]
-                </p>
+              {% endif %}
+            {% endfor %}
+          {% endif %}
+
+          {% if autres_users %}
+            {% for contact in autres_users %}
+              {% if contact.id not in ids_affiches %}
+                {% set _ = ids_affiches.append(contact.id) %}
+
+                <div onclick="ouvrirConversation({{ contact.id }},
+                              '{{ contact.prenom }} {{ contact.nom }}')"
+                     style="display:flex;align-items:center;gap:10px;padding:12px 14px;
+                            cursor:pointer;border-bottom:0.5px solid #f8fafc;
+                            transition:background .12s"
+                     onmouseover="this.style.background='#F8FAFC'"
+                     onmouseout="this.style.background='transparent'">
+
+                  <div style="width:38px;height:38px;border-radius:50%;
+                              background:#94a3b8;display:flex;align-items:center;
+                              justify-content:center;font-size:13px;font-weight:500;
+                              color:#fff;flex-shrink:0">
+                    {{ contact.prenom[0] | upper }}{{ contact.nom[0] | upper }}
+                  </div>
+
+                  <div style="flex:1;min-width:0">
+                    <p style="font-size:13px;font-weight:500;color:#0f172a;
+                              margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+                      {{ contact.prenom }} {{ contact.nom }}
+                    </p>
+                    <p style="font-size:11px;color:#94a3b8;margin:2px 0 0">
+                      {{ contact.filiere }}
+                    </p>
+                  </div>
+
+                </div>
+              {% endif %}
+            {% endfor %}
+          {% endif %}
+
+          {% if not messages and not autres_users %}
+            <div style="display:flex;flex-direction:column;align-items:center;
+                        justify-content:center;height:100%;padding:32px;text-align:center">
+              <div style="width:44px;height:44px;border-radius:50%;background:#F8FAFC;
+                          border:0.5px solid #e2e8f0;display:flex;align-items:center;
+                          justify-content:center;margin-bottom:12px">
+                <i class="ti ti-message-circle" style="font-size:20px;color:#cbd5e1"></i>
               </div>
-
-              <div v-if="!chat.lu" class="w-2 h-2 rounded-full bg-accent flex-shrink-0"></div>
+              <p style="font-size:13px;color:#94a3b8;font-weight:500;margin:0 0 4px">
+                Aucun contact
+              </p>
+              <p style="font-size:11px;color:#cbd5e1;margin:0">
+                Contacte un mentor depuis la page matching
+              </p>
             </div>
-          </div>
-
-          <div v-else-if="autresContacts.length > 0">
-            <div v-for="contact in autresContacts" :key="contact.id"
-                 @click="ouvrirConversation(contact.id, contact.prenom + ' ' + contact.nom)"
-                 class="flex items-center gap-3 p-4 hover:bg-slate-50 cursor-pointer border-b border-slate-100 transition-colors">
-              
-              <div class="w-10 h-10 rounded-full bg-accent flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
-                [[ contact.prenom[0].toUpperCase() ]][[ contact.nom[0].toUpperCase() ]]
-              </div>
-
-              <div class="flex-1 min-w-0">
-                <p class="text-sm font-medium text-slate-900 truncate">
-                  [[ contact.prenom ]] [[ contact.nom ]]
-                </p>
-                <p class="text-xs text-slate-400">[[ contact.filiere ]]</p>
-              </div>
-            </div>
-          </div>
-
-          <div v-else class="flex flex-col items-center justify-center h-full p-8 text-center">
-            <div class="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mb-3">
-              <svg class="w-6 h-6 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                      d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
-              </svg>
-            </div>
-            <p class="text-sm text-slate-500 font-medium">Aucun message</p>
-            <p class="text-xs text-slate-400 mt-1">Contacte un mentor depuis la page matching</p>
-          </div>
+          {% endif %}
 
         </div>
-
       </div>
 
-      <div class="flex-1 flex flex-col">
+      <!-- ══ COLONNE DROITE : zone de chat Vue.js ══ -->
+      <div class="flex-1 flex flex-col" id="app">
 
-        <div v-if="!conversationActive" class="flex-1 flex flex-col items-center justify-center text-center p-8">
-          <div class="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mb-4">
-            <svg class="w-8 h-8 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                    d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
-            </svg>
+        <!-- Aucune conversation sélectionnée -->
+        <div v-if="!conversationActive"
+             style="flex:1;display:flex;flex-direction:column;
+                    align-items:center;justify-content:center;
+                    text-align:center;padding:32px;background:#FAFAFA">
+          <div style="width:56px;height:56px;border-radius:16px;background:#EEF2FF;
+                      display:flex;align-items:center;justify-content:center;
+                      margin-bottom:14px">
+            <i class="ti ti-message-circle" style="font-size:26px;color:#6366f1"></i>
           </div>
-          <p class="text-slate-400 text-sm font-medium">Sélectionne une conversation</p>
-          <p class="text-slate-300 text-xs mt-1">ou contacte un mentor depuis la page matching</p>
+          <p style="font-size:14px;font-weight:500;color:#94a3b8;margin:0 0 4px">
+            Sélectionne une conversation
+          </p>
+          <p style="font-size:12px;color:#cbd5e1;margin:0">
+            ou contacte un mentor depuis la page matching
+          </p>
         </div>
 
-        <div v-if="conversationActive" class="flex flex-col h-full">
+        <!-- Conversation active -->
+        <div v-if="conversationActive" style="display:flex;flex-direction:column;height:100%">
 
-          <div class="p-4 border-b border-slate-200 flex items-center gap-3">
-            <div class="w-9 h-9 rounded-full bg-accent flex items-center justify-center text-white text-sm font-bold">
+          <!-- Header conversation -->
+          <div style="padding:12px 20px;border-bottom:0.5px solid #f1f5f9;
+                      display:flex;align-items:center;gap:10px;background:#fff">
+            <div style="width:36px;height:36px;border-radius:50%;
+                        background:linear-gradient(135deg,#6366f1,#2dd4bf);
+                        display:flex;align-items:center;justify-content:center;
+                        font-size:12px;font-weight:500;color:#fff">
               [[ interlocuteur.initiales ]]
             </div>
             <div>
-              <p class="text-sm font-semibold text-slate-900">[[ interlocuteur.nom ]]</p>
-              <p v-if="lAutreEstEnTrainDEcrire" class="text-xs text-orange-500 font-medium italic animate-pulse">
-                En train d'écrire...
+              <p style="font-size:14px;font-weight:500;color:#0f172a;margin:0 0 1px">
+                [[ interlocuteur.nom ]]
               </p>
-              <p v-else class="text-xs text-green-500">En ligne</p>
+              <p style="font-size:11px;color:#4ade80;margin:0">En ligne</p>
             </div>
           </div>
 
-          <div class="flex-1 overflow-y-auto p-4 space-y-3" id="messages-zone">
-            <div v-for="msg in messagesConversation" :key="msg.id" :class="msg.estMoi ? 'flex justify-end' : 'flex justify-start'">
-              <div :class="msg.estMoi ? 'bg-accent text-white' : 'bg-slate-100 text-slate-800'" class="max-w-xs px-4 py-2 rounded-2xl text-sm leading-relaxed">
+          <!-- Zone messages -->
+          <div style="flex:1;overflow-y:auto;padding:20px;
+                      display:flex;flex-direction:column;gap:10px;
+                      background:#FAFAFA"
+               id="messages-zone">
+
+            <div v-for="msg in messagesConversation" :key="msg.id"
+                 :style="msg.estMoi ? 'display:flex;justify-content:flex-end'
+                                    : 'display:flex;justify-content:flex-start'">
+              <div :style="msg.estMoi
+                  ? 'background:#6366f1;color:#fff;border-bottom-right-radius:4px'
+                  : 'background:#fff;color:#0f172a;border:0.5px solid #e2e8f0;border-bottom-left-radius:4px'"
+                   style="max-width:65%;padding:10px 14px;border-radius:14px;
+                          font-size:13px;line-height:1.5">
                 [[ msg.contenu ]]
-                <div class="text-xs mt-1 opacity-60 text-right">[[ msg.heure ]]</div>
-              </div>
-            </div>
-          </div>
-
-          <div class="p-4 border-t border-slate-200 relative">
-            <div class="flex items-center gap-2">
-              
-              <div class="relative">
-                <button type="button" @click.stop="toggleEmojiPicker" class="text-xl p-2 hover:bg-slate-100 rounded-xl transition-colors focus:outline-none">
-                  😀
-                </button>
-                <div v-if="showEmojiPicker" class="absolute bottom-14 left-0 z-50 shadow-2xl rounded-xl border border-slate-200 overflow-hidden bg-white">
-                  <emoji-picker locale="fr" @emoji-click="ajouterEmoji" style="--num-columns: 6; --category-padding: 4px;"></emoji-picker>
+                <div :style="msg.estMoi ? 'color:rgba(255,255,255,0.6)' : 'color:#94a3b8'"
+                     style="font-size:10px;margin-top:4px;text-align:right">
+                  [[ msg.heure ]]
                 </div>
               </div>
-
-              <input
-                v-model="nouveauMessage"
-                @keyup.enter="envoyerMessage"
-                @input="gererSaisieClavier"
-                type="text"
-                placeholder="Écris ton message..."
-                class="flex-1 px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent">
-              
-              <button
-                @click="envoyerMessage"
-                :disabled="!nouveauMessage.trim()"
-                class="bg-accent hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white p-2.5 rounded-xl transition-colors flex-shrink-0">
-                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
-                </svg>
-              </button>
             </div>
+
+          </div>
+
+          <!-- Input message -->
+          <div style="padding:14px 20px;border-top:0.5px solid #f1f5f9;
+                      display:flex;align-items:center;gap:10px;background:#fff">
+            <input v-model="nouveauMessage" @keyup.enter="envoyerMessage"
+              type="text" placeholder="Écris ton message..."
+              style="flex:1;background:#F8FAFC;border:0.5px solid #e2e8f0;
+                     border-radius:24px;padding:10px 18px;font-size:13px;
+                     color:#374151;outline:none;transition:all .15s"
+              onfocus="this.style.borderColor='#6366f1';this.style.background='#fff'"
+              onblur="this.style.borderColor='#e2e8f0';this.style.background='#F8FAFC'">
+            <button @click="envoyerMessage" :disabled="!nouveauMessage.trim()"
+              style="width:40px;height:40px;border-radius:50%;background:#6366f1;
+                     border:none;display:flex;align-items:center;justify-content:center;
+                     cursor:pointer;flex-shrink:0;transition:all .15s"
+              :style="!nouveauMessage.trim() ? 'opacity:.4;cursor:not-allowed' : 'opacity:1'">
+              <i class="ti ti-send" style="font-size:16px;color:#fff"></i>
+            </button>
           </div>
 
         </div>
@@ -156,168 +222,48 @@
 
     </div>
   </div>
+
 </div>
 
 {% endblock %}
 
 {% block scripts %}
-<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-<script type="module" src="https://cdn.jsdelivr.net/npm/emoji-picker-element@1/index.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.js"></script>
-
 <script>
-  const { createApp, ref, reactive, nextTick, onMounted, onUnmounted } = Vue;
+  const { createApp, ref, reactive, nextTick } = Vue;
 
   const MOI_ID = {{ current_user.id }};
 
   const app = createApp({
     delimiters: ['[[', ']]'],
-
     setup() {
-      const conversationActive      = ref(false);
-      const nouveauMessage          = ref('');
-      const interlocuteur           = reactive({ nom: '', initiales: '', id: null });
-      const messagesConversation    = ref([]);
-      const showEmojiPicker         = ref(false);
-      const lAutreEstEnTrainDEcrire = ref(false);
-      let minuteurEcriture          = null;
-
-      const listeDiscussions        = ref([]);
-      const autresContacts          = ref([]);
-
-      const initialiserDonnees = () => {
-        const historiqueBrut = [
-          {% if messages %}
-            {% for m in messages %}
-              {
-                contact_id: {{ m.expediteur.id if m.expediteur.id != current_user.id else m.destinataire.id }},
-                contact_nom: '{% if m.expediteur.id != current_user.id %}{{ m.expediteur.prenom }} {{ m.expediteur.nom }}{% else %}{{ m.destinataire.prenom }} {{ m.destinataire.nom }}{% endif %}',
-                contact_initiales: '{% if m.expediteur.id != current_user.id %}{{ m.expediteur.prenom[0]|upper }}{{ m.expediteur.nom[0]|upper }}{% else %}{{ m.destinataire.prenom[0]|upper }}{{ m.destinataire.nom[0]|upper }}{% endif %}',
-                dernier_message: '{{ m.contenu[:40]|replace("'", "\\'") }}...',
-                heure: '{{ m.date_envoi.strftime("%H:%M") if m.date_envoi else "" }}',
-                lu: {{ 'true' if m.lu or m.expediteur.id == current_user.id else 'false' }}
-              },
-            {% endfor %}
-          {% endif %}
-        ];
-
-        const vus = new Set();
-        listeDiscussions.value = historiqueBrut.filter(item => {
-          if (vus.has(item.contact_id)) return false;
-          vus.add(item.contact_id);
-          return true;
-        });
-
-        // Filtrage automatique des contacts pour éviter qu'un utilisateur apparaisse deux fois
-        const tousLesProfils = [
-          {% if autres_users %}
-            {% for contact in autres_users %}
-              {
-                id: {{ contact.id }},
-                prenom: '{{ contact.prenom|replace("'", "\\'") }}',
-                nom: '{{ contact.nom|replace("'", "\\'") }}',
-                filiere: '{{ contact.filiere|replace("'", "\\'") }}'
-              },
-            {% endfor %}
-          {% endif %}
-        ];
-
-        autresContacts.value = tousLesProfils.filter(c => !vus.has(c.id));
-      };
+      const conversationActive   = ref(false);
+      const nouveauMessage       = ref('');
+      const interlocuteur        = reactive({ nom: '', initiales: '', id: null });
+      const messagesConversation = ref([]);
 
       const socket = io();
 
-      const toggleEmojiPicker = () => { showEmojiPicker.value = !showEmojiPicker.value; };
-      const ajouterEmoji = (event) => { nouveauMessage.value += event.detail.unicode; };
-
-      const fermerPickerExterieur = (e) => {
-        if (showEmojiPicker.value && !e.target.closest('emoji-picker') && !e.target.innerHTML.includes('😀')) {
-          showEmojiPicker.value = false;
-        }
-      };
-
-      onMounted(() => {
-        initialiserDonnees();
-        window.addEventListener('click', fermerPickerExterieur);
-      });
-
-      onUnmounted(() => {
-        window.removeEventListener('click', fermerPickerExterieur);
-      });
-
       socket.on('diffusion_message', (data) => {
-        const senderId = data.sender_id;
-
-        if (senderId === interlocuteur.id || senderId === MOI_ID) {
+        if (data.sender_id === interlocuteur.id || data.sender_id === MOI_ID) {
           messagesConversation.value.push({
             id:      Date.now(),
             contenu: data.msg,
             heure:   data.date,
-            estMoi:  senderId === MOI_ID
+            estMoi:  data.sender_id === MOI_ID
           });
           faireDefiler();
         }
-
-        const contactId = (senderId === MOI_ID) ? interlocuteur.id : senderId;
-        if (!contactId) return;
-
-        const discussionExistante = listeDiscussions.value.find(d => d.contact_id === contactId);
-
-        if (discussionExistante) {
-          discussionExistante.dernier_message = data.msg;
-          discussionExistante.heure = data.date;
-          discussionExistante.lu = (senderId === MOI_ID || contactId === interlocuteur.id);
-          
-          listeDiscussions.value = [
-            discussionExistante,
-            ...listeDiscussions.value.filter(d => d.contact_id !== contactId)
-          ];
-        } else {
-          const contactBrut = autresContacts.value.find(c => c.id === contactId);
-          const nom = contactBrut ? `${contactBrut.prenom} ${contactBrut.nom}` : "Utilisateur";
-          const init = contactBrut ? `${contactBrut.prenom[0]}${contactBrut.nom[0]}`.toUpperCase() : "U";
-
-          listeDiscussions.value.unshift({
-            contact_id: contactId,
-            contact_nom: nom,
-            contact_initiales: init,
-            dernier_message: data.msg,
-            heure: data.date,
-            lu: (senderId === MOI_ID)
-          });
-
-          autresContacts.value = autresContacts.value.filter(c => c.id !== contactId);
-        }
       });
-
-      socket.on('l_autre_ecrit', (data) => {
-        if (data.sender_id === interlocuteur.id) {
-          lAutreEstEnTrainDEcrire.value = data.statut;
-        }
-      });
-
-      function gererSaisieClavier() {
-        if (!interlocuteur.id) return;
-        socket.emit('debut_ecriture', { sender_id: MOI_ID, receiver_id: interlocuteur.id });
-        clearTimeout(minuteurEcriture);
-
-        minuteurEcriture = setTimeout(() => {
-          socket.emit('fin_ecriture', { sender_id: MOI_ID, receiver_id: interlocuteur.id });
-        }, 2000);
-      }
 
       function ouvrirConversation(userId, nomComplet) {
         conversationActive.value = true;
-        showEmojiPicker.value    = false; 
-        lAutreEstEnTrainDEcrire.value = false;
         interlocuteur.id         = userId;
         interlocuteur.nom        = nomComplet;
-        interlocuteur.initiales  = nomComplet.split(' ').map(n => n[0]).join('').toUpperCase();
+        interlocuteur.initiales  = nomComplet.split(' ')
+          .map(n => n[0]).join('').toUpperCase();
 
         socket.emit('rejoindre_salle', { user_id: MOI_ID, contact_id: userId });
-
-        const discussion = listeDiscussions.value.find(d => d.contact_id === userId);
-        if (discussion) discussion.lu = true;
 
         fetch(`/api/messages/${userId}`)
           .then(res => res.json())
@@ -336,28 +282,12 @@
       function envoyerMessage() {
         const texte = nouveauMessage.value.trim();
         if (!texte || !interlocuteur.id) return;
-
-        clearTimeout(minuteurEcriture);
-        socket.emit('fin_ecriture', { sender_id: MOI_ID, receiver_id: interlocuteur.id });
-
         socket.emit('nouveau_message', {
           sender_id:   MOI_ID,
           receiver_id: interlocuteur.id,
           contenu:     texte
         });
-
-        const maDiscussion = listeDiscussions.value.find(d => d.contact_id === interlocuteur.id);
-        const maintenant = new Date();
-        const heureFormatee = maintenant.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-
-        if (maDiscussion) {
-          maDiscussion.dernier_message = texte;
-          maDiscussion.heure = heureFormatee;
-          listeDiscussions.value = [maDiscussion, ...listeDiscussions.value.filter(d => d.contact_id !== interlocuteur.id)];
-        }
-
         nouveauMessage.value = '';
-        showEmojiPicker.value = false; 
         faireDefiler();
       }
 
@@ -370,10 +300,7 @@
 
       return {
         conversationActive, nouveauMessage, interlocuteur,
-        messagesConversation, ouvrirConversation, envoyerMessage,
-        showEmojiPicker, toggleEmojiPicker, ajouterEmoji,
-        lAutreEstEnTrainDEcrire, gererSaisieClavier,
-        listeDiscussions, autresContacts
+        messagesConversation, ouvrirConversation, envoyerMessage
       };
     }
   });
@@ -383,5 +310,15 @@
   window.ouvrirConversation = (userId, nomComplet) => {
     vueInstance.ouvrirConversation(userId, nomComplet);
   };
+
+  // ── Auto-ouvrir la conversation si on vient d'une demande acceptée ──
+  {% if contact_ouverture %}
+  window.addEventListener('load', () => {
+    ouvrirConversation(
+      {{ contact_ouverture.id }},
+      "{{ contact_ouverture.prenom }} {{ contact_ouverture.nom }}"
+    );
+  });
+  {% endif %}
 </script>
 {% endblock %}

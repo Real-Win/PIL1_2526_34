@@ -39,7 +39,14 @@ class User(UserMixin, db.Model):
         secondary="user_competences",
         lazy="joined"
     )
-
+    
+    lacunes = db.relationship(
+    "Lacune",
+    secondary="user_lacunes",
+    lazy="joined"
+    )
+    
+    
     disponibilites = db.relationship(
         "Disponibilite",
         backref="user",
@@ -85,6 +92,15 @@ class Competence(db.Model):
     id  = db.Column(db.Integer, primary_key=True)
     nom = db.Column(db.String(100), unique=True, nullable=False)
 
+
+#==========================
+#LACUNES
+#==========================
+class Lacune(db.Model):
+    __tablename__ = "lacunes"
+
+    id = db.Column(db.Integer, primary_key=True)
+    nom = db.Column(db.String(100), unique=True, nullable=False)
 
 # =========================
 # RELATION USER – COMPÉTENCES
@@ -210,4 +226,23 @@ class Message(db.Model):
     date_envoi = db.Column(
         db.DateTime,
         server_default=db.func.current_timestamp()
+    )
+
+
+#=======================
+#RELATION USER - LACUNE
+#=======================
+class UserLacune(db.Model):
+    __tablename__ = "user_lacunes"
+
+    user_id = db.Column(
+        db.Integer,
+        db.ForeignKey("users.id"),
+        primary_key=True
+    )
+
+    lacune_id = db.Column(
+        db.Integer,
+        db.ForeignKey("lacunes.id"),
+        primary_key=True
     )
