@@ -19,7 +19,7 @@ class User(UserMixin, db.Model):
     telephone = db.Column(db.String(20),  unique=True, nullable=False)
 
     filiere = db.Column(db.String(100), nullable=False)
-    niveau  = db.Column(db.String(10),  default="L1")   # ← AJOUT
+    niveau  = db.Column(db.String(10),  default="L1")
     role    = db.Column(db.String(20),  default="etudiant")
 
     password_hash = db.Column(db.String(255), nullable=False)
@@ -33,7 +33,6 @@ class User(UserMixin, db.Model):
     )
 
     # Relations
-
     competences = db.relationship(
         "Competence",
         secondary="user_competences",
@@ -41,11 +40,10 @@ class User(UserMixin, db.Model):
     )
     
     lacunes = db.relationship(
-    "Lacune",
-    secondary="user_lacunes",
-    lazy="joined"
+        "Lacune",
+        secondary="user_lacunes",
+        lazy="joined"
     )
-    
     
     disponibilites = db.relationship(
         "Disponibilite",
@@ -93,14 +91,15 @@ class Competence(db.Model):
     nom = db.Column(db.String(100), unique=True, nullable=False)
 
 
-#==========================
-#LACUNES
-#==========================
+# =========================
+# LACUNES
+# =========================
 class Lacune(db.Model):
     __tablename__ = "lacunes"
 
     id = db.Column(db.Integer, primary_key=True)
     nom = db.Column(db.String(100), unique=True, nullable=False)
+
 
 # =========================
 # RELATION USER – COMPÉTENCES
@@ -229,9 +228,9 @@ class Message(db.Model):
     )
 
 
-#=======================
-#RELATION USER - LACUNE
-#=======================
+# =========================
+# RELATION USER - LACUNE
+# =========================
 class UserLacune(db.Model):
     __tablename__ = "user_lacunes"
 
