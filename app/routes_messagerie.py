@@ -102,45 +102,40 @@ def rejoindre_salle_perso(data):
 # ------------------------------------------------------------------
 # SOCKET.IO : recevoir et diffuser un message
 # ------------------------------------------------------------------
+
 @socketio.on("nouveau_message")
 def gerer_message(data):
     sender_id   = int(data.get("sender_id"))
     receiver_id = int(data.get("receiver_id"))
     contenu     = data.get("contenu", "").strip()
-
+    # Permettre le HTML (liens, images, vidéos)
     if not contenu:
         return
-
     msg = Message(
-        sender_id   = sender_id,
-        receiver_id = receiver_id,
-        contenu     = contenu,
-        date_envoi  = datetime.utcnow(),
-        lu          = False
+        sender_id=sender_id,
+        receiver_id=receiver_id,
+        contenu=contenu,
+        date_envoi=datetime.utcnow(),
+        lu=False
     )
     db.session.add(msg)
     db.session.commit()
-
     expediteur = User.query.get(sender_id)
-    pseudo     = f"{expediteur.prenom} {expediteur.nom}" if expediteur else "Inconnu"
-
-    ids   = sorted([sender_id, receiver_id])
+    pseudo = f"{expediteur.prenom} {expediteur.nom}" if expediteur else "Inconnu"
+    ids = sorted([sender_id, receiver_id])
     salle = f"salle_{ids[0]}_{ids[1]}"
-
     emit("diffusion_message", {
-        "pseudo":    pseudo,
-        "msg":       contenu,
-        "date":      msg.date_envoi.strftime("%H:%M"),
+        "pseudo": pseudo,
+        "msg": contenu,
+        "date": msg.date_envoi.strftime("%H:%M"),
         "sender_id": sender_id
     }, room=salle)
-
     emit("nouveau_message_notif", {
-        "pseudo":      pseudo,
-        "msg":         contenu,
+        "pseudo": pseudo,
+        "msg": contenu,
         "receiver_id": receiver_id,
-        "sender_id":   sender_id
+        "sender_id": sender_id
     }, room=f"perso_{receiver_id}")
-
 
 # ------------------------------------------------------------------
 # SOCKET.IO : quitter une salle

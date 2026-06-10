@@ -3,178 +3,70 @@
 {% block titre %}{{ profil.prenom }} {{ profil.nom }} — MentorLink{% endblock %}
 
 {% block contenu %}
-
 <div class="max-w-3xl mx-auto py-10 px-4">
+  <div class="flex justify-between mb-8">
+    <a href="javascript:history.back()" class="text-sm text-slate-500">← Retour</a>
+    {% if profil.id != current_user.id %}<a href="/demandes" class="text-xs text-slate-400">Voir mes demandes</a>{% endif %}
+  </div>
 
-  <!-- En-tête -->
-  <div class="flex items-center justify-between mb-8">
-    <a href="javascript:history.back()"
-       class="text-sm text-slate-500 hover:text-slate-700
-              transition-colors flex items-center gap-1">
-      ← Retour
-    </a>
-    {% if profil.id != current_user.id %}
-      <a href="/demandes"
-         class="text-xs text-slate-400 hover:text-accent transition-colors">
-        Voir mes demandes
-      </a>
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+    {% if profil.photo_couverture %}
+      <div class="h-32 overflow-hidden"><img src="{{ profil.photo_couverture }}" class="w-full h-32 object-cover"></div>
+    {% else %}
+      <div class="h-32 bg-gradient-to-r from-blue-500 to-purple-500"></div>
     {% endif %}
-  </div>
-
-  <!-- Carte identité -->
-  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-6">
-
-    <div class="flex items-center gap-5">
-      <div class="w-20 h-20 rounded-full flex items-center justify-center
-                  text-white text-2xl font-bold flex-shrink-0
-                  {% if profil.role == 'mentor' %}bg-accent
-                  {% elif profil.role == 'mentore' %}bg-green-500
-                  {% else %}bg-purple-500{% endif %}">
-        {{ profil.prenom[0] | upper }}{{ profil.nom[0] | upper }}
-      </div>
-      <div class="flex-1">
-        <h1 class="text-xl font-bold text-slate-900">
-          {{ profil.prenom }} {{ profil.nom }}
-        </h1>
-        <div class="flex items-center gap-2 mt-1 flex-wrap">
-          <span class="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-medium">
-            {{ profil.filiere }}
-          </span>
-          <span class="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">
-            {{ profil.niveau }}
-          </span>
-          <span class="text-xs px-2 py-0.5 rounded-full font-medium
-            {% if profil.role == 'mentor' %}bg-blue-50 text-blue-700
-            {% elif profil.role == 'mentore' %}bg-green-50 text-green-700
-            {% else %}bg-purple-50 text-purple-700{% endif %}">
-            {% if profil.role == 'mentor' %}Mentor
-            {% elif profil.role == 'mentore' %}Mentoré
-            {% else %}Mentor & Mentoré{% endif %}
-          </span>
+    <div class="p-6">
+      <div class="flex items-center gap-5 -mt-12">
+        <div class="w-24 h-24 rounded-full border-4 border-white bg-accent flex items-center justify-center text-white text-2xl font-bold overflow-hidden shadow-md">
+          {% if profil.photo_profil %}<img src="{{ profil.photo_profil }}" class="w-full h-full object-cover">{% else %}{{ profil.prenom[0]|upper }}{{ profil.nom[0]|upper }}{% endif %}
         </div>
-        <p class="text-xs text-slate-400 mt-1">
-          Membre depuis
-          {{ profil.date_inscription.strftime('%d/%m/%Y')
-             if profil.date_inscription else 'N/A' }}
-        </p>
-      </div>
-    </div>
-
-    {% if profil.bio %}
-      <div class="mt-5 pt-5 border-t border-slate-100">
-        <p class="text-xs font-medium text-slate-500 uppercase tracking-wide mb-2">Bio</p>
-        <p class="text-sm text-slate-700 leading-relaxed">{{ profil.bio }}</p>
-      </div>
-    {% endif %}
-
-  </div>
-
-  <!-- Compétences -->
-  {% if profil.competences %}
-  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-6">
-    <h2 class="text-sm font-medium text-slate-500 uppercase tracking-wide mb-4">
-      Compétences
-    </h2>
-    <div class="flex flex-wrap gap-2">
-      {% for uc in profil.competences %}
-        <span class="text-sm bg-blue-50 text-blue-700 border border-blue-100
-                     px-3 py-1.5 rounded-full">
-          {{ uc.nom }}
-        </span>
-      {% endfor %}
-    </div>
-  </div>
-  {% endif %}
-
-  <!-- Lacunes -->
-  {% if profil.lacunes %}
-  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-6">
-    <h2 class="text-sm font-medium text-slate-500 uppercase tracking-wide mb-4">
-      Cherche de l'aide en
-    </h2>
-    <div class="flex flex-wrap gap-2">
-      {% for ul in profil.lacunes %}
-        <span class="text-sm bg-amber-50 text-amber-700 border border-amber-100
-                     px-3 py-1.5 rounded-full">
-          {{ ul.nom }}
-        </span>
-      {% endfor %}
-    </div>
-  </div>
-  {% endif %}
-
-  <!-- Disponibilités -->
-  {% if profil.disponibilites %}
-  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-6">
-    <h2 class="text-sm font-medium text-slate-500 uppercase tracking-wide mb-4">
-      Disponibilités
-    </h2>
-    <div class="space-y-2">
-      {% for dispo in profil.disponibilites %}
-        <div class="flex items-center gap-3 text-sm text-slate-700">
-          <span class="w-24 font-medium text-slate-900">{{ dispo.jour_semaine }}</span>
-          <span class="text-slate-400">—</span>
-          <span>{{ dispo.heure_debut.strftime('%H:%M') }} → {{ dispo.heure_fin.strftime('%H:%M') }}</span>
-        </div>
-      {% endfor %}
-    </div>
-  </div>
-  {% endif %}
-
-  <!-- Bouton envoyer une demande (si ce n'est pas son propre profil) -->
-  {% if profil.id != current_user.id %}
-    {% set demande_existante = demande_existante if demande_existante is defined else none %}
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-
-      {% if demande_existante %}
-        <div class="text-center py-2">
-          <p class="text-sm text-slate-500">
-            Tu as déjà une demande
-            <span class="font-medium
-              {% if demande_existante.statut == 'en_attente' %}text-amber-600
-              {% elif demande_existante.statut == 'acceptee' %}text-green-600
-              {% else %}text-red-500{% endif %}">
-              {{ demande_existante.statut.replace('_', ' ') }}
-            </span>
-            avec cette personne.
-          </p>
-          {% if demande_existante.statut == 'acceptee' %}
-            <a href="/messages?contact={{ profil.id }}"
-               class="inline-block mt-3 bg-accent hover:bg-blue-700 text-white
-                      text-sm font-medium px-6 py-2 rounded-lg transition-colors">
-              💬 Ouvrir la conversation
-            </a>
-          {% endif %}
-        </div>
-
-      {% else %}
-        <h2 class="text-sm font-medium text-slate-500 uppercase tracking-wide mb-4">
-          Envoyer une demande
-        </h2>
-        <form action="/demande/{{ profil.id }}" method="POST" class="space-y-4">
-          <div>
-            <label class="block text-sm font-medium text-slate-700 mb-1">
-              Sujet / Message
-            </label>
-            <textarea name="sujet" rows="3" required
-              placeholder="Ex: Bonjour, j'ai besoin d'aide en algorithmique..."
-              class="w-full px-4 py-3 rounded-lg border border-slate-300
-                     text-sm text-slate-900 bg-white resize-none
-                     focus:outline-none focus:ring-2 focus:ring-accent
-                     focus:border-transparent placeholder:text-slate-400">
-            </textarea>
+        <div>
+          <h1 class="text-xl font-bold">{{ profil.prenom }} {{ profil.nom }}</h1>
+          <div class="flex gap-2 mt-1 flex-wrap">
+            <span class="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full">{{ profil.filiere }}</span>
+            <span class="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">{{ profil.niveau }}</span>
+            <span class="text-xs px-2 py-0.5 rounded-full {% if profil.role=='mentor' %}bg-blue-50 text-blue-700{% elif profil.role=='mentore' %}bg-green-50 text-green-700{% else %}bg-purple-50 text-purple-700{% endif %}">{% if profil.role=='mentor' %}Mentor{% elif profil.role=='mentore' %}Mentoré{% else %}Mentor & Mentoré{% endif %}</span>
           </div>
-          <button type="submit"
-            class="w-full bg-accent hover:bg-blue-700 text-white font-medium
-                   py-2.5 rounded-lg transition-colors">
-            Envoyer la demande
-          </button>
+          <p class="text-xs text-slate-400 mt-1">Membre depuis {{ profil.date_inscription.strftime('%d/%m/%Y') if profil.date_inscription else 'N/A' }}</p>
+        </div>
+      </div>
+      {% if profil.bio %}<div class="mt-5 pt-5 border-t"><p class="text-sm text-slate-700">{{ profil.bio }}</p></div>{% endif %}
+    </div>
+  </div>
+
+  {% if profil.competences %}
+    <div class="bg-white rounded-2xl shadow-sm border p-6 mt-6">
+      <h2 class="text-sm font-medium text-slate-500 uppercase mb-4">Compétences</h2>
+      <div class="flex flex-wrap gap-2">{% for c in profil.competences %}<span class="px-3 py-1.5 bg-blue-50 text-blue-700 rounded-full text-sm">{{ c.nom }}</span>{% endfor %}</div>
+    </div>
+  {% endif %}
+
+  {% if profil.lacunes %}
+    <div class="bg-white rounded-2xl shadow-sm border p-6 mt-6">
+      <h2 class="text-sm font-medium text-slate-500 uppercase mb-4">Cherche de l'aide en</h2>
+      <div class="flex flex-wrap gap-2">{% for l in profil.lacunes %}<span class="px-3 py-1.5 bg-amber-50 text-amber-700 rounded-full text-sm">{{ l.nom }}</span>{% endfor %}</div>
+    </div>
+  {% endif %}
+
+  {% if profil.disponibilites %}
+    <div class="bg-white rounded-2xl shadow-sm border p-6 mt-6">
+      <h2 class="text-sm font-medium text-slate-500 uppercase mb-4">Disponibilités</h2>
+      <div class="space-y-2">{% for d in profil.disponibilites %}<div class="flex gap-3 text-sm"><span class="w-24 font-medium">{{ d.jour_semaine }}</span><span>{{ d.heure_debut.strftime('%H:%M') }} → {{ d.heure_fin.strftime('%H:%M') }}</span></div>{% endfor %}</div>
+    </div>
+  {% endif %}
+
+  {% if profil.id != current_user.id %}
+    <div class="bg-white rounded-2xl shadow-sm border p-6 mt-6">
+      {% if demande_existante %}
+        <p class="text-center">Demande <span class="font-medium">{% if demande_existante.statut=='en_attente'%}en attente{% elif demande_existante.statut=='acceptee'%}acceptée{% else %}refusée{% endif %}</span>.</p>
+        {% if demande_existante.statut=='acceptee' %}<div class="text-center mt-3"><a href="/messages?contact={{ profil.id }}" class="bg-accent text-white px-6 py-2 rounded-lg text-sm">💬 Ouvrir la conversation</a></div>{% endif %}
+      {% else %}
+        <form action="/demande/{{ profil.id }}" method="POST">
+          <textarea name="sujet" rows="3" placeholder="Expliquez votre demande..." class="w-full p-3 border rounded-lg" required></textarea>
+          <button type="submit" class="mt-3 w-full bg-accent text-white py-2 rounded-lg">Envoyer une demande</button>
         </form>
       {% endif %}
-
     </div>
   {% endif %}
-
 </div>
-
 {% endblock %}
