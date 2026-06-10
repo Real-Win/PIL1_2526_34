@@ -73,8 +73,8 @@
               0
             </span>
           </a>
-          <a href="{{ url_for('auth.profil') }}"
-             class="text-slate-300 hover:text-white text-sm transition-colors">
+          <a href="{{ url_for('auth.profil') if request.endpoint != 'auth.profil' else '#' }}"
+            class="text-slate-300 hover:text-white text-sm transition-colors">
             Mon profil
           </a>
           <a href="{{ url_for('auth.deconnexion') }}"
