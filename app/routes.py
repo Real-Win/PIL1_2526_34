@@ -10,7 +10,7 @@ from app import db
 from app.models import (Competence, UserCompetence, UserLacune, Lacune,
                          Disponibilite, User, DemandeMentorat)
 from app.matching import calculer_match, get_top_mentors, get_top_mentores
-from app.securite import inscrire_etudiant, verifier_connexion
+from app.securite import inscrire_etudiant, verifier_connexion, demander_reinitialisation, reinitialiser_mot_de_passe
 
 
 # ===== MATCHING BLUEPRINT =====
@@ -26,9 +26,6 @@ def match(mentore_id, mentor_id):
     return jsonify({"score": score, "bon_match": score >= 60})
 
 
-# ------------------------------------------------------------------
-# TOP 3
-# ------------------------------------------------------------------
 @matching_bp.route("/top3/<int:user_id>")
 @login_required
 def top3(user_id):
@@ -47,9 +44,6 @@ def top3(user_id):
     return jsonify(result)
 
 
-# ------------------------------------------------------------------
-# API PROFIL UTILISATEUR
-# ------------------------------------------------------------------
 @matching_bp.route("/api/user/<int:user_id>")
 @login_required
 def api_user(user_id):
@@ -69,9 +63,6 @@ def api_user(user_id):
 auth_bp = Blueprint("auth", __name__)
 
 
-# ------------------------------------------------------------------
-# PAGE D'ACCUEIL  /
-# ------------------------------------------------------------------
 @auth_bp.route("/")
 def accueil():
     if current_user.is_authenticated:
@@ -79,9 +70,6 @@ def accueil():
     return render_template("accueil.html")
 
 
-# ------------------------------------------------------------------
-# DASHBOARD  /dashboard
-# ------------------------------------------------------------------
 @auth_bp.route("/dashboard")
 @login_required
 def dashboard():
@@ -119,9 +107,6 @@ def dashboard():
     )
 
 
-# ------------------------------------------------------------------
-# INSCRIPTION  /inscription
-# ------------------------------------------------------------------
 @auth_bp.route("/inscription", methods=["GET", "POST"])
 def inscription():
     if current_user.is_authenticated:
@@ -134,6 +119,7 @@ def inscription():
             email        = request.form.get("email"),
             telephone    = request.form.get("telephone"),
             filiere      = request.form.get("filiere"),
+            niveau       = request.form.get("niveau", "L1"),
             role         = request.form.get("role", "etudiant"),
             mot_de_passe = request.form.get("mot_de_passe")
         )
@@ -145,9 +131,6 @@ def inscription():
     return render_template("inscription.html")
 
 
-# ------------------------------------------------------------------
-# CONNEXION  /connexion
-# ------------------------------------------------------------------
 @auth_bp.route("/connexion", methods=["GET", "POST"])
 def connexion():
     if current_user.is_authenticated:
@@ -167,9 +150,6 @@ def connexion():
     return render_template("connexion.html")
 
 
-# ------------------------------------------------------------------
-# DÉCONNEXION  /deconnexion
-# ------------------------------------------------------------------
 @auth_bp.route("/deconnexion")
 @login_required
 def deconnexion():
@@ -178,94 +158,19 @@ def deconnexion():
     return redirect(url_for("auth.connexion"))
 
 
-# ------------------------------------------------------------------
-# PROFIL (son propre profil)  /profil
-# ------------------------------------------------------------------
-@auth_bp.route("/profil", methods=["GET", "POST"])
+# ⭐⭐⭐ MON PROFIL (PAGE AFFICHAGE) - CORRIGÉE ⭐⭐⭐
+@auth_bp.route("/profil", methods=["GET"])
 @login_required
 def profil():
-    if request.method == "POST":
-        from app.models import Competence, UserCompetence, Disponibilite
-        from datetime import datetime
-
-        current_user.nom     = request.form.get("nom",     current_user.nom)
-        current_user.prenom  = request.form.get("prenom",  current_user.prenom)
-        current_user.filiere = request.form.get("filiere", current_user.filiere)
-        current_user.niveau  = request.form.get("niveau",  current_user.niveau)
-        current_user.role    = request.form.get("role",    current_user.role)
-        current_user.bio     = request.form.get("bio",     current_user.bio)
-
-        competences_raw = request.form.get("competences", "").strip()
-        if competences_raw:
-            UserCompetence.query.filter_by(user_id=current_user.id).delete()
-            for nom_comp in [c.strip().lower() for c in competences_raw.split(",") if c.strip()]:
-                comp = Competence.query.filter_by(nom=nom_comp).first()
-                if not comp:
-                    comp = Competence(nom=nom_comp)
-                    db.session.add(comp)
-                    db.session.flush()
-                db.session.add(UserCompetence(user_id=current_user.id, competence_id=comp.id))
-
-        jours        = request.form.getlist("jours[]")
-        heures_debut = request.form.getlist("heures_debut[]")
-        heures_fin   = request.form.getlist("heures_fin[]")
-        if jours:
-            Disponibilite.query.filter_by(user_id=current_user.id).delete()
-            for jour, h_debut, h_fin in zip(jours, heures_debut, heures_fin):
-                if jour and h_debut and h_fin:
-                    db.session.add(Disponibilite(
-                        user_id      = current_user.id,
-                        jour_semaine = jour,
-                        heure_debut  = datetime.strptime(h_debut, "%H:%M").time(),
-                        heure_fin    = datetime.strptime(h_fin,   "%H:%M").time()
-                    ))
-
-        db.session.commit()
-        flash("Profil mis à jour !", "success")
-        return redirect(url_for("auth.profil"))
-
-    return render_template("profil.html", user=current_user)
+    return render_template("profil.html", profil=current_user)
 
 
-# ------------------------------------------------------------------
-# PROFIL PUBLIC  /profil/<user_id>  — lecture seule
-# ------------------------------------------------------------------
-@auth_bp.route("/profil/<int:user_id>")
-@login_required
-def profil_public(user_id):
-    profil = User.query.get_or_404(user_id)
-
-    if profil.id == current_user.id:
-        return redirect(url_for("auth.profil"))
-
-    demande_existante = DemandeMentorat.query.filter(
-        db.or_(
-            db.and_(
-                DemandeMentorat.etudiant_id == current_user.id,
-                DemandeMentorat.mentor_id   == profil.id
-            ),
-            db.and_(
-                DemandeMentorat.etudiant_id == profil.id,
-                DemandeMentorat.mentor_id   == current_user.id
-            )
-        )
-    ).first()
-
-    return render_template(
-        "profil_public.html",
-        profil=profil,
-        demande_existante=demande_existante
-    )
-
-
-# ------------------------------------------------------------------
-# MODIFICATION PROFIL  /profil/modifier
-# ------------------------------------------------------------------
+# ⭐⭐⭐ MODIFIER MON PROFIL ⭐⭐⭐
 @auth_bp.route("/profil/modifier", methods=["GET", "POST"])
 @login_required
 def profil_modifier():
     if request.method == "POST":
-        from app.models import Competence, UserCompetence, Disponibilite
+        from app.models import Competence, UserCompetence, Disponibilite, Lacune, UserLacune
         from datetime import datetime
 
         current_user.nom     = request.form.get("nom",     current_user.nom)
@@ -275,19 +180,8 @@ def profil_modifier():
         current_user.role    = request.form.get("role",    current_user.role)
         current_user.bio     = request.form.get("bio",     current_user.bio)
 
+        # Compétences
         competences_raw = request.form.get("competences", "").strip()
-        lacunes_raw     = request.form.get("lacunes", "").strip()
-
-        UserLacune.query.filter_by(user_id=current_user.id).delete()
-        if lacunes_raw:
-            for nom_lacune in [l.strip().lower() for l in lacunes_raw.split(",") if l.strip()]:
-                lacune = Lacune.query.filter_by(nom=nom_lacune).first()
-                if not lacune:
-                    lacune = Lacune(nom=nom_lacune)
-                    db.session.add(lacune)
-                    db.session.flush()
-                db.session.add(UserLacune(user_id=current_user.id, lacune_id=lacune.id))
-
         UserCompetence.query.filter_by(user_id=current_user.id).delete()
         if competences_raw:
             for nom_comp in [c.strip().lower() for c in competences_raw.split(",") if c.strip()]:
@@ -298,6 +192,19 @@ def profil_modifier():
                     db.session.flush()
                 db.session.add(UserCompetence(user_id=current_user.id, competence_id=comp.id))
 
+        # Lacunes
+        lacunes_raw = request.form.get("lacunes", "").strip()
+        UserLacune.query.filter_by(user_id=current_user.id).delete()
+        if lacunes_raw:
+            for nom_lacune in [l.strip().lower() for l in lacunes_raw.split(",") if l.strip()]:
+                lacune = Lacune.query.filter_by(nom=nom_lacune).first()
+                if not lacune:
+                    lacune = Lacune(nom=nom_lacune)
+                    db.session.add(lacune)
+                    db.session.flush()
+                db.session.add(UserLacune(user_id=current_user.id, lacune_id=lacune.id))
+
+        # Disponibilités
         jours        = request.form.getlist("jours[]")
         heures_debut = request.form.getlist("heures_debut[]")
         heures_fin   = request.form.getlist("heures_fin[]")
@@ -319,18 +226,37 @@ def profil_modifier():
     return render_template("profil_edit.html", user=current_user)
 
 
-# ------------------------------------------------------------------
-# PAGE MATCHING  /matching
-# ------------------------------------------------------------------
+# ⭐⭐⭐ PROFIL PUBLIC (VOIR LE PROFIL D'UN AUTRE UTILISATEUR) ⭐⭐⭐
+@auth_bp.route("/profil/<int:user_id>")
+@login_required
+def profil_public(user_id):
+    profil = User.query.get_or_404(user_id)
+
+    if profil.id == current_user.id:
+        return redirect(url_for("auth.profil"))
+
+    demande_existante = DemandeMentorat.query.filter(
+        db.or_(
+            db.and_(
+                DemandeMentorat.etudiant_id == current_user.id,
+                DemandeMentorat.mentor_id   == profil.id
+            ),
+            db.and_(
+                DemandeMentorat.etudiant_id == profil.id,
+                DemandeMentorat.mentor_id   == current_user.id
+            )
+        )
+    ).first()
+
+    return render_template("profil.html", profil=profil, demande_existante=demande_existante)
+
+
 @auth_bp.route("/matching")
 @login_required
 def matching_page():
     return render_template("matching.html", user=current_user)
 
 
-# ------------------------------------------------------------------
-# CRÉER UNE DEMANDE DE MENTORAT  /demande/<cible_id>
-# ------------------------------------------------------------------
 @auth_bp.route("/demande/<int:cible_id>", methods=["POST"])
 @login_required
 def creer_demande(cible_id):
@@ -369,9 +295,6 @@ def creer_demande(cible_id):
     return redirect(url_for("auth.demandes"))
 
 
-# ------------------------------------------------------------------
-# CHANGER LE STATUT D'UNE DEMANDE  /demande/<id>/statut
-# ------------------------------------------------------------------
 @auth_bp.route("/demande/<int:demande_id>/statut", methods=["POST"])
 @login_required
 def changer_statut_demande(demande_id):
@@ -394,9 +317,6 @@ def changer_statut_demande(demande_id):
     return redirect(url_for("auth.demandes"))
 
 
-# ------------------------------------------------------------------
-# LISTE DES DEMANDES  /demandes
-# ------------------------------------------------------------------
 @auth_bp.route("/demandes")
 @login_required
 def demandes():
@@ -414,4 +334,45 @@ def demandes():
         demandes_recues=demandes_recues
     )
 
-# NOTE : la route /messages est gérée par messagerie_bp dans routes_messagerie.py
+
+# ⭐⭐⭐ MOT DE PASSE OUBLIÉ - RÉINITIALISATION ⭐⭐⭐
+@auth_bp.route("/reinitialisation", methods=["GET", "POST"])
+def demande_reinitialisation():
+    if current_user.is_authenticated:
+        return redirect(url_for("auth.dashboard"))
+
+    if request.method == "POST":
+        email = request.form.get("email")
+        if email:
+            success, message = demander_reinitialisation(email)
+            flash(message, "success" if success else "danger")
+        else:
+            flash("Veuillez entrer votre adresse email.", "danger")
+
+    return render_template("reinitialisation.html")
+
+
+@auth_bp.route("/reinitialisation/<token>", methods=["GET", "POST"])
+def nouveau_mot_de_passe(token):
+    if current_user.is_authenticated:
+        return redirect(url_for("auth.dashboard"))
+
+    if request.method == "POST":
+        mot_de_passe = request.form.get("mot_de_passe")
+        confirmation = request.form.get("confirmation")
+
+        if not mot_de_passe or len(mot_de_passe) < 6:
+            flash("Le mot de passe doit contenir au moins 6 caractères.", "danger")
+        elif mot_de_passe != confirmation:
+            flash("Les mots de passe ne correspondent pas.", "danger")
+        else:
+            success, message = reinitialiser_mot_de_passe(token, mot_de_passe)
+            flash(message, "success" if success else "danger")
+            if success:
+                return redirect(url_for("auth.connexion"))
+
+    return render_template("nouveau_mot_de_passe.html", token=token)
+
+
+# ⭐⭐⭐ MESSAGERIE - REDIRECTION VERS LE BLUEPRINT ⭐⭐⭐
+# Note: Les routes /messages sont gérées par messagerie_bp dans routes_messagerie.py
