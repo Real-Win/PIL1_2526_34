@@ -7,7 +7,7 @@ from flask_login import (
     login_required, current_user
 )
 from app import db
-from app.models import User, DemandeMentorat
+from app.models import (Competence,UserCompetence,UserLacune,Lacune,Disponibilite,User,DemandeMentorat)
 from app.matching import calculer_match, get_top_mentors, get_top_mentores
 from app.securite import inscrire_etudiant, verifier_connexion
 
@@ -240,6 +240,125 @@ def profil():
 
     return render_template("profil.html", user=current_user)
 
+# ------------------------------------------------------------------
+# MODIFICATION PROFIL  /profil/modifier
+# ------------------------------------------------------------------
+@auth_bp.route("/profil/modifier", methods=["GET", "POST"])
+@login_required
+def profil_modifier():
+
+    if request.method == "POST":
+        from app.models import Competence, UserCompetence, Disponibilite
+        from datetime import datetime
+
+        current_user.nom     = request.form.get("nom", current_user.nom)
+        current_user.prenom  = request.form.get("prenom", current_user.prenom)
+        current_user.filiere = request.form.get("filiere", current_user.filiere)
+        current_user.niveau  = request.form.get("niveau", current_user.niveau)
+        current_user.role    = request.form.get("role", current_user.role)
+        current_user.bio     = request.form.get("bio", current_user.bio)
+
+        # COMPETENCES
+        competences_raw = request.form.get("competences", "").strip()
+        
+        lacunes_raw = request.form.get("lacunes", "").strip()
+        #Lacunes
+        UserLacune.query.filter_by(
+        user_id=current_user.id
+        ).delete()
+
+        if lacunes_raw:
+            for nom_lacune in [
+                l.strip().lower()
+                for l in lacunes_raw.split(",")
+                if l.strip()
+            ]:
+
+                lacune = Lacune.query.filter_by(
+                    nom=nom_lacune
+                ).first()
+
+                if not lacune:
+                    lacune = Lacune(nom=nom_lacune)
+                    db.session.add(lacune)
+                    db.session.flush()
+
+                db.session.add(
+                    UserLacune(
+                        user_id=current_user.id,
+                        lacune_id=lacune.id
+                    )
+                )
+                
+                
+        UserCompetence.query.filter_by(
+            user_id=current_user.id
+        ).delete()
+
+        if competences_raw:
+            for nom_comp in [
+                c.strip().lower()
+                for c in competences_raw.split(",")
+                if c.strip()
+            ]:
+
+                comp = Competence.query.filter_by(
+                    nom=nom_comp
+                ).first()
+
+                if not comp:
+                    comp = Competence(nom=nom_comp)
+                    db.session.add(comp)
+                    db.session.flush()
+
+                db.session.add(
+                    UserCompetence(
+                        user_id=current_user.id,
+                        competence_id=comp.id
+                    )
+                )
+
+        # DISPONIBILITES
+        jours = request.form.getlist("jours[]")
+        heures_debut = request.form.getlist("heures_debut[]")
+        heures_fin = request.form.getlist("heures_fin[]")
+
+        Disponibilite.query.filter_by(
+            user_id=current_user.id
+        ).delete()
+
+        for jour, debut, fin in zip(
+            jours,
+            heures_debut,
+            heures_fin
+        ):
+            if jour and debut and fin:
+                db.session.add(
+                    Disponibilite(
+                        user_id=current_user.id,
+                        jour_semaine=jour,
+                        heure_debut=datetime.strptime(
+                            debut,
+                            "%H:%M"
+                        ).time(),
+                        heure_fin=datetime.strptime(
+                            fin,
+                            "%H:%M"
+                        ).time()
+                    )
+                )
+
+        db.session.commit()
+
+        flash("Profil mis à jour avec succès.", "success")
+
+        return redirect(url_for("auth.profil"))
+
+    return render_template(
+        "profil_edit.html",
+        user=current_user
+    )
+
 
 # ------------------------------------------------------------------
 # PAGE MATCHING  /matching
@@ -353,3 +472,5 @@ def demandes():
 def messages():
     messages_recus = current_user.messages_recus
     return render_template("messages.html", messages=messages_recus)
+
+
