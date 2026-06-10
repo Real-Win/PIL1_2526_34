@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block titre %}Réinitialisation du mot de passe — MentorLink{% endblock %}
+{% block titre %}Mot de passe oublié — MentorLink{% endblock %}
 
 {% block contenu %}
 
@@ -13,7 +13,6 @@
               position:relative;overflow:hidden"
        class="hidden md:flex">
 
-    <!-- Glows -->
     <div style="position:absolute;width:300px;height:300px;border-radius:50%;
                 background:rgba(99,102,241,0.15);filter:blur(70px);
                 top:-60px;left:-60px;pointer-events:none"></div>
@@ -23,7 +22,6 @@
 
     <div style="position:relative">
 
-      <!-- Badge -->
       <div style="display:inline-flex;align-items:center;gap:6px;
                   background:rgba(99,102,241,0.12);
                   border:0.5px solid rgba(99,102,241,0.2);
@@ -39,7 +37,7 @@
       </h2>
       <p style="font-size:13px;color:#475569;line-height:1.7;margin-bottom:28px">
         Pas d'inquiétude — ça arrive à tout le monde.
-        On va t'envoyer un lien sécurisé pour créer
+        On va générer un lien sécurisé pour créer
         un nouveau mot de passe.
       </p>
 
@@ -52,16 +50,11 @@
                         background:rgba(99,102,241,0.15);
                         display:flex;align-items:center;justify-content:center;
                         font-size:12px;font-weight:500;color:#818cf8;flex-shrink:0">1</div>
-            <div style="width:1.5px;height:20px;background:rgba(255,255,255,0.07);
-                        margin:3px auto"></div>
+            <div style="width:1.5px;height:20px;background:rgba(255,255,255,0.07);margin:3px auto"></div>
           </div>
           <div style="padding-top:4px">
-            <p style="font-size:13px;font-weight:500;color:#e2e8f0;margin:0 0 2px">
-              Entre ton adresse e-mail
-            </p>
-            <p style="font-size:11px;color:#475569;margin:0">
-              Celle que tu as utilisée à l'inscription
-            </p>
+            <p style="font-size:13px;font-weight:500;color:#e2e8f0;margin:0 0 2px">Entre ton adresse e-mail</p>
+            <p style="font-size:11px;color:#475569;margin:0">Celle que tu as utilisée à l'inscription</p>
           </div>
         </div>
 
@@ -71,16 +64,11 @@
                         background:rgba(45,212,191,0.12);
                         display:flex;align-items:center;justify-content:center;
                         font-size:12px;font-weight:500;color:#2dd4bf;flex-shrink:0">2</div>
-            <div style="width:1.5px;height:20px;background:rgba(255,255,255,0.07);
-                        margin:3px auto"></div>
+            <div style="width:1.5px;height:20px;background:rgba(255,255,255,0.07);margin:3px auto"></div>
           </div>
           <div style="padding-top:4px">
-            <p style="font-size:13px;font-weight:500;color:#e2e8f0;margin:0 0 2px">
-              Reçois le lien par email
-            </p>
-            <p style="font-size:11px;color:#475569;margin:0">
-              Valable 30 minutes
-            </p>
+            <p style="font-size:13px;font-weight:500;color:#e2e8f0;margin:0 0 2px">Copie le lien généré</p>
+            <p style="font-size:11px;color:#475569;margin:0">Il s'affiche directement sur la page</p>
           </div>
         </div>
 
@@ -92,12 +80,8 @@
                         font-size:12px;font-weight:500;color:#4ade80;flex-shrink:0">3</div>
           </div>
           <div style="padding-top:4px">
-            <p style="font-size:13px;font-weight:500;color:#e2e8f0;margin:0 0 2px">
-              Crée ton nouveau mot de passe
-            </p>
-            <p style="font-size:11px;color:#475569;margin:0">
-              Minimum 6 caractères
-            </p>
+            <p style="font-size:13px;font-weight:500;color:#e2e8f0;margin:0 0 2px">Crée ton nouveau mot de passe</p>
+            <p style="font-size:11px;color:#475569;margin:0">Minimum 6 caractères</p>
           </div>
         </div>
 
@@ -111,17 +95,13 @@
                     display:flex;align-items:center;justify-content:center;margin-bottom:10px">
           <i class="ti ti-lock" style="font-size:18px;color:#818cf8"></i>
         </div>
-        <p style="font-size:12px;font-weight:500;color:#e2e8f0;margin:0 0 5px">
-          Lien sécurisé
-        </p>
+        <p style="font-size:12px;font-weight:500;color:#e2e8f0;margin:0 0 5px">Lien sécurisé</p>
         <p style="font-size:11px;color:#475569;margin:0 0 10px;line-height:1.6">
-          Le lien envoyé est unique et chiffré.
-          Il expire automatiquement après 30 minutes
-          pour protéger ton compte.
+          Le lien généré est unique et chiffré.
+          Utilise-le pour créer ton nouveau mot de passe.
         </p>
         <div style="display:inline-flex;align-items:center;gap:5px;
-                    background:rgba(74,222,128,0.08);
-                    border:0.5px solid rgba(74,222,128,0.15);
+                    background:rgba(74,222,128,0.08);border:0.5px solid rgba(74,222,128,0.15);
                     border-radius:20px;padding:3px 10px;font-size:10px;color:#86efac">
           <span style="width:5px;height:5px;border-radius:50%;background:#4ade80"></span>
           Connexion sécurisée SSL
@@ -131,11 +111,10 @@
     </div>
   </div>
 
-  <!-- ══ DROITE — Formulaire fond clair ══ -->
+  <!-- ══ DROITE — Formulaire ══ -->
   <div style="background:#F8FAFC;padding:48px 40px;display:flex;
               flex-direction:column;justify-content:center">
 
-    <!-- Carte glass -->
     <div style="background:rgba(255,255,255,0.8);backdrop-filter:blur(12px);
                 border:0.5px solid rgba(255,255,255,0.9);border-radius:18px;
                 padding:36px;box-shadow:0 4px 24px rgba(99,102,241,0.06);
@@ -145,7 +124,7 @@
         Mot de passe oublié ?
       </h1>
       <p style="font-size:13px;color:#64748b;margin-bottom:24px">
-        Entre ton adresse e-mail pour recevoir un lien de réinitialisation
+        Entre ton adresse e-mail pour générer un lien de réinitialisation
       </p>
 
       <!-- Messages flash -->
@@ -162,8 +141,29 @@
         {% endif %}
       {% endwith %}
 
-      <form action="/reinitialisation" method="POST" class="space-y-4">
-        {{ form.hidden_tag() if form else '' }}
+      <!-- ← AJOUT de main : affichage du lien généré ← -->
+      {% if lien %}
+        <div style="margin-bottom:20px;padding:16px;background:#EFF6FF;
+                    border:0.5px solid #bfdbfe;border-radius:12px">
+          <p style="font-size:12px;font-weight:500;color:#1d4ed8;margin:0 0 8px;
+                    display:flex;align-items:center;gap:5px">
+            <i class="ti ti-link" style="font-size:14px"></i>
+            Lien de réinitialisation généré
+          </p>
+          <a href="{{ lien }}"
+             style="font-size:12px;color:#2563eb;word-break:break-all;
+                    text-decoration:none;line-height:1.5"
+             onmouseover="this.style.textDecoration='underline'"
+             onmouseout="this.style.textDecoration='none'">
+            {{ lien }}
+          </a>
+          <p style="font-size:11px;color:#3b82f6;margin-top:10px">
+            Clique sur ce lien pour réinitialiser ton mot de passe.
+          </p>
+        </div>
+      {% endif %}
+
+      <form method="POST" class="space-y-4">
 
         <div>
           <label style="display:block;font-size:12px;font-weight:500;
@@ -177,7 +177,7 @@
                    focus:ring-2 focus:ring-accent focus:border-transparent
                    placeholder:text-slate-400">
           <p style="font-size:11px;color:#9ca3af;margin-top:3px">
-            Un lien de réinitialisation sera envoyé · Valable 30 min
+            Le lien s'affichera sur cette page
           </p>
         </div>
 
@@ -185,15 +185,14 @@
           style="width:100%;background:#6366f1;color:#fff;font-size:13px;
                  font-weight:500;padding:11px;border-radius:8px;border:none;
                  cursor:pointer;transition:all .15s">
-          Envoyer le lien
+          Générer le lien
         </button>
 
       </form>
 
       <p style="text-align:center;font-size:12px;color:#6b7280;margin-top:16px">
         Tu te souviens de ton mot de passe ?
-        <a href="/connexion"
-           style="color:#6366f1;font-weight:500;text-decoration:none">
+        <a href="/connexion" style="color:#6366f1;font-weight:500;text-decoration:none">
           Se connecter
         </a>
       </p>
