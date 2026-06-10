@@ -3,205 +3,82 @@
 {% block titre %}Messages — MentorLink{% endblock %}
 
 {% block contenu %}
-
 <div class="max-w-5xl mx-auto py-6 px-4">
-
-  <div class="bg-white rounded-2xl shadow-sm border border-slate-200
-              overflow-hidden" style="height: 75vh;">
-
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden" style="height: 75vh;">
     <div class="flex h-full">
-
-      <!-- Colonne gauche : liste conversations -->
+      <!-- Liste conversations -->
       <div class="w-80 border-r border-slate-200 flex flex-col">
-
-        <div class="p-4 border-b border-slate-200">
-          <h1 class="text-lg font-semibold text-slate-900">Messages</h1>
-          <p class="text-xs text-slate-400 mt-0.5">Tes conversations de mentorat</p>
-        </div>
-
+        <div class="p-4 border-b"><h1 class="text-lg font-semibold">Messages</h1></div>
         <div class="flex-1 overflow-y-auto">
-
-          {% set ids_affiches = [] %}
-
-          {% if messages %}
-            {% for message in messages %}
-              {% if message.expediteur and message.expediteur.id not in ids_affiches %}
-                {% set _ = ids_affiches.append(message.expediteur.id) %}
-                <div class="flex items-center gap-3 p-4 hover:bg-slate-50
-                            cursor-pointer border-b border-slate-100
-                            transition-colors"
-                     onclick="ouvrirConversation({{ message.expediteur.id }},
-                              '{{ message.expediteur.prenom }} {{ message.expediteur.nom }}')">
-                  <div class="w-10 h-10 rounded-full bg-accent flex items-center
-                              justify-center text-white text-sm font-bold flex-shrink-0">
-                    {{ message.expediteur.prenom[0] | upper }}{{ message.expediteur.nom[0] | upper }}
-                  </div>
-                  <div class="flex-1 min-w-0">
-                    <div class="flex items-center justify-between">
-                      <p class="text-sm font-medium text-slate-900 truncate">
-                        {{ message.expediteur.prenom }} {{ message.expediteur.nom }}
-                      </p>
-                      <span class="text-xs text-slate-400 flex-shrink-0">
-                        {{ message.date_envoi.strftime('%H:%M') if message.date_envoi else '' }}
-                      </span>
-                    </div>
-                    <p class="text-xs text-slate-500 truncate mt-0.5">
-                      {% if message.contenu %}{{ message.contenu[:40] }}...{% endif %}
-                    </p>
-                  </div>
-                  {% if not message.lu %}
-                    <div class="w-2 h-2 rounded-full bg-accent flex-shrink-0"></div>
-                  {% endif %}
-                </div>
-              {% endif %}
-            {% endfor %}
-          {% endif %}
-
-          {% if autres_users %}
-            {% for contact in autres_users %}
-              {% if contact.id not in ids_affiches %}
-                {% set _ = ids_affiches.append(contact.id) %}
-                <div class="flex items-center gap-3 p-4 hover:bg-slate-50
-                            cursor-pointer border-b border-slate-100
-                            transition-colors"
-                     onclick="ouvrirConversation({{ contact.id }},
-                              '{{ contact.prenom }} {{ contact.nom }}')">
-                  <div class="w-10 h-10 rounded-full bg-slate-400 flex items-center
-                              justify-center text-white text-sm font-bold flex-shrink-0">
-                    {{ contact.prenom[0] | upper }}{{ contact.nom[0] | upper }}
-                  </div>
-                  <div class="flex-1 min-w-0">
-                    <p class="text-sm font-medium text-slate-900 truncate">
-                      {{ contact.prenom }} {{ contact.nom }}
-                    </p>
-                    <p class="text-xs text-slate-400">{{ contact.filiere }}</p>
-                  </div>
-                </div>
-              {% endif %}
-            {% endfor %}
-          {% endif %}
-
+          {% set ids = [] %}
+          {% for m in messages %}
+            {% if m.expediteur.id not in ids %}
+              {% set _ = ids.append(m.expediteur.id) %}
+              <div class="flex items-center gap-3 p-4 hover:bg-slate-50 cursor-pointer border-b" onclick="ouvrirConversation({{ m.expediteur.id }}, '{{ m.expediteur.prenom }} {{ m.expediteur.nom }}')">
+                <div class="w-10 h-10 rounded-full bg-accent text-white flex items-center justify-center text-sm font-bold">{{ m.expediteur.prenom[0]|upper }}{{ m.expediteur.nom[0]|upper }}</div>
+                <div class="flex-1"><p class="text-sm font-medium">{{ m.expediteur.prenom }} {{ m.expediteur.nom }}</p><p class="text-xs text-slate-500 truncate">{{ m.contenu[:40] }}</p></div>
+                {% if not m.lu %}<div class="w-2 h-2 rounded-full bg-accent"></div>{% endif %}
+              </div>
+            {% endif %}
+          {% endfor %}
+          {% for u in autres_users %}
+            {% if u.id not in ids %}
+              <div class="flex items-center gap-3 p-4 hover:bg-slate-50 cursor-pointer border-b" onclick="ouvrirConversation({{ u.id }}, '{{ u.prenom }} {{ u.nom }}')">
+                <div class="w-10 h-10 rounded-full bg-slate-400 text-white flex items-center justify-center text-sm font-bold">{{ u.prenom[0]|upper }}{{ u.nom[0]|upper }}</div>
+                <div><p class="text-sm font-medium">{{ u.prenom }} {{ u.nom }}</p><p class="text-xs text-slate-400">{{ u.filiere }}</p></div>
+              </div>
+            {% endif %}
+          {% endfor %}
           {% if not messages and not autres_users %}
-            <div class="flex flex-col items-center justify-center h-full p-8 text-center">
-              <div class="w-12 h-12 rounded-full bg-slate-100 flex items-center
-                          justify-center mb-3">
-                <svg class="w-6 h-6 text-slate-400" fill="none" viewBox="0 0 24 24"
-                     stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                        d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9
-                           8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512
-                           15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
-                </svg>
-              </div>
-              <p class="text-sm text-slate-500 font-medium">Aucun contact</p>
-              <p class="text-xs text-slate-400 mt-1">
-                Contacte un mentor depuis la page matching
-              </p>
-            </div>
+            <div class="p-8 text-center text-slate-400">Aucun contact</div>
           {% endif %}
-
         </div>
       </div>
 
-      <!-- Colonne droite : zone de chat -->
+      <!-- Zone de chat -->
       <div class="flex-1 flex flex-col" id="app">
-
-        <!-- Aucune conversation sélectionnée -->
-        <div v-if="!conversationActive"
-             class="flex-1 flex flex-col items-center justify-center text-center p-8">
-          <div class="w-16 h-16 rounded-full bg-slate-100 flex items-center
-                      justify-center mb-4">
-            <svg class="w-8 h-8 text-slate-300" fill="none" viewBox="0 0 24 24"
-                 stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                    d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863
-                       9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574
-                       3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
-            </svg>
-          </div>
-          <p class="text-slate-400 text-sm font-medium">Sélectionne une conversation</p>
-          <p class="text-slate-300 text-xs mt-1">
-            ou contacte un mentor depuis la page matching
-          </p>
-        </div>
-
-        <!-- Conversation active -->
+        <div v-if="!conversationActive" class="flex-1 flex items-center justify-center text-slate-400">Sélectionne une conversation</div>
         <div v-if="conversationActive" class="flex flex-col h-full">
-
-          <div class="p-4 border-b border-slate-200 flex items-center gap-3">
-            <div class="w-9 h-9 rounded-full bg-accent flex items-center
-                        justify-center text-white text-sm font-bold">
-              [[ interlocuteur.initiales ]]
-            </div>
-            <div>
-              <p class="text-sm font-semibold text-slate-900">[[ interlocuteur.nom ]]</p>
-              <p class="text-xs text-green-500">En ligne</p>
-            </div>
+          <div class="p-4 border-b flex items-center gap-3">
+            <div class="w-9 h-9 rounded-full bg-accent text-white flex items-center justify-center text-sm font-bold">[[ interlocuteur.initiales ]]</div>
+            <div><p class="font-semibold">[[ interlocuteur.nom ]]</p><p class="text-xs text-green-500">En ligne</p></div>
           </div>
-
           <div class="flex-1 overflow-y-auto p-4 space-y-3" id="messages-zone">
-            <div v-for="msg in messagesConversation" :key="msg.id"
-                 :class="msg.estMoi ? 'flex justify-end' : 'flex justify-start'">
-              <div :class="msg.estMoi ? 'bg-accent text-white' : 'bg-slate-100 text-slate-800'"
-                   class="max-w-xs px-4 py-2 rounded-2xl text-sm leading-relaxed">
-                [[ msg.contenu ]]
-                <div class="text-xs mt-1 opacity-60 text-right">[[ msg.heure ]]</div>
+            <div v-for="msg in messagesConversation" :key="msg.id" :class="msg.estMoi ? 'flex justify-end' : 'flex justify-start'">
+              <div :class="msg.estMoi ? 'bg-accent text-white' : 'bg-slate-100 text-slate-800'" class="max-w-xs px-4 py-2 rounded-2xl text-sm leading-relaxed">
+                <div v-html="formatMessage(msg.contenu)"></div>
+                <div class="text-xs opacity-60 text-right mt-1">[[ msg.heure ]]</div>
               </div>
             </div>
           </div>
-
-          <div class="p-4 border-t border-slate-200">
-            <div class="flex items-center gap-2">
-              <input v-model="nouveauMessage" @keyup.enter="envoyerMessage"
-                type="text" placeholder="Écris ton message..."
-                class="flex-1 px-4 py-2.5 rounded-xl border border-slate-300
-                       text-sm focus:outline-none focus:ring-2 focus:ring-accent
-                       focus:border-transparent">
-              <button @click="envoyerMessage" :disabled="!nouveauMessage.trim()"
-                class="bg-accent hover:bg-blue-700 disabled:opacity-50
-                       disabled:cursor-not-allowed text-white p-2.5
-                       rounded-xl transition-colors flex-shrink-0">
-                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
-                </svg>
-              </button>
+          <div class="p-4 border-t">
+            <div class="flex items-start gap-2">
+              <textarea id="message-input" rows="2" placeholder="Écris ton message... (supporte liens, images, vidéos)" class="flex-1 px-4 py-2 rounded-xl border border-slate-300 text-sm focus:ring-accent focus:border-accent resize-none"></textarea>
+              <button id="send-btn" class="bg-accent hover:bg-blue-700 text-white p-2.5 rounded-xl"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2z"/></svg></button>
             </div>
           </div>
-
         </div>
       </div>
-
     </div>
   </div>
 </div>
 
-{% endblock %}
-
-{% block scripts %}
 <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.js"></script>
 <script>
-  const { createApp, ref, reactive, nextTick } = Vue;
-
+  const { createApp, ref, nextTick } = Vue;
   const MOI_ID = {{ current_user.id }};
-
   const app = createApp({
     delimiters: ['[[', ']]'],
     setup() {
-      const conversationActive   = ref(false);
-      const nouveauMessage       = ref('');
-      const interlocuteur        = reactive({ nom: '', initiales: '', id: null });
+      const conversationActive = ref(false);
+      const interlocuteur = ref({ nom: '', initiales: '', id: null });
       const messagesConversation = ref([]);
-
       const socket = io();
 
       socket.on('diffusion_message', (data) => {
-        if (data.sender_id === interlocuteur.id || data.sender_id === MOI_ID) {
+        if (data.sender_id === interlocuteur.value.id || data.sender_id === MOI_ID) {
           messagesConversation.value.push({
-            id:      Date.now(),
-            contenu: data.msg,
-            heure:   data.date,
-            estMoi:  data.sender_id === MOI_ID
+            id: Date.now(), contenu: data.msg, heure: data.date, estMoi: data.sender_id === MOI_ID
           });
           faireDefiler();
         }
@@ -209,67 +86,40 @@
 
       function ouvrirConversation(userId, nomComplet) {
         conversationActive.value = true;
-        interlocuteur.id         = userId;
-        interlocuteur.nom        = nomComplet;
-        interlocuteur.initiales  = nomComplet.split(' ')
-          .map(n => n[0]).join('').toUpperCase();
-
+        interlocuteur.value = { id: userId, nom: nomComplet, initiales: nomComplet.split(' ').map(n=>n[0]).join('').toUpperCase() };
         socket.emit('rejoindre_salle', { user_id: MOI_ID, contact_id: userId });
-
-        fetch(`/api/messages/${userId}`)
-          .then(res => res.json())
-          .then(data => {
-            messagesConversation.value = data.map(m => ({
-              id:      m.id,
-              contenu: m.contenu,
-              heure:   m.heure,
-              estMoi:  m.est_moi
-            }));
-            faireDefiler();
-          })
-          .catch(() => { messagesConversation.value = []; });
+        fetch(`/api/messages/${userId}`).then(res => res.json()).then(data => {
+          messagesConversation.value = data.map(m => ({ ...m, estMoi: m.est_moi }));
+          faireDefiler();
+        });
       }
 
       function envoyerMessage() {
-        const texte = nouveauMessage.value.trim();
-        if (!texte || !interlocuteur.id) return;
-        socket.emit('nouveau_message', {
-          sender_id:   MOI_ID,
-          receiver_id: interlocuteur.id,
-          contenu:     texte
-        });
-        nouveauMessage.value = '';
+        const texte = document.getElementById('message-input').value.trim();
+        if (!texte || !interlocuteur.value.id) return;
+        socket.emit('nouveau_message', { sender_id: MOI_ID, receiver_id: interlocuteur.value.id, contenu: texte });
+        document.getElementById('message-input').value = '';
         faireDefiler();
       }
 
-      function faireDefiler() {
-        nextTick(() => {
-          const zone = document.getElementById('messages-zone');
-          if (zone) zone.scrollTop = zone.scrollHeight;
+      function faireDefiler() { nextTick(() => { const zone = document.getElementById('messages-zone'); if(zone) zone.scrollTop = zone.scrollHeight; }); }
+
+      function formatMessage(texte) {
+        let urlRegex = /(https?:\/\/[^\s]+)/g;
+        return texte.replace(urlRegex, function(url) {
+          if (/\.(jpg|jpeg|png|gif|webp)$/i.test(url)) return `<img src="${url}" class="max-w-xs rounded-lg my-1">`;
+          if (/\.(mp4|webm|ogg)$/i.test(url)) return `<video controls class="max-w-xs rounded-lg my-1"><source src="${url}"></video>`;
+          return `<a href="${url}" target="_blank" class="underline text-blue-300">${url}</a>`;
         });
       }
 
-      return {
-        conversationActive, nouveauMessage, interlocuteur,
-        messagesConversation, ouvrirConversation, envoyerMessage
-      };
+      document.getElementById('send-btn')?.addEventListener('click', envoyerMessage);
+      document.getElementById('message-input')?.addEventListener('keypress', (e) => { if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); envoyerMessage(); } });
+
+      return { conversationActive, interlocuteur, messagesConversation, ouvrirConversation, formatMessage };
     }
-  });
-
-  const vueInstance = app.mount('#app');
-
-  window.ouvrirConversation = (userId, nomComplet) => {
-    vueInstance.ouvrirConversation(userId, nomComplet);
-  };
-
-  // ── Auto-ouvrir la conversation si on vient d'une demande acceptée ──
-  {% if contact_ouverture %}
-  window.addEventListener('load', () => {
-    ouvrirConversation(
-      {{ contact_ouverture.id }},
-      "{{ contact_ouverture.prenom }} {{ contact_ouverture.nom }}"
-    );
-  });
-  {% endif %}
+  }).mount('#app');
+  window.ouvrirConversation = (userId, nom) => app._instance.proxy.ouvrirConversation(userId, nom);
+  {% if contact_ouverture %} window.addEventListener('load', () => ouvrirConversation({{ contact_ouverture.id }}, "{{ contact_ouverture.prenom }} {{ contact_ouverture.nom }}")); {% endif %}
 </script>
 {% endblock %}
