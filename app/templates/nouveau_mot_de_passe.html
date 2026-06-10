@@ -4,64 +4,158 @@
 
 {% block contenu %}
 
-<div class="min-h-screen flex items-center justify-center py-12">
-  <div class="w-full max-w-md">
+<!-- Layout 2 colonnes -->
+<div class="min-h-screen grid grid-cols-1 md:grid-cols-2">
 
-    <!-- En-tête -->
-    <div class="text-center mb-8">
-      <h1 class="text-3xl font-bold text-slate-900">
+  <!-- ══ GAUCHE — Aurora ══ -->
+  <div style="background:#0B1120;padding:48px 40px;display:flex;
+              flex-direction:column;justify-content:center;
+              position:relative;overflow:hidden"
+       class="hidden md:flex">
+
+    <!-- Glows -->
+    <div style="position:absolute;width:300px;height:300px;border-radius:50%;
+                background:rgba(99,102,241,0.15);filter:blur(70px);
+                top:-60px;left:-60px;pointer-events:none"></div>
+    <div style="position:absolute;width:200px;height:200px;border-radius:50%;
+                background:rgba(45,212,191,0.08);filter:blur(60px);
+                bottom:-40px;right:-20px;pointer-events:none"></div>
+
+    <div style="position:relative">
+
+      <!-- Badge -->
+      <div style="display:inline-flex;align-items:center;gap:6px;
+                  background:rgba(99,102,241,0.12);
+                  border:0.5px solid rgba(99,102,241,0.2);
+                  border-radius:20px;padding:4px 14px;
+                  font-size:11px;color:#a5b4fc;margin-bottom:22px">
+        🔐 Nouveau mot de passe
+      </div>
+
+      <h2 style="font-size:24px;font-weight:500;color:#f1f5f9;
+                 line-height:1.3;margin-bottom:12px">
+        Crée ton nouveau<br>
+        <span style="color:#818cf8">mot de passe</span>
+      </h2>
+      <p style="font-size:13px;color:#475569;line-height:1.7;margin-bottom:28px">
+        Choisis un mot de passe sécurisé
+        que tu n'utilises pas ailleurs.
+      </p>
+
+      <!-- Étapes avec état -->
+      <div style="display:flex;flex-direction:column;gap:0;margin-bottom:24px">
+
+        <div style="display:flex;align-items:flex-start;gap:12px">
+          <div style="display:flex;flex-direction:column;align-items:center">
+            <div style="width:28px;height:28px;border-radius:8px;
+                        background:rgba(74,222,128,0.12);
+                        display:flex;align-items:center;justify-content:center;
+                        font-size:12px;font-weight:500;color:#4ade80;flex-shrink:0">✓</div>
+            <div style="width:1.5px;height:20px;background:rgba(255,255,255,0.07);
+                        margin:3px auto"></div>
+          </div>
+          <div style="padding-top:4px">
+            <p style="font-size:13px;font-weight:500;color:#86efac;margin:0 0 2px">
+              Lien vérifié
+            </p>
+            <p style="font-size:11px;color:#475569;margin:0">
+              Ton identité a été confirmée
+            </p>
+          </div>
+        </div>
+
+        <div style="display:flex;align-items:flex-start;gap:12px">
+          <div style="display:flex;flex-direction:column;align-items:center">
+            <div style="width:28px;height:28px;border-radius:8px;
+                        background:rgba(99,102,241,0.15);
+                        border:1.5px solid rgba(99,102,241,0.3);
+                        display:flex;align-items:center;justify-content:center;
+                        font-size:12px;font-weight:500;color:#818cf8;flex-shrink:0">→</div>
+          </div>
+          <div style="padding-top:4px">
+            <p style="font-size:13px;font-weight:500;color:#e2e8f0;margin:0 0 2px">
+              Choisis un nouveau mot de passe
+            </p>
+            <p style="font-size:11px;color:#475569;margin:0">
+              Minimum 6 caractères
+            </p>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Conseils sécurité -->
+      <div style="background:rgba(255,255,255,0.03);border:0.5px solid rgba(255,255,255,0.07);
+                  border-radius:12px;padding:16px">
+        <p style="font-size:11px;color:#64748b;margin:0 0 10px;font-weight:500">
+          Conseils pour un bon mot de passe
+        </p>
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
+          <i class="ti ti-check" style="font-size:13px;color:#4ade80"></i>
+          <p style="font-size:11px;color:#94a3b8;margin:0">Au moins 6 caractères</p>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
+          <i class="ti ti-check" style="font-size:13px;color:#4ade80"></i>
+          <p style="font-size:11px;color:#94a3b8;margin:0">Mélange lettres et chiffres</p>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <i class="ti ti-check" style="font-size:13px;color:#4ade80"></i>
+          <p style="font-size:11px;color:#94a3b8;margin:0">Différent de ton ancien mot de passe</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══ DROITE — Formulaire fond clair ══ -->
+  <div style="background:#F8FAFC;padding:48px 40px;display:flex;
+              flex-direction:column;justify-content:center">
+
+    <!-- Carte glass -->
+    <div style="background:rgba(255,255,255,0.8);backdrop-filter:blur(12px);
+                border:0.5px solid rgba(255,255,255,0.9);border-radius:18px;
+                padding:36px;box-shadow:0 4px 24px rgba(99,102,241,0.06);
+                max-width:400px;width:100%;margin:0 auto">
+
+      <h1 style="font-size:22px;font-weight:500;color:#0f172a;margin-bottom:4px">
         Nouveau mot de passe
       </h1>
-      <p class="text-slate-500 mt-2">
-        Choisis un nouveau mot de passe sécurisé
-        pour ton compte MentorLink
+      <p style="font-size:13px;color:#64748b;margin-bottom:24px">
+        Choisis un mot de passe sécurisé pour ton compte
       </p>
-    </div>
-
-    <!-- Carte formulaire -->
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
 
       <!-- Messages flash -->
       {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
           {% for category, message in messages %}
             <div class="mb-4 p-3 rounded-lg text-sm
-              {% if category == 'success' %}
-                bg-green-50 text-green-700 border border-green-200
-              {% elif category == 'danger' %}
-                bg-red-50 text-red-700 border border-red-200
-              {% else %}
-                bg-blue-50 text-blue-700 border border-blue-200
-              {% endif %}">
+              {% if category == 'success' %}bg-green-50 text-green-700 border border-green-200
+              {% elif category == 'danger' %}bg-red-50 text-red-700 border border-red-200
+              {% else %}bg-blue-50 text-blue-700 border border-blue-200{% endif %}">
               {{ message }}
             </div>
           {% endfor %}
         {% endif %}
       {% endwith %}
 
-      <form action="/reinitialisation/{{ token }}"
-            method="POST" class="space-y-5">
+      <form action="/reinitialisation/{{ token }}" method="POST" class="space-y-4">
         {{ form.hidden_tag() if form else '' }}
 
         <!-- Nouveau mot de passe -->
         <div>
-          <label class="block text-sm font-medium text-slate-700 mb-1">
+          <label style="display:block;font-size:12px;font-weight:500;
+                        color:#374151;margin-bottom:5px">
             Nouveau mot de passe
           </label>
           <div class="relative">
-            <input
-              type="password"
-              name="mot_de_passe"
-              id="mot_de_passe"
-              required
-              minlength="6"
-              placeholder="••••••••"
+            <input type="password" name="mot_de_passe" id="mot_de_passe"
+              required minlength="6" placeholder="••••••••"
               class="w-full px-4 py-2.5 rounded-lg border border-slate-300
-                     text-sm text-slate-900 bg-white
-                     focus:outline-none focus:ring-2 focus:ring-accent
-                     focus:border-transparent placeholder:text-slate-400">
-            <button
-              type="button"
+                     text-sm text-slate-900 bg-white focus:outline-none
+                     focus:ring-2 focus:ring-accent focus:border-transparent
+                     placeholder:text-slate-400"
+              style="padding-right:52px">
+            <button type="button"
               onclick="togglePassword('mot_de_passe', 'btn-voir-1')"
               id="btn-voir-1"
               class="absolute right-3 top-1/2 -translate-y-1/2
@@ -69,30 +163,26 @@
               Voir
             </button>
           </div>
-          <p class="text-xs text-slate-400 mt-1">
+          <p style="font-size:11px;color:#9ca3af;margin-top:3px">
             Minimum 6 caractères
           </p>
         </div>
 
         <!-- Confirmer mot de passe -->
         <div>
-          <label class="block text-sm font-medium text-slate-700 mb-1">
+          <label style="display:block;font-size:12px;font-weight:500;
+                        color:#374151;margin-bottom:5px">
             Confirmer le mot de passe
           </label>
           <div class="relative">
-            <input
-              type="password"
-              name="confirmation"
-              id="confirmation"
-              required
-              minlength="6"
-              placeholder="••••••••"
+            <input type="password" name="confirmation" id="confirmation"
+              required minlength="6" placeholder="••••••••"
               class="w-full px-4 py-2.5 rounded-lg border border-slate-300
-                     text-sm text-slate-900 bg-white
-                     focus:outline-none focus:ring-2 focus:ring-accent
-                     focus:border-transparent placeholder:text-slate-400">
-            <button
-              type="button"
+                     text-sm text-slate-900 bg-white focus:outline-none
+                     focus:ring-2 focus:ring-accent focus:border-transparent
+                     placeholder:text-slate-400"
+              style="padding-right:52px">
+            <button type="button"
               onclick="togglePassword('confirmation', 'btn-voir-2')"
               id="btn-voir-2"
               class="absolute right-3 top-1/2 -translate-y-1/2
@@ -102,55 +192,50 @@
           </div>
         </div>
 
-        <!-- Indicateur de correspondance -->
-        <div id="msg-correspondance" class="hidden text-xs p-2
-             rounded-lg text-center">
+        <!-- Indicateur correspondance -->
+        <div id="msg-correspondance"
+             class="hidden text-xs p-2 rounded-lg text-center">
         </div>
 
-        <!-- Bouton submit -->
-        <button
-          type="submit"
-          id="btn-submit"
-          class="w-full bg-accent hover:bg-blue-700 text-white font-medium
-                 py-2.5 rounded-lg transition-colors">
+        <!-- Submit -->
+        <button type="submit" id="btn-submit"
+          style="width:100%;background:#6366f1;color:#fff;font-size:13px;
+                 font-weight:500;padding:11px;border-radius:8px;border:none;
+                 cursor:pointer;transition:all .15s;margin-top:4px">
           Enregistrer le nouveau mot de passe
         </button>
 
       </form>
 
+      <p style="text-align:center;font-size:12px;color:#6b7280;margin-top:16px">
+        <a href="/connexion"
+           style="color:#6366f1;font-weight:500;text-decoration:none">
+          ← Retour à la connexion
+        </a>
+      </p>
+
     </div>
-
-    <!-- Lien retour connexion -->
-    <p class="text-center text-sm text-slate-500 mt-6">
-      <a href="/connexion"
-         class="text-accent hover:text-blue-700 font-medium transition-colors">
-        ← Retour à la connexion
-      </a>
-    </p>
-
   </div>
+
 </div>
 
 {% endblock %}
 
 {% block scripts %}
 <script>
-
-  // Afficher/cacher le mot de passe
   function togglePassword(champId, btnId) {
-    const champ = document.getElementById(champId);
+    const champ  = document.getElementById(champId);
     const bouton = document.getElementById(btnId);
     if (champ.type === "password") {
-      champ.type = "text";
+      champ.type         = "text";
       bouton.textContent = "Cacher";
     } else {
-      champ.type = "password";
+      champ.type         = "password";
       bouton.textContent = "Voir";
     }
   }
 
-  // Vérifier que les deux mots de passe correspondent
-  const mdp = document.getElementById('mot_de_passe');
+  const mdp  = document.getElementById('mot_de_passe');
   const conf = document.getElementById('confirmation');
   const msg  = document.getElementById('msg-correspondance');
   const btn  = document.getElementById('btn-submit');
@@ -160,26 +245,25 @@
       msg.classList.add('hidden');
       return;
     }
-
     msg.classList.remove('hidden');
-
     if (mdp.value === conf.value) {
       msg.textContent = '✓ Les mots de passe correspondent';
-      msg.className = 'text-xs p-2 rounded-lg text-center ' +
-                      'bg-green-50 text-green-700 border border-green-200';
-      btn.disabled = false;
-      btn.classList.remove('opacity-50', 'cursor-not-allowed');
+      msg.className   = 'text-xs p-2 rounded-lg text-center ' +
+                        'bg-green-50 text-green-700 border border-green-200';
+      btn.disabled    = false;
+      btn.style.opacity = '1';
+      btn.style.cursor  = 'pointer';
     } else {
       msg.textContent = '✕ Les mots de passe ne correspondent pas';
-      msg.className = 'text-xs p-2 rounded-lg text-center ' +
-                      'bg-red-50 text-red-700 border border-red-200';
-      btn.disabled = true;
-      btn.classList.add('opacity-50', 'cursor-not-allowed');
+      msg.className   = 'text-xs p-2 rounded-lg text-center ' +
+                        'bg-red-50 text-red-700 border border-red-200';
+      btn.disabled    = true;
+      btn.style.opacity = '0.5';
+      btn.style.cursor  = 'not-allowed';
     }
   }
 
-  mdp.addEventListener('input', verifierCorrespondance);
+  mdp.addEventListener('input',  verifierCorrespondance);
   conf.addEventListener('input', verifierCorrespondance);
-
 </script>
 {% endblock %}

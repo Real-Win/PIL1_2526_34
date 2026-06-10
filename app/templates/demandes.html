@@ -4,10 +4,10 @@
 
 {% block contenu %}
 
-<div class="max-w-4xl mx-auto py-10 px-4">
+<div class="max-w-4xl mx-auto py-8 px-4">
 
   <!-- En-tête -->
-  <div class="mb-8">
+  <div class="mb-6">
     <h1 class="text-2xl font-bold text-slate-900">Mes demandes</h1>
     <p class="text-slate-500 text-sm mt-1">
       Suis l'état de tes demandes de mentorat envoyées et reçues
@@ -18,50 +18,46 @@
   {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
       {% for category, message in messages %}
-        <div class="mb-6 p-3 rounded-lg text-sm
-          {% if category == 'success' %}
-            bg-green-50 text-green-700 border border-green-200
-          {% elif category == 'danger' %}
-            bg-red-50 text-red-700 border border-red-200
-          {% else %}
-            bg-blue-50 text-blue-700 border border-blue-200
-          {% endif %}">
+        <div class="mb-5 p-3 rounded-lg text-sm
+          {% if category == 'success' %}bg-green-50 text-green-700 border border-green-200
+          {% elif category == 'danger' %}bg-red-50 text-red-700 border border-red-200
+          {% else %}bg-blue-50 text-blue-700 border border-blue-200{% endif %}">
           {{ message }}
         </div>
       {% endfor %}
     {% endif %}
   {% endwith %}
 
-  <!-- Onglets -->
+  <!-- ══ ONGLETS Aurora ══ -->
   <div class="flex gap-2 mb-6" id="onglets">
 
-    <button
-      onclick="afficherOnglet('envoyees')"
-      id="btn-envoyees"
-      class="px-5 py-2 rounded-xl text-sm font-medium transition-colors
-             bg-accent text-white">
-      Demandes envoyées
+    <button onclick="afficherOnglet('envoyees')" id="btn-envoyees"
+      style="padding:8px 20px;border-radius:10px;font-size:13px;font-weight:500;
+             background:#6366f1;color:#fff;border:none;cursor:pointer;
+             display:flex;align-items:center;gap:6px;transition:all .15s">
+      <i class="ti ti-send" style="font-size:14px"></i>
+      Envoyées
       {% if demandes_envoyees %}
-        <span class="ml-1.5 bg-white text-accent text-xs
-                     px-1.5 py-0.5 rounded-full font-bold">
+        <span style="background:rgba(255,255,255,0.2);color:#fff;font-size:11px;
+                     padding:1px 7px;border-radius:20px;font-weight:600">
           {{ demandes_envoyees | length }}
         </span>
       {% endif %}
     </button>
 
-    <button
-      onclick="afficherOnglet('recues')"
-      id="btn-recues"
-      class="px-5 py-2 rounded-xl text-sm font-medium transition-colors
-             bg-slate-100 text-slate-600 hover:bg-slate-200">
-      Demandes reçues
+    <button onclick="afficherOnglet('recues')" id="btn-recues"
+      style="padding:8px 20px;border-radius:10px;font-size:13px;font-weight:500;
+             background:#fff;color:#64748b;border:0.5px solid #e2e8f0;
+             cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .15s">
+      <i class="ti ti-inbox" style="font-size:14px"></i>
+      Reçues
       {% if demandes_recues %}
         {% set nb_attente = demandes_recues
            | selectattr('statut', 'equalto', 'en_attente')
            | list | length %}
         {% if nb_attente > 0 %}
-          <span class="ml-1.5 bg-red-500 text-white text-xs
-                       px-1.5 py-0.5 rounded-full font-bold">
+          <span style="background:#ef4444;color:#fff;font-size:11px;
+                       padding:1px 7px;border-radius:20px;font-weight:600">
             {{ nb_attente }}
           </span>
         {% endif %}
@@ -70,84 +66,96 @@
 
   </div>
 
-  <!-- ── ONGLET 1 : Demandes envoyées ── -->
+  <!-- ══ ONGLET 1 : Demandes envoyées ══ -->
   <div id="tab-envoyees">
 
     {% if demandes_envoyees %}
-
       <div class="space-y-4">
         {% for demande in demandes_envoyees %}
 
-          <div class="bg-white rounded-2xl border border-slate-200 p-5">
+          <div class="bg-white rounded-2xl border border-slate-200 p-5
+                      {% if demande.statut == 'acceptee' %}border-l-4 border-l-green-400{% endif %}
+                      {% if demande.statut == 'refusee' %}opacity-60{% endif %}">
 
             <div class="flex items-start justify-between gap-4">
 
               <!-- Infos mentor -->
               <div class="flex items-center gap-3 flex-1 min-w-0">
-
                 <a href="/profil/{{ demande.mentor.id }}"
-                   class="w-10 h-10 rounded-full bg-accent flex items-center
-                            justify-center text-white text-sm font-bold
-                            flex-shrink-0 hover:opacity-80 transition-opacity">
+                   style="width:42px;height:42px;border-radius:50%;
+                          background:linear-gradient(135deg,#6366f1,#2dd4bf);
+                          display:flex;align-items:center;justify-content:center;
+                          font-size:14px;font-weight:500;color:#fff;
+                          flex-shrink:0;text-decoration:none;
+                          transition:opacity .15s"
+                   onmouseover="this.style.opacity='.8'"
+                   onmouseout="this.style.opacity='1'">
                   {{ demande.mentor.prenom[0] | upper }}{{ demande.mentor.nom[0] | upper }}
                 </a>
-
                 <div class="flex-1 min-w-0">
                   <a href="/profil/{{ demande.mentor.id }}"
-                     class="text-sm font-semibold text-slate-900 hover:text-accent
-                            transition-colors">
+                     style="font-size:14px;font-weight:500;color:#0f172a;
+                            text-decoration:none;transition:color .15s"
+                     onmouseover="this.style.color='#6366f1'"
+                     onmouseout="this.style.color='#0f172a'">
                     {{ demande.mentor.prenom }} {{ demande.mentor.nom }}
                   </a>
-                  <div class="flex items-center gap-2 mt-0.5">
-                    <span class="text-xs bg-blue-50 text-blue-700
-                                 px-2 py-0.5 rounded-full">
+                  <div style="display:flex;align-items:center;gap:6px;margin-top:3px">
+                    <span style="font-size:11px;background:#EEF2FF;color:#4338ca;
+                                 padding:2px 8px;border-radius:20px">
                       {{ demande.mentor.filiere }}
                     </span>
-                    <span class="text-xs text-slate-400">{{ demande.mentor.niveau }}</span>
+                    <span style="font-size:11px;color:#94a3b8">
+                      {{ demande.mentor.niveau }}
+                    </span>
                   </div>
                 </div>
-
               </div>
 
               <!-- Statut -->
-              <div class="flex-shrink-0">
+              <div style="flex-shrink:0">
                 {% if demande.statut == 'en_attente' %}
-                  <span class="text-xs font-medium px-3 py-1.5 rounded-full
-                               bg-amber-50 text-amber-700 border border-amber-200">
-                    En attente
-                  </span>
+                  <span style="font-size:11px;font-weight:500;padding:5px 12px;
+                               border-radius:20px;background:#FFFBEB;color:#92400e;
+                               border:0.5px solid #fde68a">En attente</span>
                 {% elif demande.statut == 'acceptee' %}
-                  <span class="text-xs font-medium px-3 py-1.5 rounded-full
-                               bg-green-50 text-green-700 border border-green-200">
-                    Acceptée ✓
-                  </span>
+                  <span style="font-size:11px;font-weight:500;padding:5px 12px;
+                               border-radius:20px;background:#F0FDF4;color:#166534;
+                               border:0.5px solid #bbf7d0">Acceptée ✓</span>
                 {% elif demande.statut == 'refusee' %}
-                  <span class="text-xs font-medium px-3 py-1.5 rounded-full
-                               bg-red-50 text-red-700 border border-red-200">
-                    Refusée ✕
-                  </span>
+                  <span style="font-size:11px;font-weight:500;padding:5px 12px;
+                               border-radius:20px;background:#FEF2F2;color:#991b1b;
+                               border:0.5px solid #fecaca">Refusée ✕</span>
                 {% endif %}
               </div>
 
             </div>
 
             <!-- Sujet -->
-            <div class="mt-4 bg-slate-50 rounded-xl p-3 border border-slate-200">
-              <p class="text-xs text-slate-500 mb-1">Sujet</p>
-              <p class="text-sm text-slate-700">{{ demande.sujet }}</p>
+            <div style="margin-top:14px;background:#F8FAFC;border:0.5px solid #e2e8f0;
+                        border-radius:10px;padding:12px 14px">
+              <p style="font-size:10px;font-weight:500;color:#94a3b8;
+                        text-transform:uppercase;letter-spacing:.06em;margin:0 0 5px">
+                Sujet
+              </p>
+              <p style="font-size:13px;color:#374151;margin:0;line-height:1.5">
+                {{ demande.sujet }}
+              </p>
             </div>
 
-            <!-- Date + action si acceptée -->
-            <div class="mt-3 flex items-center justify-between">
-              <p class="text-xs text-slate-400">
+            <!-- Date + action -->
+            <div style="margin-top:12px;display:flex;align-items:center;
+                        justify-content:space-between">
+              <p style="font-size:11px;color:#94a3b8;margin:0">
                 Envoyée le
                 {{ demande.date_demande.strftime('%d/%m/%Y à %H:%M')
                    if demande.date_demande else 'N/A' }}
               </p>
               {% if demande.statut == 'acceptee' %}
                 <a href="/messages?contact={{ demande.mentor_id }}"
-                   class="text-xs bg-accent hover:bg-blue-700 text-white
-                          px-4 py-1.5 rounded-lg transition-colors font-medium">
+                   style="font-size:12px;background:#6366f1;color:#fff;
+                          padding:6px 16px;border-radius:8px;text-decoration:none;
+                          font-weight:500">
                   💬 Ouvrir la conversation
                 </a>
               {% endif %}
@@ -161,6 +169,11 @@
     {% else %}
 
       <div class="bg-white rounded-2xl border border-slate-200 p-12 text-center">
+        <div style="width:48px;height:48px;border-radius:14px;background:#EEF2FF;
+                    display:flex;align-items:center;justify-content:center;
+                    margin:0 auto 12px">
+          <i class="ti ti-send" style="font-size:22px;color:#6366f1"></i>
+        </div>
         <p class="text-slate-400 text-sm font-medium">
           Tu n'as pas encore envoyé de demande
         </p>
@@ -168,8 +181,9 @@
           Va sur la page matching pour trouver un mentor
         </p>
         <a href="/matching"
-           class="inline-block bg-accent hover:bg-blue-700 text-white
-                  text-sm font-medium px-6 py-2 rounded-lg transition-colors">
+           style="display:inline-block;background:#6366f1;color:#fff;
+                  font-size:13px;font-weight:500;padding:8px 20px;
+                  border-radius:8px;text-decoration:none">
           Trouver un mentor
         </a>
       </div>
@@ -178,114 +192,119 @@
 
   </div>
 
-  <!-- ── ONGLET 2 : Demandes reçues ── -->
+  <!-- ══ ONGLET 2 : Demandes reçues ══ -->
   <div id="tab-recues" class="hidden">
 
     {% if demandes_recues %}
-
       <div class="space-y-4">
         {% for demande in demandes_recues %}
 
-          <div class="bg-white rounded-2xl border border-slate-200 p-5">
+          <div class="bg-white rounded-2xl border border-slate-200 p-5
+                      {% if demande.statut == 'acceptee' %}border-l-4 border-l-green-400{% endif %}">
 
             <div class="flex items-start justify-between gap-4">
 
               <!-- Infos mentoré -->
               <div class="flex items-center gap-3 flex-1 min-w-0">
-
                 <a href="/profil/{{ demande.etudiant.id }}"
-                   class="w-10 h-10 rounded-full bg-green-500 flex items-center
-                            justify-center text-white text-sm font-bold
-                            flex-shrink-0 hover:opacity-80 transition-opacity">
+                   style="width:42px;height:42px;border-radius:50%;
+                          background:linear-gradient(135deg,#0d9488,#6366f1);
+                          display:flex;align-items:center;justify-content:center;
+                          font-size:14px;font-weight:500;color:#fff;
+                          flex-shrink:0;text-decoration:none"
+                   onmouseover="this.style.opacity='.8'"
+                   onmouseout="this.style.opacity='1'">
                   {{ demande.etudiant.prenom[0] | upper }}{{ demande.etudiant.nom[0] | upper }}
                 </a>
-
                 <div class="flex-1 min-w-0">
                   <a href="/profil/{{ demande.etudiant.id }}"
-                     class="text-sm font-semibold text-slate-900 hover:text-accent
-                            transition-colors">
+                     style="font-size:14px;font-weight:500;color:#0f172a;
+                            text-decoration:none"
+                     onmouseover="this.style.color='#6366f1'"
+                     onmouseout="this.style.color='#0f172a'">
                     {{ demande.etudiant.prenom }} {{ demande.etudiant.nom }}
                   </a>
-                  <div class="flex items-center gap-2 mt-0.5">
-                    <span class="text-xs bg-green-50 text-green-700
-                                 px-2 py-0.5 rounded-full">
+                  <div style="display:flex;align-items:center;gap:6px;margin-top:3px">
+                    <span style="font-size:11px;background:#F0FDF4;color:#166534;
+                                 padding:2px 8px;border-radius:20px">
                       {{ demande.etudiant.filiere }}
                     </span>
-                    <span class="text-xs text-slate-400">{{ demande.etudiant.niveau }}</span>
+                    <span style="font-size:11px;color:#94a3b8">
+                      {{ demande.etudiant.niveau }}
+                    </span>
                   </div>
                 </div>
-
               </div>
 
               <!-- Statut -->
-              <div class="flex-shrink-0">
+              <div style="flex-shrink:0">
                 {% if demande.statut == 'en_attente' %}
-                  <span class="text-xs font-medium px-3 py-1.5 rounded-full
-                               bg-amber-50 text-amber-700 border border-amber-200">
-                    En attente
-                  </span>
+                  <span style="font-size:11px;font-weight:500;padding:5px 12px;
+                               border-radius:20px;background:#FFFBEB;color:#92400e;
+                               border:0.5px solid #fde68a">En attente</span>
                 {% elif demande.statut == 'acceptee' %}
-                  <span class="text-xs font-medium px-3 py-1.5 rounded-full
-                               bg-green-50 text-green-700 border border-green-200">
-                    Acceptée ✓
-                  </span>
+                  <span style="font-size:11px;font-weight:500;padding:5px 12px;
+                               border-radius:20px;background:#F0FDF4;color:#166534;
+                               border:0.5px solid #bbf7d0">Acceptée ✓</span>
                 {% elif demande.statut == 'refusee' %}
-                  <span class="text-xs font-medium px-3 py-1.5 rounded-full
-                               bg-red-50 text-red-700 border border-red-200">
-                    Refusée ✕
-                  </span>
+                  <span style="font-size:11px;font-weight:500;padding:5px 12px;
+                               border-radius:20px;background:#FEF2F2;color:#991b1b;
+                               border:0.5px solid #fecaca">Refusée ✕</span>
                 {% endif %}
               </div>
 
             </div>
 
             <!-- Sujet -->
-            <div class="mt-4 bg-slate-50 rounded-xl p-3 border border-slate-200">
-              <p class="text-xs text-slate-500 mb-1">Sujet de la demande</p>
-              <p class="text-sm text-slate-700">{{ demande.sujet }}</p>
+            <div style="margin-top:14px;background:#F8FAFC;border:0.5px solid #e2e8f0;
+                        border-radius:10px;padding:12px 14px">
+              <p style="font-size:10px;font-weight:500;color:#94a3b8;
+                        text-transform:uppercase;letter-spacing:.06em;margin:0 0 5px">
+                Sujet de la demande
+              </p>
+              <p style="font-size:13px;color:#374151;margin:0;line-height:1.5">
+                {{ demande.sujet }}
+              </p>
             </div>
 
-            <!-- Date + boutons accepter/refuser -->
-            <div class="mt-3 flex items-center justify-between gap-3">
+            <!-- Date + boutons -->
+            <div style="margin-top:12px;display:flex;align-items:center;
+                        justify-content:space-between;gap:12px;flex-wrap:wrap">
 
-              <p class="text-xs text-slate-400">
+              <p style="font-size:11px;color:#94a3b8;margin:0">
                 Reçue le
                 {{ demande.date_demande.strftime('%d/%m/%Y à %H:%M')
                    if demande.date_demande else 'N/A' }}
               </p>
 
               {% if demande.statut == 'en_attente' %}
-                <div class="flex gap-2">
-
-                  <!-- Refuser -->
+                <div style="display:flex;gap:8px">
                   <form action="/demande/{{ demande.id }}/statut" method="POST">
                     <input type="hidden" name="statut" value="refusee">
                     <button type="submit"
-                      class="text-xs text-red-600 hover:text-red-700
-                             border border-red-200 hover:border-red-400
-                             px-4 py-1.5 rounded-lg transition-colors
-                             bg-white font-medium">
+                      style="font-size:12px;color:#dc2626;background:#fff;
+                             border:0.5px solid #fecaca;padding:6px 16px;
+                             border-radius:8px;cursor:pointer;font-weight:500;
+                             transition:all .15s">
                       Refuser
                     </button>
                   </form>
-
-                  <!-- Accepter -->
                   <form action="/demande/{{ demande.id }}/statut" method="POST">
                     <input type="hidden" name="statut" value="acceptee">
                     <button type="submit"
-                      class="text-xs bg-green-600 hover:bg-green-700
-                             text-white px-4 py-1.5 rounded-lg
-                             transition-colors font-medium">
-                      Accepter
+                      style="font-size:12px;color:#fff;background:#16a34a;
+                             border:none;padding:6px 16px;border-radius:8px;
+                             cursor:pointer;font-weight:500;transition:all .15s">
+                      Accepter ✓
                     </button>
                   </form>
-
                 </div>
 
               {% elif demande.statut == 'acceptee' %}
                 <a href="/messages?contact={{ demande.etudiant_id }}"
-                   class="text-xs bg-accent hover:bg-blue-700 text-white
-                          px-4 py-1.5 rounded-lg transition-colors font-medium">
+                   style="font-size:12px;background:#6366f1;color:#fff;
+                          padding:6px 16px;border-radius:8px;text-decoration:none;
+                          font-weight:500">
                   💬 Ouvrir la conversation
                 </a>
               {% endif %}
@@ -300,6 +319,11 @@
     {% else %}
 
       <div class="bg-white rounded-2xl border border-slate-200 p-12 text-center">
+        <div style="width:48px;height:48px;border-radius:14px;background:#F0FDF4;
+                    display:flex;align-items:center;justify-content:center;
+                    margin:0 auto 12px">
+          <i class="ti ti-inbox" style="font-size:22px;color:#16a34a"></i>
+        </div>
         <p class="text-slate-400 text-sm font-medium">
           Tu n'as pas encore reçu de demande
         </p>
@@ -319,7 +343,6 @@
 {% block scripts %}
 <script>
   function afficherOnglet(onglet) {
-
     const tabEnvoyees = document.getElementById('tab-envoyees');
     const tabRecues   = document.getElementById('tab-recues');
     const btnEnvoyees = document.getElementById('btn-envoyees');
@@ -328,21 +351,21 @@
     if (onglet === 'envoyees') {
       tabEnvoyees.classList.remove('hidden');
       tabRecues.classList.add('hidden');
-      btnEnvoyees.className = btnEnvoyees.className
-        .replace('bg-slate-100 text-slate-600 hover:bg-slate-200',
-                 'bg-accent text-white');
-      btnRecues.className = btnRecues.className
-        .replace('bg-accent text-white',
-                 'bg-slate-100 text-slate-600 hover:bg-slate-200');
+      btnEnvoyees.style.background = '#6366f1';
+      btnEnvoyees.style.color      = '#fff';
+      btnEnvoyees.style.border     = 'none';
+      btnRecues.style.background   = '#fff';
+      btnRecues.style.color        = '#64748b';
+      btnRecues.style.border       = '0.5px solid #e2e8f0';
     } else {
       tabRecues.classList.remove('hidden');
       tabEnvoyees.classList.add('hidden');
-      btnRecues.className = btnRecues.className
-        .replace('bg-slate-100 text-slate-600 hover:bg-slate-200',
-                 'bg-accent text-white');
-      btnEnvoyees.className = btnEnvoyees.className
-        .replace('bg-accent text-white',
-                 'bg-slate-100 text-slate-600 hover:bg-slate-200');
+      btnRecues.style.background   = '#6366f1';
+      btnRecues.style.color        = '#fff';
+      btnRecues.style.border       = 'none';
+      btnEnvoyees.style.background = '#fff';
+      btnEnvoyees.style.color      = '#64748b';
+      btnEnvoyees.style.border     = '0.5px solid #e2e8f0';
     }
   }
 </script>

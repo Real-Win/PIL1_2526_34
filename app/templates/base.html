@@ -5,65 +5,287 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block titre %}MentorLink{% endblock %}</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>tailwind.config={theme:{extend:{colors:{primary:'#1E3A5F',accent:'#2563EB'}}}};</script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#0B1120',
+            accent:  '#6366f1',
+            teal:    '#2dd4bf'
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { background-color: #F8FAFC; }
+    .nav-aurora { background: #0B1120; border-bottom: 0.5px solid rgba(255,255,255,0.08); }
+    .nav-link-aurora { color: #94a3b8; font-size: 13px; padding: 6px 14px; border-radius: 6px; transition: all .15s; text-decoration: none; }
+    .nav-link-aurora:hover { color: #f1f5f9; background: rgba(255,255,255,0.06); }
+    .nav-avatar-aurora { width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg,#6366f1,#2dd4bf); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; color: #fff; border: 2px solid rgba(99,102,241,0.35); text-decoration: none; flex-shrink: 0; }
+    .nav-logout-aurora { display: flex; align-items: center; gap: 5px; color: #475569; font-size: 12px; padding: 6px 10px; border-radius: 6px; border: 0.5px solid rgba(255,255,255,0.06); background: transparent; text-decoration: none; transition: all .15s; }
+    .nav-logout-aurora:hover { color: #94a3b8; background: rgba(255,255,255,0.04); }
+    .hamburger-line { display: block; width: 18px; height: 1.5px; background: #94a3b8; border-radius: 2px; transition: all .2s; }
+    #mobile-drawer { background: #0d1628; border-bottom: 0.5px solid rgba(255,255,255,0.08); }
+    .drawer-link { display: flex; align-items: center; gap: 10px; padding: 11px 16px; font-size: 13px; color: #94a3b8; text-decoration: none; transition: all .15s; }
+    .drawer-link:hover, .drawer-link.active { color: #f1f5f9; background: rgba(99,102,241,0.08); }
+    .drawer-link.active { border-left: 2px solid #6366f1; }
+    .drawer-divider { height: 0.5px; background: rgba(255,255,255,0.06); margin: 4px 0; }
+    .drawer-logout { display: flex; align-items: center; gap: 10px; padding: 11px 16px; font-size: 13px; color: #f87171; text-decoration: none; }
+    .footer-aurora { background: #080d18; border-top: 0.5px solid rgba(255,255,255,0.06); }
+    .toast-aurora { background: #0d1628; border: 0.5px solid rgba(255,255,255,0.1); border-radius: 14px; box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
+  </style>
   {% block styles %}{% endblock %}
 </head>
-<body class="bg-gradient-to-br from-slate-50 to-slate-100 text-slate-800 min-h-screen flex flex-col">
 
-<nav class="bg-slate-900 shadow-md sticky top-0 z-50">
-  <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-    <a href="{{ url_for('auth.dashboard') if current_user.is_authenticated else url_for('auth.accueil') }}" class="flex items-center gap-2">
-      <svg width="36" height="36" viewBox="0 0 100 100" fill="none"><circle cx="50" cy="50" r="46" stroke="url(#grad1)" stroke-width="3"/><circle cx="28" cy="32" r="10" fill="#2563EB"/><path d="M14 62 Q14 46 28 46 Q42 46 42 62 Z" fill="#2563EB" opacity="0.85"/><circle cx="72" cy="32" r="10" fill="#F59E0B"/><path d="M58 62 Q58 46 72 46 Q86 46 86 62 Z" fill="#F59E0B" opacity="0.85"/><ellipse cx="50" cy="56" rx="10" ry="5" fill="#F59E0B" opacity="0.9"/><ellipse cx="50" cy="54" rx="10" ry="5" fill="#2563EB" opacity="0.9"/><circle cx="50" cy="76" r="3" fill="#60A5FA"/><circle cx="36" cy="82" r="2.5" fill="#60A5FA" opacity="0.7"/><circle cx="64" cy="82" r="2.5" fill="#F59E0B" opacity="0.7"/><line x1="50" y1="76" x2="36" y2="82" stroke="#60A5FA" stroke-width="1.5" opacity="0.7"/><line x1="50" y1="76" x2="64" y2="82" stroke="#F59E0B" stroke-width="1.5" opacity="0.7"/><line x1="36" y1="82" x2="64" y2="82" stroke="#94A3B8" stroke-width="1" opacity="0.5"/><defs><linearGradient id="grad1" x1="0" y1="0" x2="100" y2="100"><stop offset="0%" stop-color="#2563EB"/><stop offset="100%" stop-color="#F59E0B"/></linearGradient></defs></svg>
-      <span class="text-white font-semibold text-lg">Mentor<span class="text-blue-400">Link</span></span>
-    </a>
-    <div class="flex items-center gap-6">
+<body class="min-h-screen flex flex-col" style="background:#F8FAFC">
+
+  <!-- ═══════════════════ NAVBAR ═══════════════════ -->
+  <nav class="nav-aurora sticky top-0 z-50">
+    <div class="max-w-6xl mx-auto px-5 h-14 flex items-center justify-between">
+
+      <!-- Logo -->
+      <a href="{{ url_for('auth.dashboard') if current_user.is_authenticated else url_for('auth.accueil') }}"
+         style="text-decoration:none">
+        <span style="color:#f1f5f9;font-size:16px;font-weight:500">
+          Mentor<span style="color:#818cf8">Link</span>
+        </span>
+      </a>
+
+      <!-- Desktop connecté -->
       {% if current_user.is_authenticated %}
-        <a href="{{ url_for('auth.dashboard') }}" class="text-slate-300 hover:text-white text-sm">Dashboard</a>
-        <a href="{{ url_for('auth.matching_page') }}" class="text-slate-300 hover:text-white text-sm">Matching</a>
-        <a href="{{ url_for('auth.demandes') }}" class="text-slate-300 hover:text-white text-sm">Demandes</a>
-        <a href="{{ url_for('messagerie.messages') }}" class="relative text-slate-300 hover:text-white text-sm">Messages<span id="badge-messages" class="hidden absolute -top-2 -right-3 bg-red-500 text-white text-xs font-bold rounded-full px-1">0</span></a>
-        <a href="{{ url_for('auth.profil') }}" class="text-slate-300 hover:text-white text-sm">Mon profil</a>
-        <a href="{{ url_for('auth.deconnexion') }}" class="bg-slate-700 hover:bg-slate-600 text-white text-sm px-4 py-2 rounded-lg">Déconnexion</a>
+        <div class="hidden md:flex items-center gap-1">
+          <a href="{{ url_for('auth.dashboard') }}" class="nav-link-aurora">Tableau de bord</a>
+          <a href="{{ url_for('auth.matching_page') }}" class="nav-link-aurora">Matching</a>
+          <a href="{{ url_for('auth.demandes') }}" class="nav-link-aurora">Demandes</a>
+          <a href="{{ url_for('messagerie.messages') }}" class="nav-link-aurora" style="position:relative">
+            Messages
+            <span id="badge-messages"
+                  style="display:none;position:absolute;top:-6px;right:-8px;
+                         min-width:16px;height:16px;background:#ef4444;color:#fff;
+                         font-size:10px;font-weight:700;border-radius:20px;
+                         align-items:center;justify-content:center;padding:0 4px">
+              0
+            </span>
+          </a>
+        </div>
+        <div class="hidden md:flex items-center gap-2">
+          <a href="{{ url_for('auth.profil') }}" class="nav-avatar-aurora" title="Mon profil">
+            {{ current_user.prenom[0] | upper }}{{ current_user.nom[0] | upper }}
+          </a>
+          <a href="{{ url_for('auth.deconnexion') }}" class="nav-logout-aurora">
+            <i class="ti ti-logout" style="font-size:14px"></i>
+            Déconnexion
+          </a>
+        </div>
+
+      <!-- Desktop non connecté -->
       {% else %}
-        <a href="{{ url_for('auth.inscription') }}" class="text-slate-300 hover:text-white text-sm">S'inscrire</a>
-        <a href="{{ url_for('auth.connexion') }}" class="bg-accent hover:bg-blue-700 text-white text-sm px-4 py-2 rounded-lg">Se connecter</a>
+        <div class="hidden md:flex items-center gap-2">
+          <a href="{{ url_for('auth.inscription') }}"
+             style="background:rgba(255,255,255,0.06);color:#f1f5f9;font-size:13px;
+                    padding:7px 16px;border-radius:8px;
+                    border:0.5px solid rgba(255,255,255,0.1);text-decoration:none">
+            S'inscrire
+          </a>
+          <a href="{{ url_for('auth.connexion') }}"
+             style="background:#6366f1;color:#fff;font-size:13px;font-weight:500;
+                    padding:7px 16px;border-radius:8px;text-decoration:none">
+            Se connecter
+          </a>
+        </div>
+      {% endif %}
+
+      <!-- Mobile hamburger -->
+      <button id="hamburger-btn" class="md:hidden flex p-2" onclick="toggleDrawer()" aria-label="Menu">
+        {% if current_user.is_authenticated %}
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="width:28px;height:28px;border-radius:7px;
+                        background:rgba(255,255,255,0.06);
+                        display:flex;align-items:center;justify-content:center">
+              <i class="ti ti-bell" style="font-size:14px;color:#94a3b8"></i>
+            </div>
+            <div style="width:28px;height:28px;border-radius:50%;
+                        background:linear-gradient(135deg,#6366f1,#2dd4bf);
+                        display:flex;align-items:center;justify-content:center;
+                        font-size:10px;font-weight:500;color:#fff;
+                        border:1.5px solid rgba(99,102,241,0.35)">
+              {{ current_user.prenom[0] | upper }}{{ current_user.nom[0] | upper }}
+            </div>
+            <div style="display:flex;flex-direction:column;gap:4px">
+              <span class="hamburger-line"></span>
+              <span class="hamburger-line"></span>
+              <span class="hamburger-line"></span>
+            </div>
+          </div>
+        {% else %}
+          <div style="display:flex;gap:6px;align-items:center">
+            <a href="{{ url_for('auth.connexion') }}"
+               style="background:rgba(255,255,255,0.06);color:#94a3b8;font-size:11px;
+                      padding:5px 10px;border-radius:6px;
+                      border:0.5px solid rgba(255,255,255,0.1);text-decoration:none">
+              Entrer
+            </a>
+            <a href="{{ url_for('auth.inscription') }}"
+               style="background:#6366f1;color:#fff;font-size:11px;
+                      padding:5px 10px;border-radius:6px;text-decoration:none">
+              S'inscrire
+            </a>
+          </div>
+        {% endif %}
+      </button>
+
+    </div>
+
+    <!-- Drawer mobile -->
+    {% if current_user.is_authenticated %}
+    <div id="mobile-drawer" class="hidden md:hidden">
+      <a href="{{ url_for('auth.dashboard') }}" class="drawer-link">
+        <i class="ti ti-layout-dashboard" style="font-size:16px"></i>Tableau de bord
+      </a>
+      <a href="{{ url_for('auth.matching_page') }}" class="drawer-link">
+        <i class="ti ti-users" style="font-size:16px"></i>Matching
+      </a>
+      <a href="{{ url_for('messagerie.messages') }}" class="drawer-link">
+        <i class="ti ti-message-circle" style="font-size:16px"></i>Messages
+      </a>
+      <a href="{{ url_for('auth.demandes') }}" class="drawer-link">
+        <i class="ti ti-clipboard-list" style="font-size:16px"></i>Demandes
+      </a>
+      <a href="{{ url_for('auth.profil') }}" class="drawer-link">
+        <i class="ti ti-user" style="font-size:16px"></i>Mon profil
+      </a>
+      <div class="drawer-divider"></div>
+      <a href="{{ url_for('auth.deconnexion') }}" class="drawer-logout">
+        <i class="ti ti-logout" style="font-size:16px"></i>Déconnexion
+      </a>
+    </div>
+    {% endif %}
+
+  </nav>
+
+  <!-- ═══════════════════ TOAST ═══════════════════ -->
+  <div id="toast-notification"
+       class="hidden fixed z-50"
+       style="top:72px;right:16px;max-width:300px;width:100%">
+    <div class="toast-aurora p-4 flex items-start gap-3">
+      <div id="toast-avatar"
+           style="width:36px;height:36px;border-radius:50%;flex-shrink:0;
+                  background:linear-gradient(135deg,#6366f1,#2dd4bf);
+                  display:flex;align-items:center;justify-content:center;
+                  font-size:12px;font-weight:500;color:#fff">?</div>
+      <div class="flex-1 min-w-0">
+        <p id="toast-nom" style="font-size:13px;font-weight:500;color:#f1f5f9;margin:0 0 2px"></p>
+        <p id="toast-contenu" style="font-size:11px;color:#64748b;margin:0;
+                                      overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></p>
+      </div>
+      {% if current_user.is_authenticated %}
+      <a href="{{ url_for('messagerie.messages') }}"
+         style="font-size:11px;color:#818cf8;font-weight:500;flex-shrink:0;
+                margin-top:2px;text-decoration:none">
+        Voir →
+      </a>
       {% endif %}
     </div>
   </div>
-</nav>
 
-<div id="toast-notification" class="hidden fixed top-20 right-4 z-50 max-w-xs bg-white border rounded-2xl shadow-lg p-4 flex gap-3">
-  <div class="w-9 h-9 rounded-full bg-accent flex items-center justify-center text-white text-sm font-bold" id="toast-avatar">?</div>
-  <div class="flex-1"><p class="text-sm font-semibold" id="toast-nom"></p><p class="text-xs text-slate-500 truncate" id="toast-contenu"></p></div>
-  <a href="{{ url_for('messagerie.messages') }}" class="text-xs text-accent">Voir →</a>
-</div>
+  <!-- ═══════════════════ CONTENU ═══════════════════ -->
+  <main class="flex-1">
+    {% block contenu %}{% endblock %}
+  </main>
 
-<main class="flex-1">{% block contenu %}{% endblock %}</main>
-<footer class="bg-slate-900 text-slate-400 text-sm text-center py-4">© 2026 IFRI MentorLink — Université d'Abomey-Calavi</footer>
+  <!-- ═══════════════════ FOOTER ═══════════════════ -->
+  <footer class="footer-aurora mt-auto">
+    <div class="max-w-6xl mx-auto px-5 py-8 grid grid-cols-1 gap-6 md:grid-cols-3">
+      <div>
+        <p style="color:#f1f5f9;font-size:14px;font-weight:500;margin-bottom:6px">
+          Mentor<span style="color:#818cf8">Link</span>
+        </p>
+        <p style="font-size:12px;color:#334155;line-height:1.6">
+          Plateforme de mentorat académique pour les étudiants de l'IFRI,
+          Université d'Abomey-Calavi.
+        </p>
+      </div>
+      <div>
+        <p style="font-size:10px;color:#334155;text-transform:uppercase;
+                  letter-spacing:.08em;font-weight:500;margin-bottom:8px">Navigation</p>
+        {% if current_user.is_authenticated %}
+          <a href="{{ url_for('auth.dashboard') }}" style="display:block;font-size:12px;color:#475569;margin-bottom:5px;text-decoration:none">Tableau de bord</a>
+          <a href="{{ url_for('auth.matching_page') }}" style="display:block;font-size:12px;color:#475569;margin-bottom:5px;text-decoration:none">Matching</a>
+          <a href="{{ url_for('messagerie.messages') }}" style="display:block;font-size:12px;color:#475569;margin-bottom:5px;text-decoration:none">Messages</a>
+        {% else %}
+          <a href="{{ url_for('auth.accueil') }}" style="display:block;font-size:12px;color:#475569;margin-bottom:5px;text-decoration:none">Accueil</a>
+          <a href="{{ url_for('auth.connexion') }}" style="display:block;font-size:12px;color:#475569;margin-bottom:5px;text-decoration:none">Se connecter</a>
+          <a href="{{ url_for('auth.inscription') }}" style="display:block;font-size:12px;color:#475569;margin-bottom:5px;text-decoration:none">S'inscrire</a>
+        {% endif %}
+      </div>
+      <div>
+        <p style="font-size:10px;color:#334155;text-transform:uppercase;
+                  letter-spacing:.08em;font-weight:500;margin-bottom:8px">IFRI</p>
+        <p style="font-size:12px;color:#475569;margin-bottom:5px">Université d'Abomey-Calavi</p>
+        <p style="font-size:12px;color:#475569;margin-bottom:5px">PIL1 · 2025-2026</p>
+        <p style="font-size:12px;color:#475569">Groupe 34</p>
+      </div>
+    </div>
+    <div style="border-top:0.5px solid rgba(255,255,255,0.04);padding:10px 20px;
+                display:flex;align-items:center;justify-content:space-between">
+      <p style="font-size:11px;color:#1e293b;margin:0">© 2026 MentorLink — IFRI, Université d'Abomey-Calavi</p>
+      <p style="font-size:11px;color:#1e293b;margin:0">PIL1 · Groupe 34</p>
+    </div>
+  </footer>
 
-<script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
-{% if current_user.is_authenticated %}
-<script>
-  const MOI_ID_GLOBAL = {{ current_user.id }};
-  const socket_global = io();
-  socket_global.emit('rejoindre_salle_perso', { user_id: MOI_ID_GLOBAL });
-  let nbNonLus = 0;
-  socket_global.on('nouveau_message_notif', function(data) {
-    if(data.receiver_id !== MOI_ID_GLOBAL || window.location.pathname === '/messages') return;
-    nbNonLus++;
-    document.getElementById('badge-messages').textContent = nbNonLus > 9 ? '9+' : nbNonLus;
-    document.getElementById('badge-messages').classList.remove('hidden');
-    const toast = document.getElementById('toast-notification');
-    document.getElementById('toast-avatar').textContent = (data.pseudo?.split(' ').map(n=>n[0]).join('').toUpperCase() || '?').slice(0,2);
-    document.getElementById('toast-nom').textContent = data.pseudo;
-    document.getElementById('toast-contenu').textContent = data.msg;
-    toast.classList.remove('hidden');
-    clearTimeout(window._toastTimer);
-    window._toastTimer = setTimeout(() => toast.classList.add('hidden'), 5000);
-  });
-  if(window.location.pathname === '/messages') document.getElementById('badge-messages').classList.add('hidden');
-</script>
-{% endif %}
-{% block scripts %}{% endblock %}
+  <!-- ═══════════════════ SCRIPTS ═══════════════════ -->
+  <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+
+  <script>
+    function toggleDrawer() {
+      const drawer = document.getElementById('mobile-drawer');
+      if (drawer) drawer.classList.toggle('hidden');
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+      const path = window.location.pathname;
+      document.querySelectorAll('.drawer-link').forEach(function(link) {
+        if (link.getAttribute('href') === path) link.classList.add('active');
+      });
+    });
+  </script>
+
+  {% if current_user.is_authenticated %}
+  <script>
+    const MOI_ID_GLOBAL = {{ current_user.id }};
+    const socket_global = io();
+    socket_global.emit('rejoindre_salle_perso', { user_id: MOI_ID_GLOBAL });
+    let nbNonLus = 0;
+
+    socket_global.on('nouveau_message_notif', function(data) {
+      if (data.receiver_id !== MOI_ID_GLOBAL) return;
+      if (window.location.pathname === '/messages') return;
+      nbNonLus++;
+      const badge = document.getElementById('badge-messages');
+      badge.textContent = nbNonLus > 9 ? '9+' : String(nbNonLus);
+      badge.style.display = 'flex';
+      const toast    = document.getElementById('toast-notification');
+      const avatar   = document.getElementById('toast-avatar');
+      const nom      = document.getElementById('toast-nom');
+      const contenu  = document.getElementById('toast-contenu');
+      const initiales = (data.pseudo || '?').split(' ').map(function(n){ return n[0]; }).join('').toUpperCase().slice(0,2);
+      avatar.textContent  = initiales;
+      nom.textContent     = data.pseudo || 'Nouveau message';
+      contenu.textContent = data.msg    || '';
+      toast.classList.remove('hidden');
+      clearTimeout(window._toastTimer);
+      window._toastTimer = setTimeout(function() { toast.classList.add('hidden'); }, 5000);
+    });
+
+    if (window.location.pathname === '/messages') {
+      const badge = document.getElementById('badge-messages');
+      if (badge) badge.style.display = 'none';
+    }
+  </script>
+  {% endif %}
+
+  {% block scripts %}{% endblock %}
 </body>
 </html>
