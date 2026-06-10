@@ -8,8 +8,9 @@ from flask_login import (
 )
 from app import db
 from app.models import (Competence, UserCompetence, UserLacune, Lacune,
-                         Disponibilite, User, DemandeMentorat)
-from app.matching import calculer_match, get_top_mentors, get_top_mentores
+                         Disponibilite, User, DemandeMentorat, OffreDemande)  # ← AJOUT OffreDemande
+from app.matching import (calculer_match, get_top_mentors, get_top_mentores,
+                           get_meilleures_correspondances)  # ← AJOUT get_meilleures_correspondances
 from app.securite import inscrire_etudiant, verifier_connexion
 from werkzeug.utils import secure_filename
 import secrets
@@ -31,7 +32,8 @@ matching_bp = Blueprint("matching", __name__)
 auth_bp = Blueprint("auth", __name__)
 
 
-# ======================= MATCHING =======================
+# ======================= MATCHING BLUEPRINT =======================
+
 @matching_bp.route("/match/<int:mentore_id>/<int:mentor_id>")
 @login_required
 def match(mentore_id, mentor_id):
@@ -66,6 +68,7 @@ def api_user(user_id):
 
 
 # ======================= AUTHENTIFICATION =======================
+
 @auth_bp.route("/")
 def accueil():
     if current_user.is_authenticated:
@@ -88,10 +91,13 @@ def dashboard():
             mentore = User.query.get(item["mentore_id"])
             if mentore:
                 top_mentores.append({"user": mentore, "score": item["score"]})
-    demandes = DemandeMentorat.query.filter_by(etudiant_id=current_user.id).order_by(DemandeMentorat.date_demande.desc()).limit(5).all()
+    demandes = DemandeMentorat.query.filter_by(
+        etudiant_id=current_user.id
+    ).order_by(DemandeMentorat.date_demande.desc()).limit(5).all()
     messages_recents = current_user.messages_recus[-5:] if current_user.messages_recus else []
     return render_template("dashboard.html", user=current_user, top_mentors=top_mentors,
-                           top_mentores=top_mentores, demandes=demandes, messages_recents=messages_recents)
+                           top_mentores=top_mentores, demandes=demandes,
+                           messages_recents=messages_recents)
 
 @auth_bp.route("/inscription", methods=["GET", "POST"])
 def inscription():
@@ -116,7 +122,9 @@ def connexion():
     if current_user.is_authenticated:
         return redirect(url_for("auth.dashboard"))
     if request.method == "POST":
-        user, message = verifier_connexion(request.form.get("email"), request.form.get("mot_de_passe"))
+        user, message = verifier_connexion(
+            request.form.get("email"), request.form.get("mot_de_passe")
+        )
         if user:
             login_user(user, remember=True)
             flash("Connexion réussie !", "success")
@@ -133,6 +141,7 @@ def deconnexion():
 
 
 # ======================= PROFIL =======================
+
 @auth_bp.route("/profil", methods=["GET"])
 @login_required
 def profil():
@@ -142,12 +151,12 @@ def profil():
 @login_required
 def profil_modifier():
     if request.method == "POST":
-        current_user.nom = request.form.get("nom", current_user.nom)
-        current_user.prenom = request.form.get("prenom", current_user.prenom)
+        current_user.nom     = request.form.get("nom",     current_user.nom)
+        current_user.prenom  = request.form.get("prenom",  current_user.prenom)
         current_user.filiere = request.form.get("filiere", current_user.filiere)
-        current_user.niveau = request.form.get("niveau", current_user.niveau)
-        current_user.role = request.form.get("role", current_user.role)
-        current_user.bio = request.form.get("bio", current_user.bio)
+        current_user.niveau  = request.form.get("niveau",  current_user.niveau)
+        current_user.role    = request.form.get("role",    current_user.role)
+        current_user.bio     = request.form.get("bio",     current_user.bio)
 
         # Photos
         if 'photo_profil' in request.files:
@@ -187,10 +196,10 @@ def profil_modifier():
                     db.session.flush()
                 db.session.add(UserLacune(user_id=current_user.id, lacune_id=lacune.id))
 
-        # Disponibilités (plusieurs créneaux)
-        jours = request.form.getlist("jours[]")
+        # Disponibilités
+        jours        = request.form.getlist("jours[]")
         heures_debut = request.form.getlist("heures_debut[]")
-        heures_fin = request.form.getlist("heures_fin[]")
+        heures_fin   = request.form.getlist("heures_fin[]")
         Disponibilite.query.filter_by(user_id=current_user.id).delete()
         for jour, debut, fin in zip(jours, heures_debut, heures_fin):
             if jour and debut and fin:
@@ -198,7 +207,7 @@ def profil_modifier():
                     user_id=current_user.id,
                     jour_semaine=jour,
                     heure_debut=datetime.strptime(debut, "%H:%M").time(),
-                    heure_fin=datetime.strptime(fin, "%H:%M").time()
+                    heure_fin=datetime.strptime(fin,   "%H:%M").time()
                 ))
 
         db.session.commit()
@@ -214,18 +223,99 @@ def profil_public(user_id):
         return redirect(url_for("auth.profil"))
     demande_existante = DemandeMentorat.query.filter(
         db.or_(
-            db.and_(DemandeMentorat.etudiant_id == current_user.id, DemandeMentorat.mentor_id == profil.id),
-            db.and_(DemandeMentorat.etudiant_id == profil.id, DemandeMentorat.mentor_id == current_user.id)
+            db.and_(DemandeMentorat.etudiant_id == current_user.id,
+                    DemandeMentorat.mentor_id   == profil.id),
+            db.and_(DemandeMentorat.etudiant_id == profil.id,
+                    DemandeMentorat.mentor_id   == current_user.id)
         )
     ).first()
-    return render_template("profil.html", profil=profil, demande_existante=demande_existante)
+    return render_template("profil.html", profil=profil,
+                           demande_existante=demande_existante)
 
 
-# ======================= DEMANDES & MATCHING =======================
-@auth_bp.route("/matching")
+# ======================= MATCHING PAGE =======================
+
+# ← MODIFIÉ : GET + POST pour publier offres/demandes
+@auth_bp.route("/matching", methods=["GET", "POST"])
 @login_required
 def matching_page():
-    return render_template("matching.html", user=current_user)
+    if request.method == "POST":
+        type_pub       = request.form.get("type")
+        matieres       = request.form.get("matieres", "").strip()
+        format_session = request.form.get("format")
+
+        # Construire la chaîne disponibilités
+        jours        = request.form.getlist("jours[]")
+        heures_debut = request.form.getlist("heures_debut[]")
+        heures_fin   = request.form.getlist("heures_fin[]")
+        dispos_list  = []
+        for jour, debut, fin in zip(jours, heures_debut, heures_fin):
+            if jour and debut and fin:
+                dispos_list.append(f"{jour} {debut}-{fin}")
+        disponibilites = ", ".join(dispos_list)
+
+        if not matieres:
+            flash("Les matières sont obligatoires.", "danger")
+            return redirect(url_for("auth.matching_page"))
+
+        # Enregistrer la publication
+        pub = OffreDemande(
+            user_id=current_user.id,
+            type=type_pub,
+            matieres=matieres,
+            disponibilites=disponibilites,
+            format=format_session,
+            statut='active'
+        )
+        db.session.add(pub)
+        db.session.commit()
+
+        # Chercher les correspondances opposées
+        type_recherche = 'offre' if type_pub == 'demande' else 'demande'
+        autres = OffreDemande.query.filter_by(
+            statut='active',
+            type=type_recherche
+        ).filter(OffreDemande.user_id != current_user.id).all()
+
+        resultats = get_meilleures_correspondances(pub, autres)
+
+        return render_template("matching.html", user=current_user,
+                               resultats=resultats, ma_publication=pub)
+
+    return render_template("matching.html", user=current_user,
+                           resultats=None, ma_publication=None)
+
+
+# ← AJOUT : recherche rapide dans les offres/demandes existantes
+@auth_bp.route("/matching/rechercher")
+@login_required
+def rechercher_offres():
+    matiere        = request.args.get("matiere", "").strip()
+    format_session = request.args.get("format", "")
+    type_pub       = request.args.get("type", "offre")
+
+    query = OffreDemande.query.filter_by(
+        statut='active',
+        type=type_pub
+    ).filter(OffreDemande.user_id != current_user.id)
+
+    if matiere:
+        query = query.filter(OffreDemande.matieres.contains(matiere))
+    if format_session:
+        query = query.filter(OffreDemande.format == format_session)
+
+    resultats = query.all()
+    return jsonify([{
+        "id":             r.id,
+        "auteur":         f"{r.auteur.prenom} {r.auteur.nom}",
+        "filiere":        r.auteur.filiere,
+        "matieres":       r.matieres,
+        "disponibilites": r.disponibilites,
+        "format":         r.format
+    } for r in resultats])
+
+
+# ======================= DEMANDES =======================
 
 @auth_bp.route("/demande/<int:cible_id>", methods=["POST"])
 @login_required
@@ -237,11 +327,13 @@ def creer_demande(cible_id):
         return redirect(url_for("auth.matching_page"))
     if current_user.role in ("mentor", "les_deux") and cible.role not in ("mentor",):
         etudiant_id = cible.id
-        mentor_id = current_user.id
+        mentor_id   = current_user.id
     else:
         etudiant_id = current_user.id
-        mentor_id = cible.id
-    existante = DemandeMentorat.query.filter_by(etudiant_id=etudiant_id, mentor_id=mentor_id).first()
+        mentor_id   = cible.id
+    existante = DemandeMentorat.query.filter_by(
+        etudiant_id=etudiant_id, mentor_id=mentor_id
+    ).first()
     if existante:
         flash("Une demande existe déjà entre ces deux personnes.", "warning")
         return redirect(url_for("auth.matching_page"))
@@ -271,12 +363,18 @@ def changer_statut_demande(demande_id):
 @auth_bp.route("/demandes")
 @login_required
 def demandes():
-    demandes_envoyees = DemandeMentorat.query.filter_by(etudiant_id=current_user.id).order_by(DemandeMentorat.date_demande.desc()).all()
-    demandes_recues = DemandeMentorat.query.filter_by(mentor_id=current_user.id).order_by(DemandeMentorat.date_demande.desc()).all()
-    return render_template("demandes.html", demandes_envoyees=demandes_envoyees, demandes_recues=demandes_recues)
+    demandes_envoyees = DemandeMentorat.query.filter_by(
+        etudiant_id=current_user.id
+    ).order_by(DemandeMentorat.date_demande.desc()).all()
+    demandes_recues = DemandeMentorat.query.filter_by(
+        mentor_id=current_user.id
+    ).order_by(DemandeMentorat.date_demande.desc()).all()
+    return render_template("demandes.html", demandes_envoyees=demandes_envoyees,
+                           demandes_recues=demandes_recues)
 
 
 # ======================= RÉINITIALISATION (sans email) =======================
+
 @auth_bp.route("/reinitialisation", methods=["GET", "POST"])
 def demande_reinitialisation():
     if current_user.is_authenticated:
@@ -288,7 +386,10 @@ def demande_reinitialisation():
             user = User.query.filter_by(email=email).first()
             if user:
                 token = secrets.token_urlsafe(32)
-                reset_tokens[token] = {"user_id": user.id, "expiration": datetime.utcnow() + timedelta(hours=24)}
+                reset_tokens[token] = {
+                    "user_id":    user.id,
+                    "expiration": datetime.utcnow() + timedelta(hours=24)
+                }
                 site_url = os.environ.get("SITE_URL", request.host_url.rstrip('/'))
                 lien_generer = f"{site_url}/reinitialisation/{token}"
                 flash("Lien généré ! Copiez-le ci-dessous.", "success")
@@ -322,7 +423,9 @@ def nouveau_mot_de_passe(token):
                 user = User.query.get(token_data["user_id"])
                 if user:
                     from app import bcrypt
-                    user.password_hash = bcrypt.generate_password_hash(mot_de_passe).decode('utf-8')
+                    user.password_hash = bcrypt.generate_password_hash(
+                        mot_de_passe
+                    ).decode('utf-8')
                     db.session.commit()
                     del reset_tokens[token]
                     flash("Mot de passe réinitialisé avec succès !", "success")

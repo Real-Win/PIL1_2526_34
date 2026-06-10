@@ -2,42 +2,44 @@ from app import db
 from flask_login import UserMixin
 
 
+
+# ======================= UTILISATEURS =======================
 class User(UserMixin, db.Model):
     __tablename__ = "users"
 
-    id            = db.Column(db.Integer, primary_key=True)
-    nom           = db.Column(db.String(50),  nullable=False)
-    prenom        = db.Column(db.String(50),  nullable=False)
-    email         = db.Column(db.String(100), unique=True, nullable=False)
-    telephone     = db.Column(db.String(20),  unique=True, nullable=False)
-    filiere       = db.Column(db.String(100), nullable=False)
-    niveau        = db.Column(db.String(10),  default="L1")
-    role          = db.Column(db.String(20),  default="etudiant")
-    password_hash = db.Column(db.String(255), nullable=False)
-    photo_profil  = db.Column(db.String(255), nullable=True)
-    photo_couverture=db.Column(db.String(255), nullable=True)
-    bio           = db.Column(db.Text,        nullable=True)
-    date_inscription = db.Column(db.DateTime, server_default=db.func.current_timestamp())
+    id               = db.Column(db.Integer, primary_key=True)
+    nom              = db.Column(db.String(50),  nullable=False)
+    prenom           = db.Column(db.String(50),  nullable=False)
+    email            = db.Column(db.String(100), unique=True, nullable=False)
+    telephone        = db.Column(db.String(20),  unique=True, nullable=False)
+    filiere          = db.Column(db.String(100), nullable=False)
+    niveau           = db.Column(db.String(10),  default="L1")
+    role             = db.Column(db.String(20),  default="etudiant")
+    password_hash    = db.Column(db.String(255), nullable=False)
+    photo_profil     = db.Column(db.String(255), nullable=True)
+    photo_couverture = db.Column(db.String(255), nullable=True)
+    bio              = db.Column(db.Text,        nullable=True)
+    date_inscription = db.Column(db.DateTime,    server_default=db.func.current_timestamp())
 
-    competences   = db.relationship("Competence",   secondary="user_competences", lazy="joined")
-    lacunes       = db.relationship("Lacune",        secondary="user_lacunes",     lazy="joined")
+    # Relations
+    competences    = db.relationship("Competence",   secondary="user_competences", lazy="joined")
+    lacunes        = db.relationship("Lacune",        secondary="user_lacunes",     lazy="joined")
     disponibilites = db.relationship("Disponibilite", backref="user", lazy=True, cascade="all, delete-orphan")
 
     demandes_envoyees = db.relationship("DemandeMentorat", foreign_keys="DemandeMentorat.etudiant_id", backref="etudiant", lazy=True)
     demandes_recues   = db.relationship("DemandeMentorat", foreign_keys="DemandeMentorat.mentor_id",   backref="mentor",   lazy=True)
-    messages_envoyes  = db.relationship("Message", foreign_keys="Message.sender_id",   backref="expediteur",  lazy=True)
+    messages_envoyes  = db.relationship("Message", foreign_keys="Message.sender_id",   backref="expediteur",   lazy=True)
     messages_recus    = db.relationship("Message", foreign_keys="Message.receiver_id", backref="destinataire", lazy=True)
-    reset_tokens      = db.relationship("PasswordResetToken", backref="user", lazy=True, cascade="all, delete-orphan")
+
+    # ← AJOUT : relation publications (offres/demandes matching)
+    publications = db.relationship("OffreDemande", backref="auteur", lazy=True, cascade="all, delete-orphan")
+
+    reset_tokens = db.relationship("PasswordResetToken", backref="user", lazy=True, cascade="all, delete-orphan")
 
 
+# ======================= COMPÉTENCES =======================
 class Competence(db.Model):
     __tablename__ = "competences"
-    id  = db.Column(db.Integer, primary_key=True)
-    nom = db.Column(db.String(100), unique=True, nullable=False)
-
-
-class Lacune(db.Model):
-    __tablename__ = "lacunes"
     id  = db.Column(db.Integer, primary_key=True)
     nom = db.Column(db.String(100), unique=True, nullable=False)
 
@@ -49,12 +51,20 @@ class UserCompetence(db.Model):
     niveau        = db.Column(db.String(20), default="debutant")
 
 
+# ======================= LACUNES =======================
+class Lacune(db.Model):
+    __tablename__ = "lacunes"
+    id  = db.Column(db.Integer, primary_key=True)
+    nom = db.Column(db.String(100), unique=True, nullable=False)
+
+
 class UserLacune(db.Model):
     __tablename__ = "user_lacunes"
-    user_id   = db.Column(db.Integer, db.ForeignKey("users.id"),    primary_key=True)
-    lacune_id = db.Column(db.Integer, db.ForeignKey("lacunes.id"),  primary_key=True)
+    user_id   = db.Column(db.Integer, db.ForeignKey("users.id"),   primary_key=True)
+    lacune_id = db.Column(db.Integer, db.ForeignKey("lacunes.id"), primary_key=True)
 
 
+# ======================= DISPONIBILITÉS =======================
 class Disponibilite(db.Model):
     __tablename__ = "disponibilites"
     id           = db.Column(db.Integer, primary_key=True)
@@ -64,6 +74,7 @@ class Disponibilite(db.Model):
     heure_fin    = db.Column(db.Time, nullable=False)
 
 
+# ======================= DEMANDES DE MENTORAT =======================
 class DemandeMentorat(db.Model):
     __tablename__ = "demandes_mentorat"
     id                  = db.Column(db.Integer, primary_key=True)
@@ -76,6 +87,7 @@ class DemandeMentorat(db.Model):
     sessions            = db.relationship("SessionMentorat", backref="demande", lazy=True, cascade="all, delete-orphan")
 
 
+# ======================= SESSIONS =======================
 class SessionMentorat(db.Model):
     __tablename__ = "sessions"
     id           = db.Column(db.Integer, primary_key=True)
@@ -87,6 +99,7 @@ class SessionMentorat(db.Model):
     notes        = db.Column(db.Text)
 
 
+# ======================= MESSAGES =======================
 class Message(db.Model):
     __tablename__ = "messages"
     id          = db.Column(db.Integer, primary_key=True)
@@ -97,6 +110,7 @@ class Message(db.Model):
     date_envoi  = db.Column(db.DateTime, server_default=db.func.current_timestamp())
 
 
+# ======================= TOKENS RÉINITIALISATION =======================
 class PasswordResetToken(db.Model):
     __tablename__ = "password_reset_tokens"
     id         = db.Column(db.Integer, primary_key=True)
@@ -104,3 +118,16 @@ class PasswordResetToken(db.Model):
     user_id    = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     expiration = db.Column(db.DateTime, nullable=False)
     utilise    = db.Column(db.Boolean, default=False)
+
+
+# ======================= OFFRES / DEMANDES MATCHING ← AJOUT =======================
+class OffreDemande(db.Model):
+    __tablename__ = "offres_demandes"
+    id             = db.Column(db.Integer, primary_key=True)
+    user_id        = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    type           = db.Column(db.String(10),  nullable=False)   # 'offre' ou 'demande'
+    matieres       = db.Column(db.Text,        nullable=False)   # "Python, SQL, Algo"
+    disponibilites = db.Column(db.Text)                          # "Lundi 14:00-17:00"
+    format         = db.Column(db.String(20))                    # 'ligne', 'presentiel', 'les_deux'
+    statut         = db.Column(db.String(20),  default='active')
+    date_creation  = db.Column(db.DateTime,    server_default=db.func.current_timestamp())
