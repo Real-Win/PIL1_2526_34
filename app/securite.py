@@ -1,34 +1,27 @@
 from app import db, bcrypt
-from app.models import User
+from app.models import User, PasswordResetToken
 import secrets
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
+import requests
 from datetime import datetime, timedelta
 import os
-import traceback
-
-reset_tokens = {}
 
 
 def inscrire_etudiant(nom, prenom, email, telephone, filiere, niveau, role, mot_de_passe):
     try:
-        existing_user = User.query.filter(
+        existing = User.query.filter(
             (User.email == email) | (User.telephone == telephone)
         ).first()
-        if existing_user:
+        if existing:
             return False, "Email ou téléphone déjà utilisé."
         password_hash = bcrypt.generate_password_hash(mot_de_passe).decode('utf-8')
-        user = User(
-            nom=nom, prenom=prenom, email=email, telephone=telephone,
-            filiere=filiere, niveau=niveau, role=role, password_hash=password_hash
-        )
+        user = User(nom=nom, prenom=prenom, email=email, telephone=telephone,
+                    filiere=filiere, niveau=niveau, role=role, password_hash=password_hash)
         db.session.add(user)
         db.session.commit()
         return True, "Inscription réussie !"
     except Exception as e:
         db.session.rollback()
-        return False, f"Erreur inscription : {e}"
+        return False, f"Erreur lors de l'inscription : {e}"
 
 
 def verifier_connexion(email, mot_de_passe_saisi):
@@ -38,132 +31,124 @@ def verifier_connexion(email, mot_de_passe_saisi):
             return None, "Aucun utilisateur trouvé avec cet email."
         if bcrypt.check_password_hash(user.password_hash, mot_de_passe_saisi):
             return user, "Connexion réussie !"
-        else:
-            return None, "Mot de passe incorrect."
+        return None, "Mot de passe incorrect."
     except Exception as e:
-        return None, f"Erreur connexion : {e}"
+        return None, f"Erreur lors de la connexion : {e}"
 
 
-def envoyer_email_smtp(destinataire, sujet, contenu_html):
-    """Envoie un email via SMTP Brevo avec logs détaillés"""
+def envoyer_email_api(destinataire, sujet, contenu_html):
     try:
-        print("📧 [1/6] Début de l'envoi d'email...")
-        
-        smtp_user = os.environ.get("BREVO_SMTP_USER")
-        smtp_password = os.environ.get("BREVO_SMTP_PASSWORD")
-        EMAIL_EXPEDITEUR = os.environ.get("BREVO_SMTP_USER")  # Utilise l'email SMTP comme expéditeur
-        
-        print(f"📧 [2/6] SMTP User configuré: {smtp_user is not None}")
-        print(f"📧 [3/6] SMTP Password configuré: {smtp_password is not None}")
-        
-        if not smtp_user or not smtp_password:
-            print("❌ [ERREUR] Identifiants SMTP non configurés")
+        api_key = os.environ.get("BREVO_SMTP_PASSWORD")
+        if not api_key:
+            print("❌ Clé API Brevo manquante.")
             return False
-        
-        smtp_server = "smtp-relay.brevo.com"
-        smtp_port = 587
-        
-        print(f"📧 [4/6] Connexion à {smtp_server}:{smtp_port}...")
-        
-        msg = MIMEMultipart()
-        msg["From"] = EMAIL_EXPEDITEUR
-        msg["To"] = destinataire
-        msg["Subject"] = sujet
-        msg.attach(MIMEText(contenu_html, "html"))
-        
-        # Connexion et envoi
-        server = smtplib.SMTP(smtp_server, smtp_port)
-        server.set_debuglevel(True)  # Affiche toute la communication SMTP
-        server.starttls()
-        print(f"📧 [5/6] Tentative de login...")
-        server.login(smtp_user, smtp_password)
-        print(f"📧 [6/6] Login réussi, envoi du message...")
-        server.send_message(msg)
-        server.quit()
-        
-        print(f"✅ Email envoyé à {destinataire}")
-        return True
-        
+
+        url = "https://api.brevo.com/v3/smtp/email"
+        headers = {
+            "accept": "application/json",
+            "api-key": api_key,
+            "content-type": "application/json"
+        }
+        data = {
+            "sender": {"name": "MentorLink", "email": "ae3c1a001@smtp-brevo.com"},
+            "to": [{"email": destinataire, "name": destinataire}],
+            "subject": sujet,
+            "htmlContent": contenu_html
+        }
+        print(f"📧 Envoi email à {destinataire}...")
+        response = requests.post(url, json=data, headers=headers, timeout=30)
+        if response.status_code == 201:
+            print(f"✅ Email envoyé à {destinataire}")
+            return True
+        print(f"❌ Brevo erreur {response.status_code}: {response.text}")
+        return False
+    except requests.exceptions.Timeout:
+        print("❌ Timeout Brevo.")
+        return False
     except Exception as e:
-        print(f"❌ ERREUR DETAILLEE: {type(e).__name__}: {e}")
-        traceback.print_exc()
+        print(f"❌ Erreur email: {e}")
         return False
 
 
 def demander_reinitialisation(email):
     try:
-        print(f"🔐 Demande de réinitialisation pour: {email}")
-        
         user = User.query.filter_by(email=email).first()
         if not user:
-            return False, "Aucun compte associé à cet email."
-        
-        print(f"🔐 Utilisateur trouvé: {user.prenom} {user.nom}")
-        
+            # Message vague pour sécurité
+            return True, "Si cet email est enregistré, un lien vous a été envoyé (vérifiez vos spams)."
+
+        # Invalider les anciens tokens
+        PasswordResetToken.query.filter_by(user_id=user.id, utilise=False).delete()
+        db.session.flush()
+
         token = secrets.token_urlsafe(32)
-        reset_tokens[token] = {
-            "user_id": user.id, 
-            "expiration": datetime.utcnow() + timedelta(hours=24)
-        }
-        
-        site_url = os.environ.get("SITE_URL", "http://localhost:5000")
-        lien_reset = f"{site_url}/reinitialisation/{token}"
-        
-        print(f"🔐 Lien généré: {lien_reset}")
-        
-        contenu_html = f"""
-        <!DOCTYPE html>
-        <html>
-        <body style="font-family: Arial, sans-serif;">
-            <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-                <div style="background-color: #1e3a5f; color: white; padding: 20px; text-align: center;">
-                    <h1>MentorLink</h1>
-                    <p>Réinitialisation de votre mot de passe</p>
-                </div>
-                <div style="padding: 20px;">
-                    <p>Bonjour <strong>{user.prenom} {user.nom}</strong>,</p>
-                    <p>Cliquez sur le lien ci-dessous :</p>
-                    <div style="text-align: center; margin: 30px 0;">
-                        <a href="{lien_reset}" style="background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px;">Réinitialiser</a>
-                    </div>
-                    <p><a href="{lien_reset}">{lien_reset}</a></p>
-                    <p>Ce lien expire dans 24 heures.</p>
-                </div>
-            </div>
-        </body>
-        </html>
-        """
-        
-        print(f"🔐 Envoi de l'email...")
-        resultat = envoyer_email_smtp(email, "Réinitialisation de votre mot de passe", contenu_html)
-        
-        if resultat:
-            print(f"✅ Email envoyé avec succès à {email}")
-            return True, "Un email de réinitialisation a été envoyé à votre adresse."
-        else:
-            print(f"❌ Échec de l'envoi d'email")
-            return False, "Erreur lors de l'envoi de l'email. Veuillez réessayer."
-            
+        record = PasswordResetToken(
+            token=token,
+            user_id=user.id,
+            expiration=datetime.utcnow() + timedelta(hours=24),
+            utilise=False
+        )
+        db.session.add(record)
+        db.session.commit()
+
+        site_url = os.environ.get("SITE_URL", "https://rising-minds-mentorlink.onrender.com")
+        lien = f"{site_url}/reinitialisation/{token}"
+
+        html = f"""<!DOCTYPE html>
+<html><head><meta charset="UTF-8"></head>
+<body style="font-family:sans-serif;background:#f8fafc;padding:40px 0;">
+  <div style="max-width:520px;margin:auto;background:#fff;border-radius:16px;
+              padding:40px;border:1px solid #e2e8f0;">
+    <h2 style="color:#1e293b;margin:0 0 8px">Réinitialisation de mot de passe</h2>
+    <p style="color:#64748b;margin:0 0 24px">Bonjour <strong>{user.prenom} {user.nom}</strong>,</p>
+    <p style="color:#475569">Vous avez demandé à réinitialiser votre mot de passe MentorLink.</p>
+    <div style="text-align:center;margin:32px 0">
+      <a href="{lien}"
+         style="background:#2563eb;color:#fff;padding:14px 32px;border-radius:10px;
+                text-decoration:none;font-weight:600;font-size:15px;display:inline-block">
+        Réinitialiser mon mot de passe
+      </a>
+    </div>
+    <p style="color:#94a3b8;font-size:13px">Ou copiez ce lien :<br>
+      <a href="{lien}" style="color:#2563eb;word-break:break-all">{lien}</a>
+    </p>
+    <hr style="border:none;border-top:1px solid #e2e8f0;margin:24px 0">
+    <p style="color:#94a3b8;font-size:12px">
+      Ce lien est valable <strong>24 heures</strong>.<br>
+      Si vous n'êtes pas à l'origine de cette demande, ignorez cet email.
+    </p>
+    <p style="color:#94a3b8;font-size:12px;margin-bottom:0">L'équipe MentorLink — IFRI</p>
+  </div>
+</body></html>"""
+
+        ok = envoyer_email_api(email, "Réinitialisation de votre mot de passe MentorLink", html)
+        if ok:
+            return True, "Un email de réinitialisation vous a été envoyé (pensez à vérifier vos spams)."
+        return False, "L'email n'a pas pu être envoyé. Vérifiez la configuration Brevo."
+
     except Exception as e:
-        print(f"❌ Exception dans demander_reinitialisation: {e}")
-        traceback.print_exc()
-        return False, f"Erreur: {e}"
+        db.session.rollback()
+        print(f"❌ Erreur demande réinit: {e}")
+        return False, "Erreur interne. Veuillez réessayer."
 
 
 def reinitialiser_mot_de_passe(token, nouveau_mot_de_passe):
     try:
-        token_data = reset_tokens.get(token)
-        if not token_data:
-            return False, "Lien invalide ou expiré."
-        if datetime.utcnow() > token_data["expiration"]:
-            del reset_tokens[token]
-            return False, "Le lien a expiré."
-        user = User.query.get(token_data["user_id"])
+        record = PasswordResetToken.query.filter_by(token=token, utilise=False).first()
+        if not record:
+            return False, "Ce lien est invalide ou a déjà été utilisé."
+        if datetime.utcnow() > record.expiration:
+            db.session.delete(record)
+            db.session.commit()
+            return False, "Ce lien a expiré. Veuillez refaire une demande."
+        user = User.query.get(record.user_id)
         if not user:
             return False, "Utilisateur introuvable."
         user.password_hash = bcrypt.generate_password_hash(nouveau_mot_de_passe).decode('utf-8')
+        record.utilise = True
         db.session.commit()
-        del reset_tokens[token]
         return True, "Mot de passe réinitialisé avec succès !"
     except Exception as e:
-        return False, f"Erreur: {e}"
+        db.session.rollback()
+        print(f"❌ Erreur réinit: {e}")
+        return False, "Erreur lors de la réinitialisation."
