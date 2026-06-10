@@ -15,6 +15,7 @@ class User(UserMixin, db.Model):
     role          = db.Column(db.String(20),  default="etudiant")
     password_hash = db.Column(db.String(255), nullable=False)
     photo_profil  = db.Column(db.String(255), nullable=True)
+    photo_couverture=db.Column(db.String(255), nullable=True)
     bio           = db.Column(db.Text,        nullable=True)
     date_inscription = db.Column(db.DateTime, server_default=db.func.current_timestamp())
 
