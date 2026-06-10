@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Labo Test Messagerie</title>
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+</head>
+<body style="font-family: Arial, sans-serif; margin: 40px; background-color: #f4f6f9;">
+
+    <h2>💬 Mon Espace de Test - Socket.IO & Affichage</h2>
+    <p>Connecté actuellement en tant que : <strong>{{ current_user.prenom }} {{ current_user.nom }} (ID: {{ current_user.id }})</strong></p>
+    
+    <div style="margin-bottom: 20px; padding: 15px; background: #fff3cd; border-radius: 5px; border: 1px solid #ffeeba;">
+        <strong>⚙️ Paramètres du test :</strong><br><br>
+        Discuter avec l'ID Utilisateur : <input type="number" id="interlocuteur_id" value="2" style="width: 50px; padding: 5px;">
+        <button onclick="ouvrirDiscussion()" style="padding: 5px 10px; cursor: pointer; font-weight: bold; background-color: #007bff; color: white; border: none; border-radius: 3px;">🔄 Ouvrir / Changer de discussion</button>
+    </div>
+
+    <div id="zonediscussion" style="border: 1px solid #ccc; height: 300px; overflow-y: auto; padding: 15px; background: white; margin-bottom: 15px; border-radius: 5px;">
+        <p style="color: gray; font-style: italic;">Cliquez sur le bouton bleu pour charger l'historique et activer la salle en direct.</p>
+    </div>
+
+    <div style="display: flex; gap: 10px;">
+        <input type="text" id="message" placeholder="Écris ton message à envoyer..." style="flex: 1; padding: 12px; border: 1px solid #ccc; border-radius: 5px;">
+        <button onclick="envoyer()" style="padding: 10px 25px; background-color: #28a745; color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer;">Envoyer 🚀</button>
+    </div>
+
+    <script>
+        const socket = io(); 
+        const monId = parseInt("{{ current_user.id }}");
+
+        // 1. Rejoindre la salle Socket.IO et charger l'historique du groupe
+        function ouvrirDiscussion() {
+            const destId = document.getElementById('interlocuteur_id').value;
+            const zone = document.getElementById('zonediscussion');
+
+            zone.innerHTML = '<p style="color: gray; font-style: italic;">Chargement...</p>';
+
+            // On rejoint la salle privée définie par le groupe
+            socket.emit('rejoindre_salle', {
+                'user_id': monId,
+                'contact_id': destId
+            });
+
+            // On va chercher l'historique de l'API de ton groupe
+            fetch(`/api/messages/${destId}`)
+                .then(response => response.json())
+                .then(messages => {
+                    zone.innerHTML = '';
+                    if(messages.length === 0) {
+                        zone.innerHTML = '<p style="color: gray; font-style: italic;">Aucun message historique. Envoyez-en un pour tester !</p>';
+                        return;
+                    }
+
+                    messages.forEach(data => {
+                        const p = document.createElement('p');
+                        p.style.margin = "8px 0";
+                        p.style.textAlign = data.est_moi ? 'right' : 'left';
+                        const auteur = data.est_moi ? "Moi" : `Utilisateur ${destId}`;
+                        
+                        p.innerHTML = `<span style="background: ${data.est_moi ? '#dcf8c6' : '#eee'}; padding: 8px 14px; border-radius: 12px; display: inline-block;">
+                            <strong>${auteur} :</strong> ${data.contenu}
+                        </span>`;
+                        zone.appendChild(p);
+                    });
+                    zone.scrollTop = zone.scrollHeight;
+                });
+        }
+
+        // 2. Envoyer un nouveau message
+        function envoyer() {
+            const msgInput = document.getElementById('message');
+            const destId = document.getElementById('interlocuteur_id').value;
+
+            if (msgInput.value.trim() !== "") {
+                socket.emit('nouveau_message', {
+                    'sender_id': monId,
+                    'receiver_id': destId,
+                    'contenu': msgInput.value
+                });
+                msgInput.value = '';
+            }
+        }
+
+        // 3. Réception en temps réel avec ton style (Pseudo en gras !)
+        socket.on('diffusion_message', (data) => {
+            const zone = document.getElementById('zonediscussion');
+            if (zone.innerHTML.includes("Aucun message") || zone.innerHTML.includes("Cliquez sur")) {
+                zone.innerHTML = '';
+            }
+
+            const p = document.createElement('p');
+            const estMoi = (parseInt(data.sender_id) === monId);
+            p.style.margin = "8px 0";
+            p.style.textAlign = estMoi ? 'right' : 'left';
+            
+            // ICI : Ton affichage du pseudo reçu en gras !
+            p.innerHTML = `<span style="background: ${estMoi ? '#dcf8c6' : '#eee'}; padding: 8px 14px; border-radius: 12px; display: inline-block;">
+                <strong>${data.pseudo} :</strong> ${data.msg} <small style="color:gray; font-size:10px;">${data.date}</small>
+            </span>`;
+            
+            zone.appendChild(p);
+            zone.scrollTop = zone.scrollHeight;
+        });
+
+        document.getElementById('message').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') envoyer();
+        });
+    </script>
+</body>
+</html>

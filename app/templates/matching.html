@@ -57,6 +57,28 @@
         <div v-html="formulaireHTML"></div>
       </div>
 
+      <button
+        @click="lancerRecherche"
+        :disabled="!roleChoisi || chargement"
+        class="w-full bg-accent hover:bg-blue-700 disabled:opacity-50
+               disabled:cursor-not-allowed text-white font-medium
+               py-2.5 rounded-xl transition-colors flex items-center
+               justify-center gap-2">
+        <span v-if="chargement">
+          <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10"
+                    stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor"
+                  d="M4 12a8 8 0 018-8v8z"></path>
+          </svg>
+        </span>
+        <span>[[ chargement ? 'Recherche en cours...' : 'Rechercher' ]]</span>
+      </button>
+
+      <p class="text-xs text-slate-400 text-center mt-3">
+        Tu peux changer de mode à tout moment en recliquant sur un choix
+      </p>
+
     </div>
 
     <!-- ── CAS les_deux : choix du rôle ── -->
