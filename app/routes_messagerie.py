@@ -6,47 +6,35 @@ from app.models import Message, User
 from datetime import datetime
 
 messagerie_bp = Blueprint("messagerie", __name__)
-@messagerie_bp.route("/test-lab")
-def labo_test():
-    # Cette route te permet d'ouvrir ton panel sans être bloqué par la sécurité
-    return render_template("test_brut.html")
 
 
 # ------------------------------------------------------------------
-# PAGE MESSAGES  /messages 
+# PAGE MESSAGES  /messages
 # ------------------------------------------------------------------
 @messagerie_bp.route("/messages")
 @login_required
 def messages():
-    # 1. On récupère toujours tous les autres utilisateurs pour la recherche
     autres_users = User.query.filter(User.id != current_user.id).all()
-    
-    # 2. On récupère tous les messages triés du plus ancien au plus récent
+
     tous_les_messages = Message.query.filter(
         (Message.sender_id   == current_user.id) |
         (Message.receiver_id == current_user.id)
     ).order_by(Message.date_envoi.asc()).all()
 
-    # 3. ALGORITHME DE FILTRAGE : Un dictionnaire pour écraser les doublons
-    # La clé sera l'ID du contact, la valeur sera le dernier message
     derniers_messages_par_contact = {}
-
     for msg in tous_les_messages:
-        # On détermine qui est le contact (l'autre personne)
         contact_id = msg.receiver_id if msg.sender_id == current_user.id else msg.sender_id
-        
-        # On stocke (ou on écrase avec le plus récent) le message pour ce contact
         derniers_messages_par_contact[contact_id] = msg
 
-    # 4. On extrait les messages filtrés et on les trie du plus récent au plus ancien pour la liste
     historique_filtre = list(derniers_messages_par_contact.values())
     historique_filtre.sort(key=lambda x: x.date_envoi, reverse=True)
 
     return render_template(
         "messages.html",
-        historique=historique_filtre,  # Cette liste contient maintenant 1 seule ligne par contact !
+        messages=historique_filtre,
         autres_users=autres_users
     )
+
 
 # ------------------------------------------------------------------
 # API : historique d'une conversation  GET /api/messages/<id>
@@ -54,7 +42,6 @@ def messages():
 @messagerie_bp.route("/api/messages/<int:contact_id>")
 @login_required
 def get_messages(contact_id):
-    """Retourne l'historique JSON entre l'utilisateur connecté et contact_id."""
     msgs = Message.query.filter(
         ((Message.sender_id   == current_user.id) & (Message.receiver_id == contact_id)) |
         ((Message.sender_id   == contact_id)       & (Message.receiver_id == current_user.id))
@@ -69,13 +56,24 @@ def get_messages(contact_id):
 
 
 # ------------------------------------------------------------------
-# SOCKET.IO : rejoindre une salle privée
+# SOCKET.IO : rejoindre la salle de conversation privée
 # ------------------------------------------------------------------
 @socketio.on("rejoindre_salle")
 def rejoindre_salle(data):
     ids   = sorted([int(data["user_id"]), int(data["contact_id"])])
     salle = f"salle_{ids[0]}_{ids[1]}"
     join_room(salle)
+
+
+# ------------------------------------------------------------------
+# SOCKET.IO : rejoindre la salle personnelle (notifications)
+# Chaque user rejoint une salle "perso_<id>" dès qu'il se connecte.
+# C'est dans cette salle qu'on envoie les notifications de nouveaux msgs.
+# ------------------------------------------------------------------
+@socketio.on("rejoindre_salle_perso")
+def rejoindre_salle_perso(data):
+    user_id = int(data["user_id"])
+    join_room(f"perso_{user_id}")
 
 
 # ------------------------------------------------------------------
@@ -92,11 +90,11 @@ def gerer_message(data):
 
     # Sauvegarde en base
     msg = Message(
-        sender_id=sender_id,
-        receiver_id=receiver_id,
-        contenu=contenu,
-        date_envoi=datetime.utcnow(),
-        lu=False
+        sender_id   = sender_id,
+        receiver_id = receiver_id,
+        contenu     = contenu,
+        date_envoi  = datetime.utcnow(),
+        lu          = False
     )
     db.session.add(msg)
     db.session.commit()
@@ -104,6 +102,7 @@ def gerer_message(data):
     expediteur = User.query.get(sender_id)
     pseudo     = f"{expediteur.prenom} {expediteur.nom}" if expediteur else "Inconnu"
 
+    # 1. Diffuser dans la salle de conversation (pour messages.html)
     ids   = sorted([sender_id, receiver_id])
     salle = f"salle_{ids[0]}_{ids[1]}"
 
@@ -114,33 +113,44 @@ def gerer_message(data):
         "sender_id":  sender_id
     }, room=salle)
 
+    # 2. Envoyer une notification dans la salle personnelle du destinataire
+    #    → reçue par base.html sur toutes les pages pour afficher le badge/toast
+    emit("nouveau_message_notif", {
+        "pseudo":      pseudo,
+        "msg":         contenu,
+        "receiver_id": receiver_id,
+        "sender_id":   sender_id
+    }, room=f"perso_{receiver_id}")
 
+
+# ------------------------------------------------------------------
+# SOCKET.IO : quitter une salle
+# ------------------------------------------------------------------
 @socketio.on("quitter_salle")
 def quitter_salle(data):
     ids   = sorted([int(data["user_id"]), int(data["contact_id"])])
     salle = f"salle_{ids[0]}_{ids[1]}"
     leave_room(salle)
+
+
 # ------------------------------------------------------------------
-# SOCKET.IO : Gérer l'état "En train d'écrire"
+# SOCKET.IO : indicateur "en train d'écrire"
 # ------------------------------------------------------------------
 @socketio.on("debut_ecriture")
 def debut_ecriture(data):
     sender_id   = int(data.get("sender_id"))
     receiver_id = int(data.get("receiver_id"))
-    
     ids   = sorted([sender_id, receiver_id])
     salle = f"salle_{ids[0]}_{ids[1]}"
-    
-    # On prévient l'autre utilisateur que le sender écrit
-    emit("l_autre_ecrit", {"sender_id": sender_id, "statut": True}, room=salle, include_self=False)
+    emit("l_autre_ecrit", {"sender_id": sender_id, "statut": True},
+         room=salle, include_self=False)
+
 
 @socketio.on("fin_ecriture")
 def fin_ecriture(data):
     sender_id   = int(data.get("sender_id"))
     receiver_id = int(data.get("receiver_id"))
-    
     ids   = sorted([sender_id, receiver_id])
     salle = f"salle_{ids[0]}_{ids[1]}"
-    
-    # On prévient l'autre utilisateur que le sender a arrêté d'écrire
-    emit("l_autre_ecrit", {"sender_id": sender_id, "statut": False}, room=salle, include_self=False)
+    emit("l_autre_ecrit", {"sender_id": sender_id, "statut": False},
+         room=salle, include_self=False)

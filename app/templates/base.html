@@ -16,15 +16,37 @@
   </script>
   {% block styles %}{% endblock %}
 </head>
-
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
 
   <nav class="bg-slate-900 shadow-md sticky top-0 z-50">
     <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
 
       <a href="{{ url_for('auth.dashboard') if current_user.is_authenticated else url_for('auth.accueil') }}"
-         class="text-white font-semibold text-lg tracking-wide">
-        Mentor<span class="text-blue-400">Link</span>
+         class="flex items-center gap-2">
+        <svg width="36" height="36" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="50" cy="50" r="46" stroke="url(#grad1)" stroke-width="3" fill="none"/>
+          <circle cx="28" cy="32" r="10" fill="#2563EB"/>
+          <path d="M14 62 Q14 46 28 46 Q42 46 42 62 Z" fill="#2563EB" opacity="0.85"/>
+          <circle cx="72" cy="32" r="10" fill="#F59E0B"/>
+          <path d="M58 62 Q58 46 72 46 Q86 46 86 62 Z" fill="#F59E0B" opacity="0.85"/>
+          <ellipse cx="50" cy="56" rx="10" ry="5" fill="#F59E0B" opacity="0.9"/>
+          <ellipse cx="50" cy="54" rx="10" ry="5" fill="#2563EB" opacity="0.9"/>
+          <circle cx="50" cy="76" r="3" fill="#60A5FA"/>
+          <circle cx="36" cy="82" r="2.5" fill="#60A5FA" opacity="0.7"/>
+          <circle cx="64" cy="82" r="2.5" fill="#F59E0B" opacity="0.7"/>
+          <line x1="50" y1="76" x2="36" y2="82" stroke="#60A5FA" stroke-width="1.5" opacity="0.7"/>
+          <line x1="50" y1="76" x2="64" y2="82" stroke="#F59E0B" stroke-width="1.5" opacity="0.7"/>
+          <line x1="36" y1="82" x2="64" y2="82" stroke="#94A3B8" stroke-width="1" opacity="0.5"/>
+          <defs>
+            <linearGradient id="grad1" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#2563EB"/>
+              <stop offset="100%" stop-color="#F59E0B"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        <span class="text-white font-semibold text-lg tracking-wide">
+          Mentor<span class="text-blue-400">Link</span>
+        </span>
       </a>
 
       <div class="flex items-center gap-6">
@@ -42,8 +64,14 @@
             Demandes
           </a>
           <a href="{{ url_for('messagerie.messages') }}"
-             class="text-slate-300 hover:text-white text-sm transition-colors">
+             class="relative text-slate-300 hover:text-white text-sm transition-colors">
             Messages
+            <span id="badge-messages"
+                  class="hidden absolute -top-2 -right-3 min-w-4 h-4
+                         bg-red-500 text-white text-xs font-bold
+                         rounded-full flex items-center justify-center px-1">
+              0
+            </span>
           </a>
           <a href="{{ url_for('auth.profil') }}"
              class="text-slate-300 hover:text-white text-sm transition-colors">
@@ -70,17 +98,94 @@
     </div>
   </nav>
 
-  <!-- ↓ Suppression de max-w-6xl : laisse chaque page gérer sa largeur -->
+  <!-- Toast notification message entrant -->
+  <div id="toast-notification"
+       class="hidden fixed top-20 right-4 z-50 max-w-xs w-full
+              bg-white border border-slate-200 rounded-2xl shadow-lg p-4
+              flex items-start gap-3">
+    <div class="w-9 h-9 rounded-full bg-accent flex items-center
+                justify-center text-white text-sm font-bold flex-shrink-0"
+         id="toast-avatar">?</div>
+    <div class="flex-1 min-w-0">
+      <p class="text-sm font-semibold text-slate-900" id="toast-nom"></p>
+      <p class="text-xs text-slate-500 truncate mt-0.5" id="toast-contenu"></p>
+    </div>
+    {% if current_user.is_authenticated %}
+    <a href="{{ url_for('messagerie.messages') }}"
+       class="text-xs text-accent font-medium hover:text-blue-700 flex-shrink-0 mt-0.5">
+      Voir →
+    </a>
+    {% endif %}
+  </div>
+
   <main class="flex-1">
     {% block contenu %}{% endblock %}
   </main>
 
   <footer class="bg-slate-900 text-slate-400 text-sm text-center py-4 mt-auto">
-    <p>© 2026 MentorLink — IFRI, Université d'Abomey-Calavi</p>
+    <p>© 2026 IFRI MentorLink — Université d'Abomey-Calavi</p>
   </footer>
 
   <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
-  {% block scripts %}{% endblock %}
 
+  {% if current_user.is_authenticated %}
+  <script>
+    // ── Notifications temps réel (global, toutes les pages) ───────
+    const MOI_ID_GLOBAL = {{ current_user.id }};
+    const socket_global = io();
+
+    // Rejoindre la salle personnelle
+    socket_global.emit('rejoindre_salle_perso', { user_id: MOI_ID_GLOBAL });
+
+    let nbNonLus = 0;
+
+    // Écouter les notifications de nouveaux messages
+    socket_global.on('nouveau_message_notif', function(data) {
+      // Ignorer si je suis l'expéditeur ou si je suis déjà sur /messages
+      if (data.receiver_id !== MOI_ID_GLOBAL) return;
+      if (window.location.pathname === '/messages') return;
+
+      nbNonLus++;
+      afficherBadge(nbNonLus);
+      afficherToast(data);
+    });
+
+    // Remettre à zéro quand on arrive sur /messages
+    if (window.location.pathname === '/messages') {
+      nbNonLus = 0;
+      document.getElementById('badge-messages').classList.add('hidden');
+    }
+
+    function afficherBadge(n) {
+      const badge = document.getElementById('badge-messages');
+      badge.textContent = n > 9 ? '9+' : String(n);
+      badge.classList.remove('hidden');
+    }
+
+    function afficherToast(data) {
+      const toast   = document.getElementById('toast-notification');
+      const avatar  = document.getElementById('toast-avatar');
+      const nom     = document.getElementById('toast-nom');
+      const contenu = document.getElementById('toast-contenu');
+
+      const initiales = (data.pseudo || '?')
+        .split(' ').map(function(n) { return n[0]; }).join('').toUpperCase().slice(0, 2);
+
+      avatar.textContent  = initiales;
+      nom.textContent     = data.pseudo || 'Nouveau message';
+      contenu.textContent = data.msg    || '';
+
+      toast.classList.remove('hidden');
+
+      // Disparaît après 5 secondes
+      clearTimeout(window._toastTimer);
+      window._toastTimer = setTimeout(function() {
+        toast.classList.add('hidden');
+      }, 5000);
+    }
+  </script>
+  {% endif %}
+
+  {% block scripts %}{% endblock %}
 </body>
 </html>
