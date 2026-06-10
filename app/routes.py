@@ -11,7 +11,8 @@ from app.models import (Competence, UserCompetence, UserLacune, Lacune,
                          Disponibilite, User, DemandeMentorat)
 from app.matching import calculer_match, get_top_mentors, get_top_mentores
 from app.securite import inscrire_etudiant, verifier_connexion, demander_reinitialisation, reinitialiser_mot_de_passe
-
+import os
+import datetime
 
 # ===== MATCHING BLUEPRINT =====
 matching_bp = Blueprint("matching", __name__)
@@ -381,29 +382,51 @@ def demandes():
 # ------------------------------------------------------------------
 # DEMANDE DE RÉINITIALISATION  /reinitialisation
 # ------------------------------------------------------------------
+# Dictionnaire global pour stocker les tokens (en dehors de la fonction, après les imports)
+# Ajoute cette ligne en haut du fichier, après tous les imports
+reset_tokens_global = {}
+
 @auth_bp.route("/reinitialisation", methods=["GET", "POST"])
 def demande_reinitialisation():
+    global reset_tokens_global
+    
     if current_user.is_authenticated:
         return redirect(url_for("auth.dashboard"))
 
+    lien_generer = None
+    
     if request.method == "POST":
         email = request.form.get("email")
         if email:
-            success, message = demander_reinitialisation(email)
-            flash(message, "success" if success else "danger")
-            if success:
-                return redirect(url_for("auth.connexion"))
+            user = User.query.filter_by(email=email).first()
+            if user:
+                import secrets
+                from datetime import datetime, timedelta
+                
+                token = secrets.token_urlsafe(32)
+                reset_tokens_global[token] = {
+                    "user_id": user.id,
+                    "expiration": datetime.utcnow() + timedelta(hours=24)
+                }
+                
+                site_url = os.environ.get("SITE_URL", request.host_url.rstrip('/'))
+                lien_generer = f"{site_url}/reinitialisation/{token}"
+                
+                flash("Un lien de réinitialisation a été généré. Copiez-le ci-dessous.", "success")
+            else:
+                flash("Aucun compte associé à cet email.", "danger")
         else:
             flash("Veuillez entrer votre adresse email.", "danger")
-
-    return render_template("reinitialisation.html")
-
+    
+    return render_template("reinitialisation.html", lien=lien_generer)
 
 # ------------------------------------------------------------------
 # NOUVEAU MOT DE PASSE  /reinitialisation/<token>
 # ------------------------------------------------------------------
 @auth_bp.route("/reinitialisation/<token>", methods=["GET", "POST"])
 def nouveau_mot_de_passe(token):
+    global reset_tokens_global
+    
     if current_user.is_authenticated:
         return redirect(url_for("auth.dashboard"))
 
@@ -416,9 +439,23 @@ def nouveau_mot_de_passe(token):
         elif mot_de_passe != confirmation:
             flash("Les mots de passe ne correspondent pas.", "danger")
         else:
-            success, message = reinitialiser_mot_de_passe(token, mot_de_passe)
-            flash(message, "success" if success else "danger")
-            if success:
-                return redirect(url_for("auth.connexion"))
+            # Vérifier le token
+            token_data = reset_tokens_global.get(token)
+            if not token_data:
+                flash("Lien invalide ou expiré.", "danger")
+            elif datetime.utcnow() > token_data["expiration"]:
+                del reset_tokens_global[token]
+                flash("Ce lien a expiré. Veuillez refaire une demande.", "danger")
+            else:
+                user = User.query.get(token_data["user_id"])
+                if user:
+                    from app import bcrypt
+                    user.password_hash = bcrypt.generate_password_hash(mot_de_passe).decode('utf-8')
+                    db.session.commit()
+                    del reset_tokens_global[token]
+                    flash("Mot de passe réinitialisé avec succès !", "success")
+                    return redirect(url_for("auth.connexion"))
+                else:
+                    flash("Utilisateur non trouvé.", "danger")
 
     return render_template("nouveau_mot_de_passe.html", token=token)
