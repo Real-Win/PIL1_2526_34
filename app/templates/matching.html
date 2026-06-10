@@ -10,19 +10,17 @@
   <div class="mb-8">
     <h1 class="text-2xl font-bold text-slate-900">Matching</h1>
     <p class="text-slate-500 text-sm mt-1">
-      Trouve la personne idéale grâce à notre algorithme intelligent
+      Trouve la personne idéale selon ton profil
     </p>
   </div>
 
-  <!-- Carte principale -->
-  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-8"
-       id="app">
+  <!-- Carte rôle -->
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-6" id="app">
 
-    <!-- ── CAS 1 & 2 : rôle prédéfini (mentor ou mentore) ── -->
+    <!-- CAS rôle prédéfini (mentor ou mentore) -->
     <div v-if="modeAffichage === 'predefini'">
 
       <div class="flex items-center justify-between mb-4">
-
         <div class="flex items-center gap-3">
           <span
             :class="roleActuel === 'mentor'
@@ -32,61 +30,46 @@
             [[ roleActuel === 'mentor' ? 'Mentor' : 'Mentoré' ]]
           </span>
           <span class="text-sm font-medium text-slate-900">
-            Vous êtes actuellement
-            [[ roleActuel === 'mentor' ? 'Mentor' : 'Mentoré' ]]
+            Tu es actuellement [[ roleActuel === 'mentor' ? 'Mentor' : 'Mentoré' ]]
           </span>
         </div>
-
-        <button
-          @click="basculerVersChoix"
+        <button @click="basculerVersChoix"
           class="text-xs text-slate-500 bg-slate-100 hover:bg-slate-200
-                 border border-slate-200 px-3 py-1.5 rounded-lg
-                 transition-colors">
+                 border border-slate-200 px-3 py-1.5 rounded-lg transition-colors">
           Changer de rôle
         </button>
-
       </div>
 
       <div class="bg-slate-50 rounded-xl p-4 border border-slate-200 mb-4">
         <p class="text-sm text-slate-600" v-if="roleActuel === 'mentor'">
-          En tant que mentor, vous pouvez proposer votre aide à des étudiants
-          qui ont besoin de vos compétences.
+          En tant que mentor, tu peux proposer ton aide à des étudiants
+          qui ont besoin de tes compétences.
         </p>
-        <p class="text-sm text-slate-600" v-if="roleActuel !== 'mentor'">
-          En tant que mentoré, vous pouvez trouver un mentor qui maîtrise
-          les matières où vous avez besoin d'aide.
+        <p class="text-sm text-slate-600" v-else>
+          En tant que mentoré, tu peux trouver un mentor qui maîtrise
+          les matières où tu as des lacunes.
         </p>
       </div>
 
-      <button
-        @click="lancerRecherche"
-        :disabled="chargement"
+      <button @click="lancerRecherche" :disabled="chargement"
         :class="roleActuel === 'mentor'
-          ? 'bg-accent hover:bg-blue-700'
-          : 'bg-green-600 hover:bg-green-700'"
+          ? 'bg-green-600 hover:bg-green-700'
+          : 'bg-accent hover:bg-blue-700'"
         class="w-full disabled:opacity-50 text-white font-medium
                py-2.5 rounded-xl transition-colors flex items-center
                justify-center gap-2">
-        <span v-if="chargement">
-          <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10"
-                    stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor"
-                  d="M4 12a8 8 0 018-8v8z"></path>
-          </svg>
-        </span>
-        <span v-if="!chargement && roleActuel === 'mentor'">
-          Trouver des mentorés
-        </span>
-        <span v-if="!chargement && roleActuel !== 'mentor'">
-          Trouver un mentor
-        </span>
+        <svg v-if="chargement" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+        </svg>
+        <span v-if="!chargement && roleActuel === 'mentor'">🔍 Trouver des mentorés</span>
+        <span v-if="!chargement && roleActuel !== 'mentor'">🔍 Trouver un mentor</span>
         <span v-if="chargement">Recherche en cours...</span>
       </button>
 
     </div>
 
-    <!-- ── CAS 3 : rôle = les_deux ou après "Changer de rôle" ── -->
+    <!-- CAS les_deux : choix du rôle -->
     <div v-if="modeAffichage === 'choix'">
 
       <p class="text-sm font-medium text-slate-900 text-center mb-4">
@@ -95,33 +78,25 @@
 
       <div class="grid grid-cols-2 gap-4 mb-4">
 
-        <div
-          @click="selectionnerRole('mentore')"
+        <div @click="selectionnerRole('mentore')"
           :class="roleChoisi === 'mentore'
             ? 'border-accent bg-blue-50 border-2'
             : 'border-slate-200 hover:border-accent'"
-          class="border rounded-2xl p-5 text-center cursor-pointer
-                 transition-colors">
+          class="border rounded-2xl p-5 text-center cursor-pointer transition-colors">
           <div class="text-3xl mb-3">🎓</div>
-          <p class="text-sm font-medium text-slate-900 mb-1">
-            Je cherche un mentor
-          </p>
+          <p class="text-sm font-medium text-slate-900 mb-1">Je cherche un mentor</p>
           <p class="text-xs text-slate-500">
             Quelqu'un qui maîtrise les matières où j'ai des lacunes
           </p>
         </div>
 
-        <div
-          @click="selectionnerRole('mentor')"
+        <div @click="selectionnerRole('mentor')"
           :class="roleChoisi === 'mentor'
             ? 'border-green-500 bg-green-50 border-2'
             : 'border-slate-200 hover:border-green-500'"
-          class="border rounded-2xl p-5 text-center cursor-pointer
-                 transition-colors">
+          class="border rounded-2xl p-5 text-center cursor-pointer transition-colors">
           <div class="text-3xl mb-3">👨‍🎓</div>
-          <p class="text-sm font-medium text-slate-900 mb-1">
-            Je veux être mentor
-          </p>
+          <p class="text-sm font-medium text-slate-900 mb-1">Je veux être mentor</p>
           <p class="text-xs text-slate-500">
             Aider quelqu'un qui a besoin de mes compétences
           </p>
@@ -129,21 +104,15 @@
 
       </div>
 
-      <button
-        @click="lancerRecherche"
-        :disabled="!roleChoisi || chargement"
+      <button @click="lancerRecherche" :disabled="!roleChoisi || chargement"
         class="w-full bg-accent hover:bg-blue-700 disabled:opacity-50
                disabled:cursor-not-allowed text-white font-medium
                py-2.5 rounded-xl transition-colors flex items-center
                justify-center gap-2">
-        <span v-if="chargement">
-          <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10"
-                    stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor"
-                  d="M4 12a8 8 0 018-8v8z"></path>
-          </svg>
-        </span>
+        <svg v-if="chargement" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+        </svg>
         <span>[[ chargement ? 'Recherche en cours...' : 'Rechercher' ]]</span>
       </button>
 
@@ -156,7 +125,7 @@
   </div>
 
   <!-- Section résultats -->
-  <div>
+  <div id="section-resultats">
 
     <div class="flex items-center justify-between mb-4">
       <h2 class="text-lg font-semibold text-slate-900">Résultats</h2>
@@ -166,46 +135,38 @@
     </div>
 
     <!-- Message initial -->
-    <div id="msg-initial"
-         class="bg-white rounded-2xl border border-slate-200 p-12 text-center">
+    <div id="msg-initial" class="bg-white rounded-2xl border border-slate-200 p-12 text-center">
       <p class="text-slate-400 text-sm font-medium">
-        Lance une recherche pour voir les profils compatibles
+        Lance une recherche pour voir les correspondances
       </p>
       <p class="text-slate-300 text-xs mt-1">
-        Assure-toi d'avoir complété ton profil avec tes compétences
-        et disponibilités
+        L'algorithme analyse compétences, disponibilités et filière
       </p>
     </div>
 
     <!-- Message aucun résultat -->
     <div id="msg-vide"
-         class="hidden bg-white rounded-2xl border border-slate-200
-                p-12 text-center">
-      <p class="text-slate-400 text-sm font-medium">
-        Aucun profil compatible trouvé
-      </p>
+         class="hidden bg-white rounded-2xl border border-slate-200 p-12 text-center">
+      <p class="text-slate-400 text-sm font-medium">Aucune correspondance trouvée</p>
       <p class="text-slate-300 text-xs mt-1">
-        Complète ton profil avec plus de compétences et disponibilités
+        Complète ton profil (compétences, disponibilités) pour améliorer les résultats
       </p>
     </div>
 
-    <!-- Grille des cartes -->
-    <div id="grille-resultats"
-         class="hidden grid grid-cols-1 gap-4 sm:grid-cols-3">
-    </div>
+    <!-- Grille résultats -->
+    <div id="grille-resultats" class="hidden grid grid-cols-1 gap-4 sm:grid-cols-3"></div>
 
   </div>
 
 </div>
 
-<!-- Modal demande / offre de mentorat -->
+<!-- Modal demande de mentorat -->
 <div id="modal-demande"
      class="hidden fixed inset-0 bg-black bg-opacity-50 z-50
             flex items-center justify-center px-4">
   <div class="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md">
 
-    <h3 class="text-lg font-semibold text-slate-900 mb-1"
-        id="modal-titre">
+    <h3 class="text-lg font-semibold text-slate-900 mb-1" id="modal-titre">
       Envoyer une demande
     </h3>
     <p class="text-sm text-slate-500 mb-4" id="modal-destinataire"></p>
@@ -214,14 +175,10 @@
 
       <div>
         <label class="block text-sm font-medium text-slate-700 mb-1">
-          Sujet
+          Sujet / Message
         </label>
-        <textarea
-          name="sujet"
-          id="sujet-demande"
-          rows="3"
-          required
-          placeholder="Ex: J'ai besoin d'aide en algorithmique pour préparer mon examen..."
+        <textarea name="sujet" id="sujet-demande" rows="3" required
+          placeholder="Ex: Bonjour, j'ai besoin d'aide en algorithmique..."
           class="w-full px-4 py-3 rounded-lg border border-slate-300
                  text-sm text-slate-900 bg-white resize-none
                  focus:outline-none focus:ring-2 focus:ring-accent
@@ -230,15 +187,12 @@
       </div>
 
       <div class="flex gap-3">
-        <button
-          type="button"
-          onclick="fermerModal()"
+        <button type="button" onclick="fermerModal()"
           class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700
                  font-medium py-2.5 rounded-lg transition-colors text-sm">
           Annuler
         </button>
-        <button
-          type="submit"
+        <button type="submit"
           class="flex-1 bg-accent hover:bg-blue-700 text-white
                  font-medium py-2.5 rounded-lg transition-colors text-sm">
           Envoyer
@@ -261,20 +215,16 @@
   const roleUtilisateur = "{{ user.role if user else 'les_deux' }}";
   const userId          = {{ user.id if user else 0 }};
 
-  // Rôle recherché en cours (pour savoir quel bouton afficher dans les cartes)
   let modeRechercheCourant = null;
 
   createApp({
     delimiters: ['[[', ']]'],
-
     setup() {
 
-      const modeAffichage = ref(
-        roleUtilisateur === 'les_deux' ? 'choix' : 'predefini'
-      );
-      const roleActuel = ref(roleUtilisateur);
-      const roleChoisi = ref(null);
-      const chargement = ref(false);
+      const modeAffichage = ref(roleUtilisateur === 'les_deux' ? 'choix' : 'predefini');
+      const roleActuel    = ref(roleUtilisateur);
+      const roleChoisi    = ref(null);
+      const chargement    = ref(false);
 
       function basculerVersChoix() {
         modeAffichage.value = 'choix';
@@ -283,34 +233,27 @@
       }
 
       function selectionnerRole(role) {
-        roleChoisi.value = role;
+        roleChoisi.value    = role;
+        roleActuel.value    = role;
+        modeAffichage.value = 'predefini';
       }
 
       function lancerRecherche() {
-        /*
-         * cherche = ce que l'user VEUT TROUVER
-         *   - Si l'user est mentor     → il cherche des mentorés  → cherche = 'mentore'
-         *   - Si l'user est mentoré    → il cherche des mentors   → cherche = 'mentor'
-         *   - Si les_deux / mode choix → dépend du choix dans l'UI
-         *
-         * On passe ce paramètre à la route /top3 pour qu'elle sache quoi retourner.
-         */
         let cherche;
 
         if (modeAffichage.value === 'predefini') {
+          // L'user est mentor → il cherche des mentorés, et vice-versa
           cherche = roleActuel.value === 'mentor' ? 'mentore' : 'mentor';
         } else {
           if (!roleChoisi.value) return;
-          // roleChoisi = ce que l'user veut ÊTRE (mentor ou mentore)
-          // → cherche l'opposé
+          // roleChoisi = ce que l'user veut ÊTRE → on cherche l'opposé
           cherche = roleChoisi.value === 'mentor' ? 'mentore' : 'mentor';
         }
 
         modeRechercheCourant = cherche;
-        chargement.value = true;
+        chargement.value     = true;
         viderResultats();
 
-        // Mise à jour du label
         document.getElementById('label-resultats').textContent =
           cherche === 'mentor'
             ? 'Top 3 mentors compatibles'
@@ -335,15 +278,16 @@
       function viderResultats() {
         document.getElementById('msg-initial').classList.add('hidden');
         document.getElementById('msg-vide').classList.add('hidden');
-        document.getElementById('grille-resultats').classList.add('hidden');
-        document.getElementById('grille-resultats').innerHTML = '';
+        const grille = document.getElementById('grille-resultats');
+        grille.classList.add('hidden');
+        grille.innerHTML = '';
       }
 
       function afficherResultats(data, cherche) {
         const grille = document.getElementById('grille-resultats');
+        let chargees = 0;
 
         data.forEach(item => {
-          // Selon le mode, l'id est dans mentor_id ou mentore_id
           const cibleId = item.mentor_id ?? item.mentore_id;
           const score   = item.score;
 
@@ -351,42 +295,39 @@
             .then(res => res.json())
             .then(profil => {
               grille.appendChild(creerCarte(profil, score, cherche));
-              grille.classList.remove('hidden');
+              chargees++;
+              if (chargees === data.length) {
+                grille.classList.remove('hidden');
+              }
             })
             .catch(() => {
               grille.appendChild(creerCarteBasique(cibleId, score));
-              grille.classList.remove('hidden');
+              chargees++;
+              if (chargees === data.length) {
+                grille.classList.remove('hidden');
+              }
             });
         });
       }
 
       function creerCarte(profil, score, cherche) {
-        const div = document.createElement('div');
-        div.className = 'bg-white rounded-2xl shadow-sm border border-slate-200 p-5 hover:border-accent transition-colors';
-
-        const initiales   = (profil.prenom[0] + profil.nom[0]).toUpperCase();
-        const scoreAffiche = Math.round(score);
-        const couleur      = score >= 70 ? '#16A34A'
-                           : score >= 50 ? '#D97706'
-                           : '#DC2626';
-
-        // Bouton : si on cherche un mentor → "Demander un mentorat"
-        //          si on cherche un mentoré → "Proposer mon aide"
-        const labelBouton = cherche === 'mentor'
-          ? 'Demander un mentorat'
-          : 'Proposer mon aide';
+        const div        = document.createElement('div');
+        div.className    = 'bg-white rounded-2xl shadow-sm border border-slate-200 p-5 hover:border-accent transition-colors';
+        const initiales  = (profil.prenom[0] + profil.nom[0]).toUpperCase();
+        const scoreAff   = Math.round(score);
+        const couleur    = score >= 70 ? '#16A34A' : score >= 50 ? '#D97706' : '#DC2626';
+        const labelBtn   = cherche === 'mentor' ? 'Demander un mentorat' : 'Proposer mon aide';
 
         div.innerHTML = `
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+          <div class="flex items-center gap-3 mb-4">
             <div style="width:44px;height:44px;border-radius:50%;
                         background:#2563EB;color:#fff;display:flex;
                         align-items:center;justify-content:center;
-                        font-weight:500;font-size:14px;flex-shrink:0">
+                        font-weight:600;font-size:14px;flex-shrink:0">
               ${initiales}
             </div>
             <div>
-              <p style="font-size:14px;font-weight:500;
-                        color:var(--color-text-primary);margin:0">
+              <p style="font-size:14px;font-weight:600;color:#0F172A;margin:0 0 3px 0">
                 ${profil.prenom} ${profil.nom}
               </p>
               <span style="font-size:11px;background:#EFF6FF;color:#1D4ED8;
@@ -397,102 +338,72 @@
           </div>
 
           <div style="margin-bottom:14px">
-            <div style="display:flex;justify-content:space-between;
-                        margin-bottom:4px">
-              <span style="font-size:12px;color:var(--color-text-secondary)">
-                Compatibilité
-              </span>
-              <span style="font-size:13px;font-weight:500;color:${couleur}">
-                ${scoreAffiche}%
-              </span>
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+              <span style="font-size:12px;color:#64748B">Compatibilité</span>
+              <span style="font-size:13px;font-weight:600;color:${couleur}">${scoreAff}%</span>
             </div>
-            <div style="background:var(--color-background-secondary);
-                        border-radius:4px;height:5px;overflow:hidden">
-              <div style="width:${scoreAffiche}%;height:100%;
-                          background:${couleur};border-radius:4px">
-              </div>
+            <div style="background:#F1F5F9;border-radius:4px;height:6px;overflow:hidden">
+              <div style="width:${scoreAff}%;height:100%;background:${couleur};border-radius:4px"></div>
             </div>
           </div>
 
           <button
             onclick="ouvrirModal(${profil.id}, '${profil.prenom} ${profil.nom}', '${cherche}')"
-            style="width:100%;text-align:center;padding:8px;
-                   border-radius:8px;font-size:13px;font-weight:500;
-                   border:0.5px solid var(--color-border-tertiary);
-                   background:var(--color-background-secondary);
-                   color:var(--color-text-primary);cursor:pointer;
-                   transition:all 0.15s">
-            ${labelBouton}
+            class="w-full text-center py-2 rounded-lg text-sm font-medium
+                   bg-slate-50 hover:bg-accent hover:text-white text-slate-700
+                   border border-slate-200 hover:border-accent transition-colors">
+            ${labelBtn}
           </button>
         `;
-
         return div;
       }
 
       function creerCarteBasique(cibleId, score) {
-        const div = document.createElement('div');
+        const div     = document.createElement('div');
         div.className = 'bg-white rounded-2xl shadow-sm border border-slate-200 p-5';
-        const scoreAffiche = Math.round(score);
-
+        const scoreAff = Math.round(score);
         div.innerHTML = `
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+          <div class="flex items-center gap-3 mb-4">
             <div style="width:44px;height:44px;border-radius:50%;
                         background:#94A3B8;color:#fff;display:flex;
                         align-items:center;justify-content:center;
-                        font-weight:500;font-size:14px">?</div>
-            <p style="font-size:14px;font-weight:500;
-                      color:var(--color-text-primary)">
+                        font-size:14px">?</div>
+            <p style="font-size:14px;font-weight:600;color:#0F172A">
               Utilisateur #${cibleId}
             </p>
           </div>
           <div style="margin-bottom:14px">
-            <div style="display:flex;justify-content:space-between;
-                        margin-bottom:4px">
-              <span style="font-size:12px;color:var(--color-text-secondary)">
-                Compatibilité
-              </span>
-              <span style="font-size:13px;font-weight:500;color:#2563EB">
-                ${scoreAffiche}%
-              </span>
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+              <span style="font-size:12px;color:#64748B">Compatibilité</span>
+              <span style="font-size:13px;font-weight:600;color:#2563EB">${scoreAff}%</span>
             </div>
-            <div style="background:var(--color-background-secondary);
-                        border-radius:4px;height:5px;overflow:hidden">
-              <div style="width:${scoreAffiche}%;height:100%;
-                          background:#2563EB;border-radius:4px"></div>
+            <div style="background:#F1F5F9;border-radius:4px;height:6px;overflow:hidden">
+              <div style="width:${scoreAff}%;height:100%;background:#2563EB;border-radius:4px"></div>
             </div>
           </div>
-          <button
-            onclick="ouvrirModal(${cibleId}, 'cet utilisateur', modeRechercheCourant)"
-            style="width:100%;text-align:center;padding:8px;
-                   border-radius:8px;font-size:13px;
-                   border:0.5px solid var(--color-border-tertiary);
-                   background:var(--color-background-secondary);
-                   color:var(--color-text-primary);cursor:pointer">
+          <button onclick="ouvrirModal(${cibleId}, 'cet utilisateur', modeRechercheCourant)"
+            class="w-full text-center py-2 rounded-lg text-sm font-medium
+                   bg-slate-50 hover:bg-accent hover:text-white text-slate-700
+                   border border-slate-200 hover:border-accent transition-colors">
             Contacter
           </button>
         `;
-
         return div;
       }
 
       return {
-        modeAffichage, roleActuel, roleChoisi,
-        chargement, basculerVersChoix,
-        selectionnerRole, lancerRecherche
+        modeAffichage, roleActuel, roleChoisi, chargement,
+        basculerVersChoix, selectionnerRole, lancerRecherche
       };
     }
-
   }).mount('#app');
 
-  // ── Modal ────────────────────────────────────────────────────
+  // ── Modal ──────────────────────────────────────────────────────
   function ouvrirModal(cibleId, nomCible, cherche) {
-    const titre = cherche === 'mentor'
-      ? 'Demander un mentorat'
-      : 'Proposer mon aide';
-
-    document.getElementById('modal-titre').textContent       = titre;
+    const titre = cherche === 'mentor' ? 'Demander un mentorat' : 'Proposer mon aide';
+    document.getElementById('modal-titre').textContent        = titre;
     document.getElementById('modal-destinataire').textContent = `À : ${nomCible}`;
-    document.getElementById('form-demande').action           = `/demande/${cibleId}`;
+    document.getElementById('form-demande').action            = `/demande/${cibleId}`;
     document.getElementById('modal-demande').classList.remove('hidden');
   }
 
@@ -501,10 +412,9 @@
     document.getElementById('sujet-demande').value = '';
   }
 
-  document.getElementById('modal-demande')
-    .addEventListener('click', function(e) {
-      if (e.target === this) fermerModal();
-    });
+  document.getElementById('modal-demande').addEventListener('click', function(e) {
+    if (e.target === this) fermerModal();
+  });
 
 </script>
 {% endblock %}
