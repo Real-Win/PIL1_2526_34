@@ -18,7 +18,9 @@ import os
 from datetime import datetime, timedelta
 
 # Configuration uploads
-UPLOAD_FOLDER = 'static/uploads'
+UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'static', 'uploads')
+UPLOAD_FOLDER = os.path.normpath(UPLOAD_FOLDER)
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'mp4', 'webm', 'pdf'}
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
@@ -164,13 +166,13 @@ def profil_modifier():
             if f and f.filename and allowed_file(f.filename):
                 filename = secure_filename(f"profil_{current_user.id}_{f.filename}")
                 f.save(os.path.join(UPLOAD_FOLDER, filename))
-                current_user.photo_profil = f"/{UPLOAD_FOLDER}/{filename}"
+                current_user.photo_profil = f"/static/uploads/{filename}"
         if 'photo_couverture' in request.files:
             f = request.files['photo_couverture']
             if f and f.filename and allowed_file(f.filename):
                 filename = secure_filename(f"cover_{current_user.id}_{f.filename}")
                 f.save(os.path.join(UPLOAD_FOLDER, filename))
-                current_user.photo_couverture = f"/{UPLOAD_FOLDER}/{filename}"
+                current_user.photo_couverture = f"/static/uploads/{filename}"
 
         # Compétences
         competences_raw = request.form.get("competences", "").strip()
