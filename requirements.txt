@@ -9,3 +9,4 @@ python-socketio==5.11.3
 gunicorn==21.2.0
 gevent>=25.5.1
 gevent-websocket==0.10.1
+requests==2.31.0

@@ -5,6 +5,9 @@
 -- ============================================================
 
 -- Suppression dans l'ordre inverse des dépendances
+DROP TABLE IF EXISTS offres_demandes;
+DROP TABLE IF EXISTS user_lacunes;
+DROP TABLE IF EXISTS lacunes;
 DROP TABLE IF EXISTS messages;
 DROP TABLE IF EXISTS user_competences;
 DROP TABLE IF EXISTS sessions;
@@ -60,7 +63,31 @@ CREATE TABLE user_competences (
 );
 
 -- ──────────────────────────────────────────────────────────
+--  LACUNES
+-- ──────────────────────────────────────────────────────────
+CREATE TABLE lacunes (
+    id  INT          NOT NULL AUTO_INCREMENT,
+    nom VARCHAR(100) NOT NULL,
+
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_lacune_nom (nom)
+);
+
+-- ──────────────────────────────────────────────────────────
+--  LIAISON USER ↔ LACUNES
+-- ──────────────────────────────────────────────────────────
+CREATE TABLE user_lacunes (
+    user_id   INT NOT NULL,
+    lacune_id INT NOT NULL,
+
+    PRIMARY KEY (user_id, lacune_id),
+    CONSTRAINT fk_ul_user   FOREIGN KEY (user_id)   REFERENCES users(id)   ON DELETE CASCADE,
+    CONSTRAINT fk_ul_lacune FOREIGN KEY (lacune_id) REFERENCES lacunes(id) ON DELETE CASCADE
+);
+
+-- ──────────────────────────────────────────────────────────
 --  DISPONIBILITÉS
+--  jour_semaine : Lundi | Mardi | Mercredi | Jeudi | Vendredi | Samedi | Dimanche
 -- ──────────────────────────────────────────────────────────
 CREATE TABLE disponibilites (
     id           INT         NOT NULL AUTO_INCREMENT,
@@ -121,4 +148,24 @@ CREATE TABLE messages (
     PRIMARY KEY (id),
     CONSTRAINT fk_msg_sender   FOREIGN KEY (sender_id)   REFERENCES users(id) ON DELETE CASCADE,
     CONSTRAINT fk_msg_receiver FOREIGN KEY (receiver_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- ──────────────────────────────────────────────────────────
+--  OFFRES / DEMANDES DE MENTORAT (publications matching)
+--  type    : 'offre' (mentor propose) | 'demande' (mentoré cherche)
+--  statut  : 'active' | 'pourvue' | 'archivee'
+--  format  : 'ligne'  | 'presentiel' | 'les_deux'
+-- ──────────────────────────────────────────────────────────
+CREATE TABLE offres_demandes (
+    id             INT          NOT NULL AUTO_INCREMENT,
+    user_id        INT          NOT NULL,
+    type           VARCHAR(10)  NOT NULL,
+    matieres       TEXT         NOT NULL,
+    disponibilites TEXT         DEFAULT NULL,
+    format         VARCHAR(20)  DEFAULT NULL,
+    statut         VARCHAR(20)  NOT NULL DEFAULT 'active',
+    date_creation  DATETIME     DEFAULT CURRENT_TIMESTAMP,
+
+    PRIMARY KEY (id),
+    CONSTRAINT fk_od_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
