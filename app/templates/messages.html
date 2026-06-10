@@ -21,13 +21,6 @@
 
         <div class="flex-1 overflow-y-auto">
 
-          {#
-            On fusionne messages + autres_users en une seule liste.
-            - 'messages' = derniers messages reçus (avec expediteur)
-            - 'autres_users' = contacts sans message encore
-            On collecte les IDs déjà affichés pour éviter les doublons.
-          #}
-
           {% set ids_affiches = [] %}
 
           {% if messages %}
@@ -268,5 +261,15 @@
   window.ouvrirConversation = (userId, nomComplet) => {
     vueInstance.ouvrirConversation(userId, nomComplet);
   };
+
+  // ── Auto-ouvrir la conversation si on vient d'une demande acceptée ──
+  {% if contact_ouverture %}
+  window.addEventListener('load', () => {
+    ouvrirConversation(
+      {{ contact_ouverture.id }},
+      "{{ contact_ouverture.prenom }} {{ contact_ouverture.nom }}"
+    );
+  });
+  {% endif %}
 </script>
 {% endblock %}

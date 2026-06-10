@@ -1,8 +1,8 @@
-from flask import Blueprint, render_template, jsonify
+from flask import Blueprint, render_template, jsonify, request
 from flask_login import login_required, current_user
 from flask_socketio import emit, join_room, leave_room
 from app import db, socketio
-from app.models import Message, User
+from app.models import Message, User, DemandeMentorat
 from datetime import datetime
 
 messagerie_bp = Blueprint("messagerie", __name__)
@@ -14,8 +14,28 @@ messagerie_bp = Blueprint("messagerie", __name__)
 @messagerie_bp.route("/messages")
 @login_required
 def messages():
-    autres_users = User.query.filter(User.id != current_user.id).all()
 
+    # Contacts uniquement depuis demandes acceptées
+    contacts_ids = set()
+    autres_users = []
+
+    demandes_acc = DemandeMentorat.query.filter(
+        DemandeMentorat.statut == "acceptee",
+        db.or_(
+            DemandeMentorat.etudiant_id == current_user.id,
+            DemandeMentorat.mentor_id   == current_user.id
+        )
+    ).all()
+
+    for d in demandes_acc:
+        autre_id = d.mentor_id if d.etudiant_id == current_user.id else d.etudiant_id
+        if autre_id not in contacts_ids:
+            contacts_ids.add(autre_id)
+            u = User.query.get(autre_id)
+            if u:
+                autres_users.append(u)
+
+    # Derniers messages par contact
     tous_les_messages = Message.query.filter(
         (Message.sender_id   == current_user.id) |
         (Message.receiver_id == current_user.id)
@@ -29,10 +49,15 @@ def messages():
     historique_filtre = list(derniers_messages_par_contact.values())
     historique_filtre.sort(key=lambda x: x.date_envoi, reverse=True)
 
+    # Auto-ouvrir depuis ?contact=ID
+    contact_id        = request.args.get("contact", type=int)
+    contact_ouverture = User.query.get(contact_id) if contact_id else None
+
     return render_template(
         "messages.html",
         messages=historique_filtre,
-        autres_users=autres_users
+        autres_users=autres_users,
+        contact_ouverture=contact_ouverture
     )
 
 
@@ -67,8 +92,6 @@ def rejoindre_salle(data):
 
 # ------------------------------------------------------------------
 # SOCKET.IO : rejoindre la salle personnelle (notifications)
-# Chaque user rejoint une salle "perso_<id>" dès qu'il se connecte.
-# C'est dans cette salle qu'on envoie les notifications de nouveaux msgs.
 # ------------------------------------------------------------------
 @socketio.on("rejoindre_salle_perso")
 def rejoindre_salle_perso(data):
@@ -88,7 +111,6 @@ def gerer_message(data):
     if not contenu:
         return
 
-    # Sauvegarde en base
     msg = Message(
         sender_id   = sender_id,
         receiver_id = receiver_id,
@@ -102,19 +124,16 @@ def gerer_message(data):
     expediteur = User.query.get(sender_id)
     pseudo     = f"{expediteur.prenom} {expediteur.nom}" if expediteur else "Inconnu"
 
-    # 1. Diffuser dans la salle de conversation (pour messages.html)
     ids   = sorted([sender_id, receiver_id])
     salle = f"salle_{ids[0]}_{ids[1]}"
 
     emit("diffusion_message", {
-        "pseudo":     pseudo,
-        "msg":        contenu,
-        "date":       msg.date_envoi.strftime("%H:%M"),
-        "sender_id":  sender_id
+        "pseudo":    pseudo,
+        "msg":       contenu,
+        "date":      msg.date_envoi.strftime("%H:%M"),
+        "sender_id": sender_id
     }, room=salle)
 
-    # 2. Envoyer une notification dans la salle personnelle du destinataire
-    #    → reçue par base.html sur toutes les pages pour afficher le badge/toast
     emit("nouveau_message_notif", {
         "pseudo":      pseudo,
         "msg":         contenu,
