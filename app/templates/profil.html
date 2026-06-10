@@ -34,10 +34,10 @@
     </div>
   {% endif %}
 
-  <!-- Carte principale avec couverture et avatar -->
+  <!-- Carte principale -->
   <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden mb-4">
     <!-- Photo de couverture -->
-    {% if u.photo_couverture %}
+    {% if u.photo_couverture and u.photo_couverture.strip() %}
       <div style="height: 130px; overflow: hidden;">
         <img src="{{ u.photo_couverture }}" class="w-full h-32 object-cover" alt="Couverture">
       </div>
@@ -46,14 +46,12 @@
     {% endif %}
 
     <div class="px-6 pb-6">
-      <!-- Avatar (photo de profil) -->
+      <!-- Avatar -->
       <div style="margin-top: -36px; margin-bottom: 14px;">
         <div style="width: 76px; height: 76px; border-radius: 50%; background: linear-gradient(135deg,#6366f1,#2dd4bf);
-                    display: flex; align-items: center; justify-content: center;
-                    font-size: 26px; font-weight: 500; color: #fff;
-                    border: 4px solid #fff; box-shadow: 0 0 0 2px rgba(99,102,241,0.25);
-                    overflow: hidden;">
-          {% if u.photo_profil %}
+                    display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: 500; color: #fff;
+                    border: 4px solid #fff; box-shadow: 0 0 0 2px rgba(99,102,241,0.25); overflow: hidden;">
+          {% if u.photo_profil and u.photo_profil.strip() %}
             <img src="{{ u.photo_profil }}" class="w-full h-full object-cover" alt="Avatar">
           {% else %}
             {{ u.prenom[0] | upper }}{{ u.nom[0] | upper }}

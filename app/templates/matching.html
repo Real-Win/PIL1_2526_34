@@ -3,679 +3,178 @@
 {% block titre %}Matching — MentorLink{% endblock %}
 
 {% block contenu %}
-
 <div class="max-w-4xl mx-auto py-10 px-4">
 
   <!-- En-tête -->
   <div class="mb-8">
     <h1 class="text-2xl font-bold text-slate-900">Matching</h1>
-    <p class="text-slate-500 text-sm mt-1">
-      Publie une offre ou une demande et trouve la personne idéale
-    </p>
+    <p class="text-slate-500 text-sm mt-1">Publie une offre ou une demande et trouve la personne idéale</p>
   </div>
 
-  <!-- Carte rôle + formulaire -->
-  <div class="bg-white rounded-2xl shadow-sm border border-slate-200
-              p-6 mb-6" id="app">
-
-    <!-- ── CAS rôle prédéfini (mentor ou mentore) ── -->
+  <!-- Carte rôle + formulaire (Vue.js) -->
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-6" id="app">
     <div v-if="modeAffichage === 'predefini'">
-
       <div class="flex items-center justify-between mb-6">
         <div class="flex items-center gap-3">
-          <span
-            :class="roleActuel === 'mentor'
-              ? 'bg-blue-50 text-blue-700 border-blue-200'
-              : 'bg-green-50 text-green-700 border-green-200'"
-            class="text-xs font-medium px-3 py-1.5 rounded-full border">
+          <span :class="roleActuel === 'mentor' ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-green-50 text-green-700 border-green-200'" class="text-xs font-medium px-3 py-1.5 rounded-full border">
             [[ roleActuel === 'mentor' ? 'Mentor' : 'Mentoré' ]]
           </span>
-          <span class="text-sm font-medium text-slate-900">
-            Vous êtes actuellement
-            [[ roleActuel === 'mentor' ? 'Mentor' : 'Mentoré' ]]
-          </span>
+          <span class="text-sm font-medium text-slate-900">Vous êtes actuellement [[ roleActuel === 'mentor' ? 'Mentor' : 'Mentoré' ]]</span>
         </div>
-        <button
-          @click="basculerVersChoix"
-          class="text-xs text-slate-500 bg-slate-100 hover:bg-slate-200
-                 border border-slate-200 px-3 py-1.5 rounded-lg
-                 transition-colors">
-          Changer de rôle
-        </button>
+        <button @click="basculerVersChoix" class="text-xs text-slate-500 bg-slate-100 hover:bg-slate-200 border border-slate-200 px-3 py-1.5 rounded-lg transition-colors">Changer de rôle</button>
       </div>
-
-      <!-- Formulaire -->
-      <div class="text-xs font-medium text-slate-500 uppercase
-                  tracking-wide mb-4">
-        [[ roleActuel === 'mentor'
-           ? '📋 Mon offre de mentorat'
-           : '📋 Ma demande de mentorat' ]]
+      <div class="text-xs font-medium text-slate-500 uppercase tracking-wide mb-4">
+        [[ roleActuel === 'mentor' ? '📋 Mon offre de mentorat' : '📋 Ma demande de mentorat' ]]
       </div>
-
-      <!-- Formulaire commun -->
       <div v-if="roleActuel" class="space-y-4">
         <div v-html="formulaireHTML"></div>
       </div>
-
-      <button
-        @click="lancerRecherche"
-        :disabled="!roleChoisi || chargement"
-        class="w-full bg-accent hover:bg-blue-700 disabled:opacity-50
-               disabled:cursor-not-allowed text-white font-medium
-               py-2.5 rounded-xl transition-colors flex items-center
-               justify-center gap-2">
-        <span v-if="chargement">
-          <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10"
-                    stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor"
-                  d="M4 12a8 8 0 018-8v8z"></path>
-          </svg>
-        </span>
+      <button @click="lancerRecherche" :disabled="!roleChoisi || chargement" class="w-full bg-accent hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium py-2.5 rounded-xl transition-colors flex items-center justify-center gap-2">
+        <span v-if="chargement"><svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg></span>
         <span>[[ chargement ? 'Recherche en cours...' : 'Rechercher' ]]</span>
       </button>
-
-      <p class="text-xs text-slate-400 text-center mt-3">
-        Tu peux changer de mode à tout moment en recliquant sur un choix
-      </p>
-
+      <p class="text-xs text-slate-400 text-center mt-3">Tu peux changer de mode à tout moment en recliquant sur un choix</p>
     </div>
-
-    <!-- ── CAS les_deux : choix du rôle ── -->
     <div v-if="modeAffichage === 'choix'">
-
-      <p class="text-sm font-medium text-slate-900 text-center mb-4">
-        Que cherches-tu aujourd'hui ?
-      </p>
-
+      <p class="text-sm font-medium text-slate-900 text-center mb-4">Que cherches-tu aujourd'hui ?</p>
       <div class="grid grid-cols-2 gap-4 mb-4">
-
-        <div
-          @click="selectionnerRole('mentore')"
-          :class="roleChoisi === 'mentore'
-            ? 'border-accent bg-blue-50 border-2'
-            : 'border-slate-200 hover:border-accent'"
-          class="border rounded-2xl p-5 text-center cursor-pointer
-                 transition-colors">
+        <div @click="selectionnerRole('mentore')" :class="roleChoisi === 'mentore' ? 'border-accent bg-blue-50 border-2' : 'border-slate-200 hover:border-accent'" class="border rounded-2xl p-5 text-center cursor-pointer transition-colors">
           <div class="text-3xl mb-3">🎓</div>
-          <p class="text-sm font-medium text-slate-900 mb-1">
-            Je cherche un mentor
-          </p>
-          <p class="text-xs text-slate-500">
-            Je publie une demande de mentorat
-          </p>
+          <p class="text-sm font-medium text-slate-900 mb-1">Je cherche un mentor</p>
+          <p class="text-xs text-slate-500">Je publie une demande de mentorat</p>
         </div>
-
-        <div
-          @click="selectionnerRole('mentor')"
-          :class="roleChoisi === 'mentor'
-            ? 'border-green-500 bg-green-50 border-2'
-            : 'border-slate-200 hover:border-green-500'"
-          class="border rounded-2xl p-5 text-center cursor-pointer
-                 transition-colors">
+        <div @click="selectionnerRole('mentor')" :class="roleChoisi === 'mentor' ? 'border-green-500 bg-green-50 border-2' : 'border-slate-200 hover:border-green-500'" class="border rounded-2xl p-5 text-center cursor-pointer transition-colors">
           <div class="text-3xl mb-3">👨‍🎓</div>
-          <p class="text-sm font-medium text-slate-900 mb-1">
-            Je veux être mentor
-          </p>
-          <p class="text-xs text-slate-500">
-            Je publie une offre de mentorat
-          </p>
+          <p class="text-sm font-medium text-slate-900 mb-1">Je veux être mentor</p>
+          <p class="text-xs text-slate-500">Je publie une offre de mentorat</p>
         </div>
-
       </div>
-
     </div>
-
   </div>
 
-  <!-- Formulaire de publication -->
-  <div id="formulaire-publication"
-       class="bg-white rounded-2xl shadow-sm border border-slate-200
-              p-6 mb-6" v-show="false">
-  </div>
-
-  <!-- Formulaire réel soumis à Flask -->
-  <form id="form-matching" action="/matching" method="POST"
-        class="bg-white rounded-2xl shadow-sm border border-slate-200
-               p-6 mb-6" id="form-section">
-
-    <div class="text-xs font-medium text-slate-500 uppercase
-                tracking-wide mb-5" id="form-title">
-      📋 Mon formulaire
-    </div>
-
-    <!-- Matières -->
+  <!-- Formulaire publication -->
+  <form id="form-matching" action="/matching" method="POST" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-6">
+    <div class="text-xs font-medium text-slate-500 uppercase tracking-wide mb-5" id="form-title">📋 Mon formulaire</div>
     <div class="mb-4">
-      <label class="block text-sm font-medium text-slate-700 mb-1">
-        Matières / compétences concernées
-        <span class="text-slate-400 font-normal">
-          (séparées par des virgules)
-        </span>
-      </label>
-      <input
-        type="text"
-        name="matieres"
-        required
-        placeholder="Ex: Python, SQL, Algorithmique..."
-        class="w-full px-4 py-2.5 rounded-lg border border-slate-300
-               text-sm text-slate-900 bg-white
-               focus:outline-none focus:ring-2 focus:ring-accent
-               focus:border-transparent placeholder:text-slate-400">
-      <p class="text-xs text-slate-400 mt-1">
-        Ces matières seront utilisées pour trouver les meilleures
-        correspondances.
-      </p>
+      <label class="block text-sm font-medium text-slate-700 mb-1">Matières / compétences concernées <span class="text-slate-400 font-normal">(séparées par des virgules)</span></label>
+      <input type="text" name="matieres" required placeholder="Ex: Python, SQL, Algorithmique..." class="w-full px-4 py-2.5 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-accent">
     </div>
-
-    <!-- Disponibilités -->
     <div class="mb-4">
       <div class="flex items-center justify-between mb-3">
-        <label class="block text-sm font-medium text-slate-700">
-          Disponibilités
-        </label>
-        <button type="button" onclick="ajouterCreneau()"
-          class="text-xs bg-blue-50 hover:bg-accent hover:text-white
-                 text-accent border border-blue-200 px-3 py-1.5
-                 rounded-lg transition-colors">
-          + Ajouter un créneau
-        </button>
+        <label class="block text-sm font-medium text-slate-700">Disponibilités</label>
+        <button type="button" onclick="ajouterCreneau()" class="text-xs bg-blue-50 hover:bg-accent hover:text-white text-accent border border-blue-200 px-3 py-1.5 rounded-lg transition-colors">+ Ajouter un créneau</button>
       </div>
-
       <div id="creneaux-container" class="space-y-3">
-        <!-- Créneau par défaut -->
-        <div class="creneau-row grid grid-cols-4 gap-3 items-end
-                    p-3 bg-slate-50 rounded-xl border border-slate-200">
-          <div>
-            <label class="block text-xs font-medium
-                          text-slate-600 mb-1">Jour</label>
-            <select name="jours[]"
-              class="w-full px-3 py-2 rounded-lg border border-slate-300
-                     text-sm bg-white focus:outline-none
-                     focus:ring-2 focus:ring-accent">
-              <option value="Lundi">Lundi</option>
-              <option value="Mardi">Mardi</option>
-              <option value="Mercredi">Mercredi</option>
-              <option value="Jeudi">Jeudi</option>
-              <option value="Vendredi">Vendredi</option>
-              <option value="Samedi">Samedi</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-xs font-medium
-                          text-slate-600 mb-1">Début</label>
-            <input type="time" name="heures_debut[]"
-              class="w-full px-3 py-2 rounded-lg border border-slate-300
-                     text-sm bg-white focus:outline-none
-                     focus:ring-2 focus:ring-accent">
-          </div>
-          <div>
-            <label class="block text-xs font-medium
-                          text-slate-600 mb-1">Fin</label>
-            <input type="time" name="heures_fin[]"
-              class="w-full px-3 py-2 rounded-lg border border-slate-300
-                     text-sm bg-white focus:outline-none
-                     focus:ring-2 focus:ring-accent">
-          </div>
-          <div>
-            <button type="button" onclick="supprimerCreneau(this)"
-              class="w-full text-xs text-red-500 hover:text-red-700
-                     border border-red-200 hover:border-red-400
-                     py-2 rounded-lg transition-colors bg-white">
-              Supprimer
-            </button>
-          </div>
+        <div class="creneau-row grid grid-cols-4 gap-3 items-end p-3 bg-slate-50 rounded-xl border border-slate-200">
+          <div><label class="block text-xs font-medium text-slate-600 mb-1">Jour</label><select name="jours[]" class="w-full px-3 py-2 rounded-lg border"><option>Lundi</option><option>Mardi</option><option>Mercredi</option><option>Jeudi</option><option>Vendredi</option><option>Samedi</option></select></div>
+          <div><label class="block text-xs font-medium text-slate-600 mb-1">Début</label><input type="time" name="heures_debut[]" class="w-full px-3 py-2 rounded-lg border"></div>
+          <div><label class="block text-xs font-medium text-slate-600 mb-1">Fin</label><input type="time" name="heures_fin[]" class="w-full px-3 py-2 rounded-lg border"></div>
+          <div><button type="button" onclick="supprimerCreneau(this)" class="w-full text-xs text-red-500 border border-red-200 py-2 rounded-lg">Supprimer</button></div>
         </div>
       </div>
     </div>
-
-    <!-- Format -->
-    <div class="mb-5">
-      <label class="block text-sm font-medium text-slate-700 mb-1">
-        Format souhaité
-      </label>
-      <select name="format"
-        class="w-full px-4 py-2.5 rounded-lg border border-slate-300
-               text-sm text-slate-900 bg-white
-               focus:outline-none focus:ring-2 focus:ring-accent
-               focus:border-transparent">
-        <option value="ligne">💻 En ligne</option>
-        <option value="presentiel">🏫 Présentiel</option>
-        <option value="les_deux">🔄 Les deux</option>
-      </select>
-    </div>
-
-    <!-- Champ caché pour le type (offre ou demande) -->
+    <div class="mb-5"><label class="block text-sm font-medium text-slate-700 mb-1">Format souhaité</label><select name="format" class="w-full px-4 py-2.5 rounded-lg border"><option value="ligne">💻 En ligne</option><option value="presentiel">🏫 Présentiel</option><option value="les_deux">🔄 Les deux</option></select></div>
     <input type="hidden" name="type" id="type-publication" value="demande">
-
-    <!-- Bouton submit -->
-    <button type="submit" id="btn-submit"
-      class="w-full bg-accent hover:bg-blue-700 text-white font-medium
-             py-2.5 rounded-xl transition-colors">
-      🔍 Publier et rechercher
-    </button>
-
+    <button type="submit" id="btn-submit" class="w-full bg-accent hover:bg-blue-700 text-white font-medium py-2.5 rounded-xl transition-colors">🔍 Publier et rechercher</button>
   </form>
 
-  <!-- Barre de recherche rapide -->
-  <div class="bg-white rounded-2xl shadow-sm border border-slate-200
-              p-6 mb-6">
-
-    <div class="text-xs font-medium text-slate-500 uppercase
-                tracking-wide mb-4">
-      🔎 Recherche rapide
-    </div>
-
+  <!-- Barre recherche rapide -->
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-6">
+    <div class="text-xs font-medium text-slate-500 uppercase tracking-wide mb-4">🔎 Recherche rapide</div>
     <div class="flex gap-3">
-      <input
-        type="text"
-        id="search-matiere"
-        placeholder="Rechercher par matière..."
-        class="flex-1 px-4 py-2.5 rounded-lg border border-slate-300
-               text-sm text-slate-900 bg-white
-               focus:outline-none focus:ring-2 focus:ring-accent
-               focus:border-transparent placeholder:text-slate-400">
-      <select id="search-format"
-        class="px-4 py-2.5 rounded-lg border border-slate-300
-               text-sm text-slate-900 bg-white
-               focus:outline-none focus:ring-2 focus:ring-accent
-               focus:border-transparent">
-        <option value="">Tous formats</option>
-        <option value="ligne">En ligne</option>
-        <option value="presentiel">Présentiel</option>
-        <option value="les_deux">Les deux</option>
-      </select>
-      <button onclick="rechercherOffres()"
-        class="bg-slate-100 hover:bg-slate-200 text-slate-700
-               text-sm font-medium px-5 py-2.5 rounded-lg
-               transition-colors border border-slate-200">
-        Filtrer
-      </button>
+      <input type="text" id="search-matiere" placeholder="Rechercher par matière..." class="flex-1 px-4 py-2.5 rounded-lg border border-slate-300 text-sm">
+      <select id="search-format" class="px-4 py-2.5 rounded-lg border"><option value="">Tous formats</option><option value="ligne">En ligne</option><option value="presentiel">Présentiel</option><option value="les_deux">Les deux</option></select>
+      <button onclick="rechercherOffres()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium px-5 py-2.5 rounded-lg border">Filtrer</button>
     </div>
-
   </div>
 
   <!-- Section résultats -->
   <div id="section-resultats">
-
-    <div class="flex items-center justify-between mb-4">
-      <h2 class="text-lg font-semibold text-slate-900">
-        <span id="titre-resultats">Résultats</span>
-      </h2>
-      <span class="text-xs text-slate-400" id="nb-resultats"></span>
+    <div class="flex items-center justify-between mb-4"><h2 class="text-lg font-semibold text-slate-900"><span id="titre-resultats">Résultats</span></h2><span class="text-xs text-slate-400" id="nb-resultats"></span></div>
+    <div id="msg-initial" class="bg-white rounded-2xl border border-slate-200 p-12 text-center">
+      <p class="text-slate-400 text-sm font-medium">Publie une offre ou une demande pour voir les correspondances</p>
+      <p class="text-slate-300 text-xs mt-1">Tu peux aussi utiliser la recherche rapide</p>
     </div>
-
-    <!-- Message initial -->
-    <div id="msg-initial"
-         class="bg-white rounded-2xl border border-slate-200
-                p-12 text-center">
-      <p class="text-slate-400 text-sm font-medium">
-        Publie une offre ou une demande pour voir les correspondances
-      </p>
-      <p class="text-slate-300 text-xs mt-1">
-        Tu peux aussi utiliser la recherche rapide pour filtrer
-        les offres existantes
-      </p>
+    <div id="msg-vide" class="hidden bg-white rounded-2xl border border-slate-200 p-12 text-center">
+      <p class="text-slate-400 text-sm font-medium">Aucune correspondance trouvée</p>
+      <p class="text-slate-300 text-xs mt-1">Essaie d'autres critères</p>
     </div>
-
-    <!-- Message aucun résultat -->
-    <div id="msg-vide"
-         class="hidden bg-white rounded-2xl border border-slate-200
-                p-12 text-center">
-      <p class="text-slate-400 text-sm font-medium">
-        Aucune correspondance trouvée
-      </p>
-      <p class="text-slate-300 text-xs mt-1">
-        Essaie avec d'autres matières ou formats
-      </p>
-    </div>
-
-    <!-- Grille résultats -->
-    <div id="grille-resultats"
-         class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-
-      {% if resultats %}
-        {% for item in resultats %}
-          <div class="bg-white rounded-2xl shadow-sm border
-                      border-slate-200 p-5 hover:border-accent
-                      transition-colors">
-
-            <!-- En-tête carte -->
-            <div class="flex items-center gap-3 mb-4">
-              <div class="w-11 h-11 rounded-full bg-accent flex
-                          items-center justify-center text-white
-                          font-bold text-sm flex-shrink-0">
-                {{ item.auteur.prenom[0] | upper }}{{ item.auteur.nom[0] | upper }}
-              </div>
-              <div>
-                <p class="text-sm font-semibold text-slate-900">
-                  {{ item.auteur.prenom }} {{ item.auteur.nom }}
-                </p>
-                <span class="text-xs bg-blue-50 text-blue-700
-                             px-2 py-0.5 rounded-full">
-                  {{ item.auteur.filiere }}
-                </span>
-              </div>
-            </div>
-
-            <!-- Score -->
-            <div class="mb-3">
-              <div class="flex items-center justify-between mb-1">
-                <span class="text-xs text-slate-500">
-                  Compatibilité
-                </span>
-                <span class="text-sm font-bold
-                  {% if item.score >= 70 %}text-green-600
-                  {% elif item.score >= 50 %}text-amber-600
-                  {% else %}text-red-500{% endif %}">
-                  {{ item.score | round | int }}%
-                </span>
-              </div>
-              <div class="w-full bg-slate-100 rounded-full h-1.5">
-                <div class="rounded-full h-1.5
-                  {% if item.score >= 70 %}bg-green-500
-                  {% elif item.score >= 50 %}bg-amber-500
-                  {% else %}bg-red-400{% endif %}"
-                     style="width: {{ item.score | round | int }}%">
-                </div>
-              </div>
-            </div>
-
-            <!-- Matières communes -->
-            {% if item.matieres_communes %}
-              <div class="mb-3">
-                <p class="text-xs text-slate-500 mb-1.5">
-                  Matières en commun
-                </p>
-                <div class="flex flex-wrap gap-1">
-                  {% for matiere in item.matieres_communes %}
-                    <span class="text-xs bg-blue-50 text-blue-700
-                                 px-2 py-0.5 rounded-full">
-                      {{ matiere }}
-                    </span>
-                  {% endfor %}
-                </div>
-              </div>
-            {% endif %}
-
-            <!-- Disponibilités communes -->
-            {% if item.dispos_communes %}
-              <div class="mb-3">
-                <p class="text-xs text-slate-500 mb-1">
-                  Disponibilités communes
-                </p>
-                {% for dispo in item.dispos_communes %}
-                  <p class="text-xs text-slate-600">
-                    📅 {{ dispo }}
-                  </p>
-                {% endfor %}
-              </div>
-            {% endif %}
-
-            <!-- Format -->
-            <div class="mb-4">
-              <span class="text-xs text-slate-500">
-                {% if item.publication.format == 'ligne' %}
-                  💻 En ligne
-                {% elif item.publication.format == 'presentiel' %}
-                  🏫 Présentiel
-                {% else %}
-                  🔄 Présentiel ou en ligne
-                {% endif %}
-              </span>
-            </div>
-
-            <!-- Bouton répondre -->
-            <button
-              onclick="ouvrirModal({{ item.publication.id }},
-                       '{{ item.auteur.prenom }} {{ item.auteur.nom }}')"
-              class="block w-full text-center bg-slate-50
-                     hover:bg-accent hover:text-white text-slate-700
-                     text-sm font-medium py-2 rounded-lg transition-colors
-                     border border-slate-200 hover:border-accent">
-              Répondre
-            </button>
-
-          </div>
-        {% endfor %}
-
-      {% else %}
-        <!-- Affiché si pas encore de résultats -->
-      {% endif %}
-
-    </div>
-
+    <div id="grille-resultats" class="grid grid-cols-1 gap-4 sm:grid-cols-3"></div>
   </div>
-
 </div>
 
-<!-- Modal réponse -->
-<div id="modal-reponse"
-     class="hidden fixed inset-0 bg-black bg-opacity-50 z-50
-            flex items-center justify-center px-4">
+<div id="modal-reponse" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center px-4">
   <div class="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md">
-
-    <h3 class="text-lg font-semibold text-slate-900 mb-1">
-      Répondre à cette offre
-    </h3>
-    <p class="text-sm text-slate-500 mb-4"
-       id="modal-destinataire"></p>
-
+    <h3 class="text-lg font-semibold text-slate-900 mb-1">Répondre à cette offre</h3>
+    <p class="text-sm text-slate-500 mb-4" id="modal-destinataire"></p>
     <form id="form-reponse" method="POST" class="space-y-4">
-
-      <div>
-        <label class="block text-sm font-medium text-slate-700 mb-1">
-          Ton message
-        </label>
-        <textarea
-          name="sujet"
-          id="sujet-reponse"
-          rows="3"
-          required
-          placeholder="Ex: Bonjour, je suis intéressé par ton offre.
-Je maîtrise Python et suis disponible lundi..."
-          class="w-full px-4 py-3 rounded-lg border border-slate-300
-                 text-sm text-slate-900 bg-white resize-none
-                 focus:outline-none focus:ring-2 focus:ring-accent
-                 focus:border-transparent placeholder:text-slate-400">
-        </textarea>
-      </div>
-
-      <div class="flex gap-3">
-        <button type="button" onclick="fermerModal()"
-          class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700
-                 font-medium py-2.5 rounded-lg transition-colors text-sm">
-          Annuler
-        </button>
-        <button type="submit"
-          class="flex-1 bg-accent hover:bg-blue-700 text-white
-                 font-medium py-2.5 rounded-lg transition-colors text-sm">
-          Envoyer
-        </button>
-      </div>
-
+      <div><label class="block text-sm font-medium text-slate-700 mb-1">Ton message</label><textarea name="sujet" id="sujet-reponse" rows="3" required placeholder="Bonjour, je suis intéressé..." class="w-full px-4 py-3 rounded-lg border text-sm focus:ring-2 focus:ring-accent"></textarea></div>
+      <div class="flex gap-3"><button type="button" onclick="fermerModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium py-2.5 rounded-lg">Annuler</button><button type="submit" class="flex-1 bg-accent hover:bg-blue-700 text-white font-medium py-2.5 rounded-lg">Envoyer</button></div>
     </form>
-
   </div>
 </div>
 
-{% endblock %}
-
-{% block scripts %}
 <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.js"></script>
 <script>
-
   const { createApp, ref } = Vue;
-
   const roleUtilisateur = "{{ user.role if user else 'les_deux' }}";
   const userId = {{ user.id if user else 0 }};
+  createApp({ delimiters: ['[[', ']]'], setup() {
+    const modeAffichage = ref(roleUtilisateur === 'les_deux' ? 'choix' : 'predefini');
+    const roleActuel = ref(roleUtilisateur);
+    const roleChoisi = ref(null);
+    function basculerVersChoix() { modeAffichage.value = 'choix'; roleChoisi.value = null; }
+    function selectionnerRole(role) { roleChoisi.value = role; roleActuel.value = role; modeAffichage.value = 'predefini'; document.getElementById('type-publication').value = role === 'mentor' ? 'offre' : 'demande'; mettreAJourFormulaire(role); }
+    function mettreAJourFormulaire(role) { const titre = document.getElementById('form-title'); const btn = document.getElementById('btn-submit'); if(role === 'mentor') { titre.textContent = '📋 Mon offre de mentorat'; btn.textContent = '🔍 Publier mon offre et rechercher'; document.getElementById('titre-resultats').textContent = 'Demandes compatibles'; } else { titre.textContent = '📋 Ma demande de mentorat'; btn.textContent = '🔍 Publier ma demande et rechercher'; document.getElementById('titre-resultats').textContent = 'Offres compatibles'; } }
+    if(roleUtilisateur !== 'les_deux') { document.getElementById('type-publication').value = roleUtilisateur === 'mentor' ? 'offre' : 'demande'; mettreAJourFormulaire(roleUtilisateur); }
+    return { modeAffichage, roleActuel, roleChoisi, basculerVersChoix, selectionnerRole };
+  }}).mount('#app');
 
-  // ── Vue.js pour la gestion des rôles ──────────────────────────
-  createApp({
-    delimiters: ['[[', ']]'],
-    setup() {
-      const modeAffichage = ref(
-        roleUtilisateur === 'les_deux' ? 'choix' : 'predefini'
-      );
-      const roleActuel = ref(roleUtilisateur);
-      const roleChoisi = ref(null);
-
-      function basculerVersChoix() {
-        modeAffichage.value = 'choix';
-        roleChoisi.value = null;
-      }
-
-      function selectionnerRole(role) {
-        roleChoisi.value = role;
-        roleActuel.value = role;
-        modeAffichage.value = 'predefini';
-        // Mettre à jour le champ caché
-        document.getElementById('type-publication').value =
-          role === 'mentor' ? 'offre' : 'demande';
-        // Mettre à jour le titre du formulaire
-        mettreAJourFormulaire(role);
-      }
-
-      function mettreAJourFormulaire(role) {
-        const titre = document.getElementById('form-title');
-        const btn = document.getElementById('btn-submit');
-        if (role === 'mentor') {
-          titre.textContent = '📋 Mon offre de mentorat';
-          btn.textContent = '🔍 Publier mon offre et rechercher';
-          btn.className = btn.className.replace('bg-accent hover:bg-blue-700',
-            'bg-green-600 hover:bg-green-700');
-          document.getElementById('titre-resultats').textContent =
-            'Demandes compatibles';
-        } else {
-          titre.textContent = '📋 Ma demande de mentorat';
-          btn.textContent = '🔍 Publier ma demande et rechercher';
-          btn.className = btn.className.replace('bg-green-600 hover:bg-green-700',
-            'bg-accent hover:bg-blue-700');
-          document.getElementById('titre-resultats').textContent =
-            'Offres compatibles';
-        }
-      }
-
-      // Initialisation selon le rôle du profil
-      if (roleUtilisateur !== 'les_deux') {
-        document.getElementById('type-publication').value =
-          roleUtilisateur === 'mentor' ? 'offre' : 'demande';
-        mettreAJourFormulaire(roleUtilisateur);
-      }
-
-      return {
-        modeAffichage, roleActuel, roleChoisi,
-        basculerVersChoix, selectionnerRole
-      };
-    }
-  }).mount('#app');
-
-  // ── Gestion des créneaux ───────────────────────────────────────
-  function ajouterCreneau() {
-    const container = document.getElementById('creneaux-container');
-    const row = document.createElement('div');
-    row.className = 'creneau-row grid grid-cols-4 gap-3 items-end p-3 bg-slate-50 rounded-xl border border-slate-200';
-    row.innerHTML = `
-      <div>
-        <label class="block text-xs font-medium text-slate-600 mb-1">
-          Jour
-        </label>
-        <select name="jours[]"
-          class="w-full px-3 py-2 rounded-lg border border-slate-300
-                 text-sm bg-white focus:outline-none focus:ring-2
-                 focus:ring-accent">
-          <option value="Lundi">Lundi</option>
-          <option value="Mardi">Mardi</option>
-          <option value="Mercredi">Mercredi</option>
-          <option value="Jeudi">Jeudi</option>
-          <option value="Vendredi">Vendredi</option>
-          <option value="Samedi">Samedi</option>
-        </select>
-      </div>
-      <div>
-        <label class="block text-xs font-medium text-slate-600 mb-1">
-          Début
-        </label>
-        <input type="time" name="heures_debut[]"
-          class="w-full px-3 py-2 rounded-lg border border-slate-300
-                 text-sm bg-white focus:outline-none focus:ring-2
-                 focus:ring-accent">
-      </div>
-      <div>
-        <label class="block text-xs font-medium text-slate-600 mb-1">
-          Fin
-        </label>
-        <input type="time" name="heures_fin[]"
-          class="w-full px-3 py-2 rounded-lg border border-slate-300
-                 text-sm bg-white focus:outline-none focus:ring-2
-                 focus:ring-accent">
-      </div>
-      <div>
-        <button type="button" onclick="supprimerCreneau(this)"
-          class="w-full text-xs text-red-500 hover:text-red-700
-                 border border-red-200 hover:border-red-400
-                 py-2 rounded-lg transition-colors bg-white">
-          Supprimer
-        </button>
-      </div>`;
-    container.appendChild(row);
-  }
-
-  function supprimerCreneau(btn) {
-    const container = document.getElementById('creneaux-container');
-    if (container.querySelectorAll('.creneau-row').length > 1) {
-      btn.closest('.creneau-row').remove();
-    }
-  }
-
-  // ── Recherche rapide ───────────────────────────────────────────
+  function ajouterCreneau() { const container = document.getElementById('creneaux-container'); const row = document.createElement('div'); row.className = 'creneau-row grid grid-cols-4 gap-3 items-end p-3 bg-slate-50 rounded-xl border'; row.innerHTML = '<div><select name="jours[]" class="w-full px-3 py-2 rounded-lg border"><option>Lundi</option><option>Mardi</option><option>Mercredi</option><option>Jeudi</option><option>Vendredi</option><option>Samedi</option></select></div><div><input type="time" name="heures_debut[]" class="w-full px-3 py-2 rounded-lg border"></div><div><input type="time" name="heures_fin[]" class="w-full px-3 py-2 rounded-lg border"></div><div><button type="button" onclick="supprimerCreneau(this)" class="w-full text-xs text-red-500 border border-red-200 py-2 rounded-lg">Supprimer</button></div>'; container.appendChild(row); }
+  function supprimerCreneau(btn) { if(document.querySelectorAll('.creneau-row').length > 1) btn.closest('.creneau-row').remove(); }
+  
   function rechercherOffres() {
     const matiere = document.getElementById('search-matiere').value;
-    const format  = document.getElementById('search-format').value;
-    const type    = document.getElementById('type-publication').value === 'offre'
-                    ? 'demande' : 'offre';
-
-    fetch(`/matching/rechercher?matiere=${matiere}&format=${format}&type=${type}`)
-      .then(res => res.json())
-      .then(data => {
+    const format = document.getElementById('search-format').value;
+    const type = document.getElementById('type-publication').value === 'offre' ? 'demande' : 'offre';
+    fetch(`/matching/rechercher?matiere=${encodeURIComponent(matiere)}&format=${format}&type=${type}`)
+      .then(res => res.json()).then(data => {
         document.getElementById('msg-initial').classList.add('hidden');
+        const grille = document.getElementById('grille-resultats');
         if (!data || data.length === 0) {
           document.getElementById('msg-vide').classList.remove('hidden');
+          grille.classList.add('hidden');
           return;
         }
         document.getElementById('msg-vide').classList.add('hidden');
-        document.getElementById('nb-resultats').textContent =
-          `${data.length} résultat(s) trouvé(s)`;
-      })
-      .catch(() => {
-        document.getElementById('msg-vide').classList.remove('hidden');
-      });
+        grille.innerHTML = '';
+        data.forEach(item => {
+          const card = document.createElement('div');
+          card.className = 'bg-white rounded-2xl shadow-sm border border-slate-200 p-5 hover:border-accent transition-colors';
+          const initiales = (item.auteur.split(' ')[0][0] + (item.auteur.split(' ')[1]?.[0] || '')).toUpperCase();
+          card.innerHTML = `
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-11 h-11 rounded-full bg-accent flex items-center justify-center text-white font-bold text-sm flex-shrink-0">${initiales}</div>
+              <div><p class="text-sm font-semibold text-slate-900">${item.auteur}</p><span class="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full">${item.filiere}</span></div>
+            </div>
+            <div class="mb-3"><p class="text-xs text-slate-500 mb-1">Matières</p><p class="text-xs text-slate-700">${item.matieres}</p></div>
+            <div class="mb-3"><p class="text-xs text-slate-500 mb-1">Disponibilités</p><p class="text-xs text-slate-600">${item.disponibilites || 'Non spécifiées'}</p></div>
+            <div class="mb-4"><span class="text-xs text-slate-500">${item.format === 'ligne' ? '💻 En ligne' : (item.format === 'presentiel' ? '🏫 Présentiel' : '🔄 Les deux')}</span></div>
+            <button onclick="ouvrirModal(${item.id}, '${item.auteur}')" class="block w-full text-center bg-slate-50 hover:bg-accent hover:text-white text-slate-700 text-sm font-medium py-2 rounded-lg transition-colors border border-slate-200 hover:border-accent">Répondre</button>
+          `;
+          grille.appendChild(card);
+        });
+        grille.classList.remove('hidden');
+        document.getElementById('nb-resultats').textContent = `${data.length} résultat(s) trouvé(s)`;
+      }).catch(() => { document.getElementById('msg-vide').classList.remove('hidden'); });
   }
 
-  // ── Modal réponse ──────────────────────────────────────────────
-  function ouvrirModal(publicationId, nomAuteur) {
-    document.getElementById('modal-destinataire').textContent =
-      `À : ${nomAuteur}`;
-    document.getElementById('form-reponse').action =
-      `/demande/${publicationId}`;
+  function ouvrirModal(pubId, auteur) {
+    document.getElementById('modal-destinataire').textContent = `À : ${auteur}`;
+    document.getElementById('form-reponse').action = `/demande/${pubId}`;
     document.getElementById('modal-reponse').classList.remove('hidden');
   }
-
-  function fermerModal() {
-    document.getElementById('modal-reponse').classList.add('hidden');
-    document.getElementById('sujet-reponse').value = '';
-  }
-
-  document.getElementById('modal-reponse')
-    .addEventListener('click', function(e) {
-      if (e.target === this) fermerModal();
-    });
-
-  // Afficher résultats si Flask en envoie
-  {% if resultats %}
-    document.getElementById('msg-initial').classList.add('hidden');
-    document.getElementById('nb-resultats').textContent =
-      '{{ resultats | length }} résultat(s) trouvé(s)';
-  {% endif %}
-
+  function fermerModal() { document.getElementById('modal-reponse').classList.add('hidden'); document.getElementById('sujet-reponse').value = ''; }
+  document.getElementById('modal-reponse')?.addEventListener('click', function(e) { if(e.target === this) fermerModal(); });
 </script>
 {% endblock %}
